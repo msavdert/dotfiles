@@ -1,0 +1,25 @@
+# Chezmoi Ignore Configuration
+# Files and directories to exclude from chezmoi management
+# These files stay in the git repository but won't be copied to home directory
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Development files
+.git/
+.gitignore
+.editorconfig
+.vscode/
+
+# Docker testing environment
+Dockerfile
+docker-compose.yml
+
+# Installation script (this lives in repo, not in home)
+install.sh
+
+# CI/CD
+.github/
+.gitlab-ci.yml

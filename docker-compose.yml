@@ -1,0 +1,32 @@
+services:
+  dotfiles:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devenv
+    hostname: devenv
+    environment:
+      - TZ=America/New_York
+      - TERM=xterm-256color
+    stdin_open: true
+    tty: true
+    # Mount dotfiles for development (read-only)
+    volumes:
+      - ./:/workspace:ro
+      # Persist mise installations
+      # - mise-data:/home/msavdert/.local/share/mise
+      # Persist chezmoi data
+      # - chezmoi-data:/home/msavdert/.local/share/chezmoi
+      # Persist fnox data
+      # - fnox-data:/home/msavdert/.config/fnox
+    working_dir: /home/msavdert
+    command: /bin/bash
+
+# Named volumes for persistence
+#volumes:
+#  mise-data:
+#    driver: local
+#  chezmoi-data:
+#    driver: local
+#  fnox-data:
+#    driver: local

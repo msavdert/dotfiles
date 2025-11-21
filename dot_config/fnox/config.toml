@@ -1,0 +1,109 @@
+# fnox configuration
+# Managed via: https://github.com/msavdert/dotfiles
+#
+# This file contains encrypted secrets using age encryption.
+# The encrypted values are safe to commit to git.
+#
+# Usage:
+#   fnox set SECRET_NAME "secret-value"  # Set a secret
+#   fnox get SECRET_NAME                 # Get a secret
+#   fnox list                            # List all secrets
+#   fnox exec -- command                 # Run command with secrets loaded
+#
+# First-time setup:
+#   1. Generate age key: age-keygen -o ~/.config/fnox/key.txt
+#   2. Copy your public key (age1...)
+#   3. Update the recipients field below with your public key
+#   4. Initialize: fnox init
+
+[providers]
+# Age encryption provider (default)
+# Replace the recipient with your own age public key
+# Get it from: ~/.config/fnox/key.txt (the public key line)
+age = { type = "age", recipients = ["age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"] }
+
+# Additional providers (uncomment as needed)
+# AWS KMS
+# aws_kms = { type = "aws-kms", key_id = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012" }
+
+# AWS Secrets Manager
+# aws_sm = { type = "aws-sm", region = "us-east-1", prefix = "myapp/" }
+
+# Azure Key Vault
+# azure_kv = { type = "azure-sm", vault_url = "https://myvault.vault.azure.net" }
+
+# 1Password
+# onepassword = { type = "1password", account = "my-account" }
+
+# Bitwarden
+# bitwarden = { type = "bitwarden" }
+
+[secrets]
+# Example secrets (encrypted with age)
+# After generating your age key, you can add secrets like this:
+#   fnox set DATABASE_PASSWORD "my-secret-password"
+#   fnox set API_KEY "my-api-key"
+
+# Default values for development (unencrypted, for local dev only)
+# These are useful for local development when you don't want to encrypt simple values
+# Example:
+# DEV_MODE = { default = "true" }
+# LOCAL_API_URL = { default = "http://localhost:3000" }
+
+# =============================================================================
+# COMMON SECRET EXAMPLES
+# =============================================================================
+
+# Database credentials
+# DATABASE_HOST = { provider = "age", value = "..." }
+# DATABASE_USER = { provider = "age", value = "..." }
+# DATABASE_PASSWORD = { provider = "age", value = "..." }
+# DATABASE_NAME = { provider = "age", value = "..." }
+
+# API Keys
+# AWS_ACCESS_KEY_ID = { provider = "age", value = "..." }
+# AWS_SECRET_ACCESS_KEY = { provider = "age", value = "..." }
+# AZURE_CLIENT_ID = { provider = "age", value = "..." }
+# AZURE_CLIENT_SECRET = { provider = "age", value = "..." }
+# OCI_USER_OCID = { provider = "age", value = "..." }
+# OCI_FINGERPRINT = { provider = "age", value = "..." }
+# OCI_PRIVATE_KEY = { provider = "age", value = "..." }
+
+# SSH Keys (for automation)
+# SSH_PRIVATE_KEY = { provider = "age", value = "..." }
+# SSH_PUBLIC_KEY = { provider = "age", value = "..." }
+
+# =============================================================================
+# PROFILES
+# =============================================================================
+
+# Development profile (default)
+# Uses local defaults and age encryption
+[profiles.development]
+
+[profiles.development.secrets]
+# Add development-specific secrets here
+
+# Production profile
+# Uses cloud secret storage for better security in production
+[profiles.production]
+
+[profiles.production.providers]
+# Example: Use AWS Secrets Manager in production
+# aws = { type = "aws-sm", region = "us-east-1", prefix = "prod/" }
+
+[profiles.production.secrets]
+# Reference secrets from AWS Secrets Manager
+# DATABASE_PASSWORD = { provider = "aws", value = "database-password" }
+# API_KEY = { provider = "aws", value = "api-key" }
+
+# Staging profile
+[profiles.staging]
+
+[profiles.staging.providers]
+# Example: Use AWS Secrets Manager in staging
+# aws = { type = "aws-sm", region = "us-east-1", prefix = "staging/" }
+
+[profiles.staging.secrets]
+# Reference secrets from AWS Secrets Manager
+# DATABASE_PASSWORD = { provider = "aws", value = "database-password" }

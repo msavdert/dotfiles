@@ -1,0 +1,84 @@
+# mise configuration file
+# Managed by mise - https://mise.jdx.dev
+# Repository: https://github.com/msavdert/dotfiles
+#
+# This file defines all global tools managed by mise
+# Install all tools: mise install
+# Update all tools: mise upgrade
+
+[tools]
+# Dotfiles management
+chezmoi = "latest"
+
+# Secret management
+fnox = "latest"
+age = "latest"
+
+# Shell enhancements
+starship = "latest"
+zellij = "latest"
+
+# Cloud CLIs (OCI, AWS, Azure)
+oci = "latest"
+# Uncomment when needed:
+# awscli = "latest"
+# "azure-cli" = "latest"
+# "gcloud" = "latest"
+
+# Container tools
+kubectl = "latest"
+kubens = "latest"
+k9s = "latest"
+helm = "latest"
+flux2 = "latest"
+kustomize = "latest"
+
+# Infrastructure as Code (uncomment as needed)
+terraform = "latest"
+# terragrunt = "latest"
+# ansible = "latest"
+
+# Development tools
+jq = "latest"
+yq = "latest"
+cloudflared = "latest"
+neovim = "latest"
+usage = "latest"
+
+# Useful CLI tools (uncomment as needed)
+# ripgrep = "latest"
+# fd = "latest"
+# bat = "latest"
+# eza = "latest"
+# fzf = "latest"
+# delta = "latest"
+
+[settings]
+# Automatically install tools when entering a directory
+auto_install = true
+
+# Use verbose output for debugging
+verbose = false
+
+# Support for legacy version files (.nvmrc, .ruby-version, etc.)
+legacy_version_file = true
+
+# Plugin aliases (short names)
+[alias]
+aws = "awscli"
+az = "azure-cli"
+k = "kubectl"
+tf = "terraform"
+tg = "terragrunt"
+
+# Environment variables
+[env]
+# Default kubeconfig location
+KUBECONFIG = "$HOME/.kube/config"
+
+# Editor preferences
+EDITOR = "nvim"
+VISUAL = "nvim"
+
+# Mise configuration paths
+_.file = ".env"

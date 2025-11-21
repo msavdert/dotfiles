@@ -1,0 +1,344 @@
+# ~/.bash_aliases
+# Managed by chezmoi - https://github.com/msavdert/dotfiles
+# Custom command aliases
+
+# =============================================================================
+# NAVIGATION
+# =============================================================================
+
+# Directory shortcuts
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+# Quick navigation
+alias home='cd ~'
+alias root='cd /'
+
+# =============================================================================
+# FILE OPERATIONS
+# =============================================================================
+
+# List files with colors and better formatting
+alias ls='ls --color=auto'
+alias ll='ls -lAh --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+alias lt='ls -lAht --color=auto'  # Sort by modification time
+
+# File operations with safety
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Create parent directories automatically
+alias mkdir='mkdir -pv'
+
+# =============================================================================
+# SEARCH AND FIND
+# =============================================================================
+
+# Grep with colors
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# Find files and directories
+alias ff='find . -type f -name'
+alias fd='find . -type d -name'
+
+# =============================================================================
+# SYSTEM INFORMATION
+# =============================================================================
+
+# Disk usage
+alias df='df -h'
+alias du='du -h'
+alias dus='du -sh'
+
+# Memory info
+alias free='free -h'
+
+# Process management
+alias psg='ps aux | grep -v grep | grep -i -e VSZ -e'
+alias psmem='ps aux | sort -nr -k 4 | head -10'
+alias pscpu='ps aux | sort -nr -k 3 | head -10'
+
+# System info
+alias sysinfo='echo -e "\n$(uname -a)\n" && echo -e "CPU: $(lscpu | grep "Model name" | cut -d: -f2 | xargs)\n" && free -h'
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+
+# Docker shortcuts
+alias d='docker'
+alias dc='docker compose'
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias di='docker images'
+alias dex='docker exec -it'
+alias dlogs='docker logs -f'
+alias dstop='docker stop $(docker ps -q)'
+alias drm='docker rm $(docker ps -aq)'
+alias drmi='docker rmi $(docker images -q)'
+alias dprune='docker system prune -af --volumes'
+
+# Docker compose shortcuts
+alias dcup='docker compose up -d'
+alias dcdown='docker compose down'
+alias dcrestart='docker compose restart'
+alias dclogs='docker compose logs -f'
+alias dcps='docker compose ps'
+alias dcbuild='docker compose build --no-cache'
+alias dcpull='docker compose pull'
+
+# =============================================================================
+# GIT
+# =============================================================================
+
+# Git shortcuts
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gaa='git add --all'
+alias gc='git commit -v'
+alias gcm='git commit -m'
+alias gca='git commit --amend'
+alias gco='git checkout'
+alias gcb='git checkout -b'
+alias gb='git branch'
+alias gba='git branch -a'
+alias gbd='git branch -d'
+alias gl='git log --oneline --graph --decorate'
+alias gla='git log --oneline --graph --decorate --all'
+alias gp='git push'
+alias gpl='git pull'
+alias gpf='git push --force-with-lease'
+alias gf='git fetch'
+alias gfa='git fetch --all'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gst='git stash'
+alias gstp='git stash pop'
+alias gstl='git stash list'
+alias gm='git merge'
+alias gr='git rebase'
+alias gri='git rebase -i'
+
+# Git log with pretty format
+alias glg='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+
+# =============================================================================
+# ZELLIJ (Terminal Multiplexer)
+# =============================================================================
+
+# Zellij shortcuts
+alias z='zellij'
+alias za='zellij attach'
+alias zl='zellij list-sessions'
+alias zn='zellij -s'
+alias zk='zellij kill-session'
+alias zka='zellij kill-all-sessions'
+
+# =============================================================================
+# NEOVIM
+# =============================================================================
+
+# Neovim shortcuts
+alias vi='nvim'
+alias v='nvim'
+alias vim='nvim'
+
+# Quick edit configs
+alias vimrc='nvim ~/.config/nvim/init.lua'
+alias bashrc='nvim ~/.bashrc'
+alias aliases='nvim ~/.bash_aliases'
+
+# =============================================================================
+# MISE (Tool Version Manager)
+# =============================================================================
+
+alias m='mise'
+alias mi='mise install'
+alias mu='mise use'
+alias ml='mise list'
+alias mls='mise ls'
+alias mlsr='mise ls-remote'
+alias mup='mise upgrade'
+alias mw='mise where'
+
+# =============================================================================
+# FNOX (Secret Management)
+# =============================================================================
+
+alias fe='fnox edit'
+alias fg='fnox get'
+alias fs='fnox set'
+alias fl='fnox list'
+alias fx='fnox exec'
+
+# =============================================================================
+# CHEZMOI (Dotfiles Manager)
+# =============================================================================
+
+alias cm='chezmoi'
+alias cma='chezmoi apply'
+alias cmd='chezmoi diff'
+alias cme='chezmoi edit'
+alias cmea='chezmoi edit --apply'
+alias cmu='chezmoi update'
+alias cms='chezmoi status'
+alias cmcd='chezmoi cd'
+alias cmadd='chezmoi add'
+
+# Quick edit dotfiles
+alias editdot='chezmoi edit'
+
+# =============================================================================
+# KUBERNETES
+# =============================================================================
+
+# Kubernetes aliases
+alias k='kubectl'
+alias kx='kubectx'
+alias kn='kubens'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get svc'
+alias kgd='kubectl get deployments'
+alias kga='kubectl get all'
+alias kgn='kubectl get nodes'
+alias kdp='kubectl describe pod'
+alias kds='kubectl describe svc'
+alias kdd='kubectl describe deployment'
+alias kl='kubectl logs'
+alias klf='kubectl logs -f'
+alias kex='kubectl exec -it'
+alias kapply='kubectl apply -f'
+alias kdel='kubectl delete'
+
+# Helm shortcuts
+alias h='helm'
+alias hl='helm list'
+alias hi='helm install'
+alias hu='helm upgrade'
+alias hd='helm delete'
+alias hs='helm search'
+
+# K9s
+alias k9='k9s'
+
+# =============================================================================
+# TERRAFORM
+# =============================================================================
+
+# Terraform shortcuts
+alias tf='terraform'
+alias tfi='terraform init'
+alias tfp='terraform plan'
+alias tfa='terraform apply'
+alias tfd='terraform destroy'
+alias tfv='terraform validate'
+alias tff='terraform fmt'
+alias tfw='terraform workspace'
+
+# =============================================================================
+# CLOUD CLI
+# =============================================================================
+
+# OCI CLI
+alias oci='oci'
+
+# AWS CLI (uncomment if using)
+# alias aws='aws'
+
+# Azure CLI (uncomment if using)
+# alias az='az'
+
+# =============================================================================
+# NETWORK
+# =============================================================================
+
+# IP address
+alias myip='curl -s http://ipecho.net/plain; echo'
+alias localip="ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1'"
+
+# Port checking
+alias ports='netstat -tulanp'
+alias listening='netstat -tulanp | grep LISTEN'
+
+# Ping shortcuts
+alias ping='ping -c 5'
+alias fastping='ping -c 100 -i.2'
+
+# =============================================================================
+# UTILITY
+# =============================================================================
+
+# Reload bash configuration
+alias reload='source ~/.bashrc'
+alias refresh='source ~/.bashrc'
+
+# Clear screen
+alias c='clear'
+alias cls='clear'
+
+# Date and time
+alias now='date +"%Y-%m-%d %H:%M:%S"'
+alias nowdate='date +"%Y-%m-%d"'
+alias nowtime='date +"%H:%M:%S"'
+alias timestamp='date +%s'
+
+# Create a backup with timestamp
+alias bak='function _bak(){ cp "$1" "$1.bak.$(date +%Y%m%d_%H%M%S)"; }; _bak'
+
+# Make and enter directory
+alias mkcd='function _mkcd(){ mkdir -p "$1" && cd "$1"; }; _mkcd'
+
+# Quick web server (Python)
+alias serve='python3 -m http.server'
+
+# JSON pretty print
+alias json='python3 -m json.tool'
+
+# Clipboard (requires xclip on Linux)
+# alias pbcopy='xclip -selection clipboard'
+# alias pbpaste='xclip -selection clipboard -o'
+
+# =============================================================================
+# SAFETY ALIASES
+# =============================================================================
+
+# Prevent accidental overwrites
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+
+# Safer rm with trash (if trash-put is installed)
+# command -v trash-put >/dev/null 2>&1 && alias rm='trash-put'
+
+# =============================================================================
+# DEVELOPMENT (Optional - Uncomment as needed)
+# =============================================================================
+
+# Node.js / npm
+# alias npm='npm'
+# alias npmi='npm install'
+# alias npmu='npm update'
+# alias npmg='npm list -g --depth=0'
+
+# Python
+# alias py='python3'
+# alias pip='pip3'
+# alias venv='python3 -m venv'
+# alias activate='source venv/bin/activate'
+
+# =============================================================================
+# PERSONAL / PROJECT SPECIFIC (Add your own below)
+# =============================================================================
+
+# Add your personal aliases here
+# Example:
+# alias myproject='cd ~/projects/myproject'
+# alias startdev='docker compose up -d && npm run dev'

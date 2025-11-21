@@ -1,0 +1,22 @@
+{{ $gitUser := "msavdert" -}}
+{{ $gitEmail := "10913156+msavdert@users.noreply.github.com" -}}
+
+# chezmoi configuration file template
+# This file is templated by chezmoi
+# Managed via: https://github.com/msavdert/dotfiles
+
+[data]
+    name = "{{ $gitUser }}"
+    email = "{{ $gitEmail }}"
+    gitUser = "{{ $gitUser }}"
+    gitEmail = "{{ $gitEmail }}"
+
+[diff]
+    exclude = ["scripts"]
+
+[edit]
+    command = "nvim"
+
+[git]
+    autoCommit = false
+    autoPush = false

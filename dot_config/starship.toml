@@ -1,0 +1,270 @@
+# Starship Prompt Configuration
+# Managed by chezmoi - https://github.com/msavdert/dotfiles
+# Documentation: https://starship.rs/config/
+
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+# Timeout for starship commands (in milliseconds)
+command_timeout = 500
+
+# Single-line format with essential information
+# Format: time user directory git kubernetes terraform docker character
+format = "$time$username$directory$git_branch$git_status$kubernetes$terraform$docker_context$character"
+
+# =============================================================================
+# PROMPT COMPONENTS
+# =============================================================================
+
+[character]
+success_symbol = "[>](green)"
+error_symbol = "[x](red)"
+vimcmd_symbol = "[<](green)"
+
+[time]
+disabled = false
+time_format = "%H:%M:%S"
+format = "[$time](white) "
+
+[username]
+show_always = true
+format = "[$user](green) "
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path](blue) "
+
+# =============================================================================
+# GIT
+# =============================================================================
+
+[git_branch]
+format = "[$symbol$branch](purple) "
+symbol = ""
+
+[git_status]
+format = "([$all_status$ahead_behind](red) )"
+conflicted = "conflict:${count}"
+ahead = "ahead:${count}"
+behind = "behind:${count}"
+diverged = "diverged:${ahead_count}/${behind_count}"
+untracked = "untracked:${count}"
+stashed = "stashed:${count}"
+modified = "modified:${count}"
+staged = "staged:${count}"
+renamed = "renamed:${count}"
+deleted = "deleted:${count}"
+
+# =============================================================================
+# KUBERNETES
+# =============================================================================
+
+[kubernetes]
+disabled = false
+format = "[$symbol$context($namespace)](cyan) "
+symbol = "k8s:"
+detect_folders = ['.kube']
+detect_files = ['k8s', 'kubernetes', 'kustomization.yaml', 'kustomization.yml']
+
+[kubernetes.context_aliases]
+"arn:aws:eks:.*:.*:cluster/([\\w-]+)" = "$1"
+
+# =============================================================================
+# CLOUD & INFRASTRUCTURE
+# =============================================================================
+
+[terraform]
+disabled = false
+format = "[$symbol$workspace](magenta) "
+symbol = "tf:"
+detect_files = ['.terraform', '*.tf', '*.tfvars']
+
+[docker_context]
+disabled = false
+format = "[$symbol$context](blue) "
+symbol = "docker:"
+only_with_files = true
+detect_files = ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile']
+
+[aws]
+disabled = false
+format = "[$symbol$profile($region)](yellow) "
+symbol = "aws:"
+
+[azure]
+disabled = false
+format = "[$symbol$subscription](blue) "
+symbol = "azure:"
+
+[gcloud]
+disabled = false
+format = "[$symbol$project](yellow) "
+symbol = "gcp:"
+
+# =============================================================================
+# LANGUAGES (Only when in project directory)
+# =============================================================================
+
+[python]
+disabled = false
+format = "[$symbol$version](yellow) "
+symbol = "py:"
+detect_extensions = ['py']
+detect_files = ['requirements.txt', 'pyproject.toml', 'Pipfile']
+
+[nodejs]
+disabled = false
+format = "[$symbol$version](green) "
+symbol = "node:"
+detect_extensions = ['js', 'mjs', 'cjs', 'ts']
+detect_files = ['package.json', '.node-version']
+
+[golang]
+disabled = false
+format = "[$symbol$version](cyan) "
+symbol = "go:"
+detect_extensions = ['go']
+detect_files = ['go.mod', 'go.sum']
+
+[rust]
+disabled = false
+format = "[$symbol$version](red) "
+symbol = "rust:"
+detect_extensions = ['rs']
+detect_files = ['Cargo.toml']
+
+# =============================================================================
+# STATUS
+# =============================================================================
+
+[status]
+disabled = false
+format = "[$symbol$status](red) "
+symbol = "exit:"
+not_executable_symbol = "notexec:"
+not_found_symbol = "notfound:"
+
+# =============================================================================
+# DISABLED MODULES (Keep prompt clean)
+# =============================================================================
+
+[cmd_duration]
+disabled = true
+
+[battery]
+disabled = true
+
+[hostname]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[package]
+disabled = true
+
+[buf]
+disabled = true
+
+[c]
+disabled = true
+
+[cmake]
+disabled = true
+
+[cobol]
+disabled = true
+
+[crystal]
+disabled = true
+
+[dart]
+disabled = true
+
+[deno]
+disabled = true
+
+[dotnet]
+disabled = true
+
+[elixir]
+disabled = true
+
+[elm]
+disabled = true
+
+[erlang]
+disabled = true
+
+[fennel]
+disabled = true
+
+[gradle]
+disabled = true
+
+[haskell]
+disabled = true
+
+[haxe]
+disabled = true
+
+[helm]
+disabled = true
+
+[java]
+disabled = true
+
+[julia]
+disabled = true
+
+[kotlin]
+disabled = true
+
+[lua]
+disabled = true
+
+[nim]
+disabled = true
+
+[nix_shell]
+disabled = true
+
+[ocaml]
+disabled = true
+
+[perl]
+disabled = true
+
+[php]
+disabled = true
+
+[pulumi]
+disabled = true
+
+[purescript]
+disabled = true
+
+[rlang]
+disabled = true
+
+[ruby]
+disabled = true
+
+[scala]
+disabled = true
+
+[swift]
+disabled = true
+
+[vagrant]
+disabled = true
+
+[vlang]
+disabled = true
+
+[zig]
+disabled = true

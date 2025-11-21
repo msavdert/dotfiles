@@ -1,0 +1,11 @@
+# ~/.bash_profile
+# Managed by chezmoi - https://github.com/msavdert/dotfiles
+# Login shell configuration
+#
+# Note: On most modern systems, bash reads .bashrc for interactive shells.
+# This file ensures .bashrc is sourced for login shells (SSH, console login).
+
+# Source .bashrc if it exists
+if [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+fi

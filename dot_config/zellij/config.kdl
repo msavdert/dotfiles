@@ -1,0 +1,97 @@
+// Zellij Configuration
+// Managed by chezmoi - https://github.com/msavdert/dotfiles
+// Documentation: https://zellij.dev/documentation/
+
+// Choose the theme that is specified in the themes section
+theme "catppuccin-mocha"
+
+// Default shell
+default_shell "bash"
+
+// Scrollback buffer size
+scroll_buffer_size 10000
+
+// Enable/Disable mouse support
+mouse_mode true
+
+// Enable/Disable copy on select
+copy_on_select true
+
+// Copy command (optional, uses system clipboard by default)
+// copy_command "xclip -selection clipboard" // For Linux with xclip
+// copy_command "pbcopy" // For macOS
+
+// Default layout
+default_layout "compact"
+
+// Keybindings mode (normal or locked)
+// In locked mode, only the unlock keybind works
+keybinds {
+    normal {
+        // Unbind dangerous keys
+        bind "Ctrl q" { Quit; }
+        
+        // Pane navigation
+        bind "Alt h" { MoveFocus "Left"; }
+        bind "Alt l" { MoveFocus "Right"; }
+        bind "Alt j" { MoveFocus "Down"; }
+        bind "Alt k" { MoveFocus "Up"; }
+        
+        // Pane management
+        bind "Alt n" { NewPane; }
+        bind "Alt x" { CloseFocus; }
+        bind "Alt f" { ToggleFocusFullscreen; }
+        
+        // Tab management
+        bind "Alt t" { NewTab; }
+        bind "Alt w" { CloseTab; }
+        bind "Alt 1" { GoToTab 1; }
+        bind "Alt 2" { GoToTab 2; }
+        bind "Alt 3" { GoToTab 3; }
+        bind "Alt 4" { GoToTab 4; }
+        bind "Alt 5" { GoToTab 5; }
+        
+        // Scrolling
+        bind "Alt [" { ScrollUp; }
+        bind "Alt ]" { ScrollDown; }
+        
+        // Search
+        bind "Ctrl s" { Search "down"; }
+    }
+}
+
+// UI settings
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}
+
+// Session serialization
+session_serialization false
+
+// Pane frames
+pane_frames true
+
+// Simplified UI (hide everything except tab bar)
+simplified_ui false
+
+// Auto layout
+auto_layout true
+
+// Theme configuration
+themes {
+    catppuccin-mocha {
+        bg "#1e1e2e"
+        fg "#cdd6f4"
+        red "#f38ba8"
+        green "#a6e3a1"
+        blue "#89b4fa"
+        yellow "#f9e2af"
+        magenta "#cba6f7"
+        orange "#fab387"
+        cyan "#89dceb"
+        black "#181825"
+        white "#cdd6f4"
+    }
+}

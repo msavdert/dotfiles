@@ -1,0 +1,9 @@
+# Encrypted GitHub SSH private key
+# This is a placeholder file. Replace with actual encrypted key.
+#
+# To encrypt your GitHub SSH key:
+#   age -r $(grep 'public key:' ~/.config/fnox/key.txt | cut -d: -f2 | tr -d ' ') \
+#       -o home/private_dot_ssh/private_readonly_id_ed25519_github.age \
+#       ~/.ssh/id_ed25519_github
+#
+# Chezmoi will decrypt this to ~/.ssh/id_ed25519_github with mode 0400

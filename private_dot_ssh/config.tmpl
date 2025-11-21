@@ -1,0 +1,89 @@
+# SSH Configuration
+# Managed by chezmoi - Edit with: chezmoi edit ~/.ssh/config
+#
+# This file is SSH client configuration (NOT YAML)
+# Format: https://man.openbsd.org/ssh_config
+# Private keys should be managed with fnox for encryption.
+
+# Default settings for all hosts
+Host *
+    # Connection keep-alive
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    
+    # Connection keep-alive
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    
+    # Reuse connections for speed
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h:%p
+    ControlPersist 600
+    
+    # Security settings
+    HashKnownHosts yes
+    StrictHostKeyChecking ask
+    VerifyHostKeyDNS ask
+    
+    # Use modern key exchange algorithms
+    KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512
+    
+    # Prefer modern ciphers
+    Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+    
+    # Use strong MAC algorithms
+    MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+
+# GitHub
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_github
+    IdentitiesOnly yes
+    PreferredAuthentications publickey
+
+# Example: Jump host configuration
+# Host jumphost
+#     HostName jumphost.example.com
+#     User admin
+#     Port 22
+#     IdentityFile ~/.ssh/id_ed25519_jumphost
+#     ForwardAgent yes
+
+# Example: Database server through jump host
+# Host db-prod
+#     HostName 10.0.1.50
+#     User dba
+#     Port 22
+#     IdentityFile ~/.ssh/id_ed25519_db
+#     ProxyJump jumphost
+#     LocalForward 5432 localhost:5432
+
+# Example: Oracle Cloud Infrastructure
+# Host oci-bastion
+#     HostName bastion.oci.example.com
+#     User opc
+#     IdentityFile ~/.ssh/id_rsa_oci
+#     StrictHostKeyChecking no
+#     UserKnownHostsFile /dev/null
+
+# Example: Development server
+# Host dev
+#     HostName dev.example.com
+#     User developer
+#     Port 22
+#     IdentityFile ~/.ssh/id_ed25519_dev
+#     ForwardAgent no
+
+# Example: Production server (stricter settings)
+# Host prod
+#     HostName prod.example.com
+#     User admin
+#     Port 2222
+#     IdentityFile ~/.ssh/id_ed25519_prod
+#     StrictHostKeyChecking yes
+#     ForwardAgent no
+#     PasswordAuthentication no
+
+# Create socket directory if it doesn't exist
+# Run: mkdir -p ~/.ssh/sockets && chmod 700 ~/.ssh/sockets
