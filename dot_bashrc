@@ -157,14 +157,14 @@ if command -v fnox &> /dev/null; then
     source <(fnox completion bash)
 fi
 
-# OCI CLI
-if command -v oci &> /dev/null && [ -f "$HOME/.local/share/bash-completion/completions/oci" ]; then
-    source "$HOME/.local/share/bash-completion/completions/oci"
-fi
-
 # k9s
 if command -v k9s &> /dev/null; then
     source <(k9s completion bash)
+fi
+
+# chezmoi
+if command -v chezmoi &> /dev/null; then
+    source <(chezmoi completion bash)
 fi
 
 # =============================================================================

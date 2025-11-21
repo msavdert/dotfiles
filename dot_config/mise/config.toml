@@ -19,8 +19,8 @@ starship = "latest"
 zellij = "latest"
 
 # Cloud CLIs (OCI, AWS, Azure)
-oci = "latest"
 # Uncomment when needed:
+# oci = "latest"
 # awscli = "latest"
 # "azure-cli" = "latest"
 # "gcloud" = "latest"
