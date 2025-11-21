@@ -85,8 +85,5 @@ VISUAL = "nvim"
 # Mise configuration paths
 _.file = ".env"
 
-[tasks.gh-login]
-run = "fnox exec -- gh auth login --with-token $GITHUB_TOKEN && gh auth setup-git"
-
 [tasks.ghl-gen]
-run = "fnox exec -- GITHUB_TOKEN=$GITHUB_TOKEN_GENERAL gh auth login --with-token $GITHUB_TOKEN && gh auth setup-git"
+run = "fnox exec -- echo ${GITHUB_TOKEN_GENERAL} | gh auth login --with-token && gh auth setup-git"
