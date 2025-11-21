@@ -1,109 +1,13 @@
-# fnox configuration
-# Managed via: https://github.com/msavdert/dotfiles
-#
-# This file contains encrypted secrets using age encryption.
-# The encrypted values are safe to commit to git.
-#
-# Usage:
-#   fnox set SECRET_NAME "secret-value"  # Set a secret
-#   fnox get SECRET_NAME                 # Get a secret
-#   fnox list                            # List all secrets
-#   fnox exec -- command                 # Run command with secrets loaded
-#
-# First-time setup:
-#   1. Generate age key: age-keygen -o ~/.config/fnox/age.txt
-#   2. Copy your public key (age1...)
-#   3. Update the recipients field below with your public key
-#   4. Initialize: fnox init
-
-default_provider = "age"
-
 [providers.age]
 type = "age"
 recipients = ["age15xm98mxkcxln2ll5mph4tsxwgx49c68z0svdjar3hkqy9glu5cyswex6f7"]
 
-# Additional providers (uncomment as needed)
-# AWS KMS
-# aws_kms = { type = "aws-kms", key_id = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012" }
-
-# AWS Secrets Manager
-# aws_sm = { type = "aws-sm", region = "us-east-1", prefix = "myapp/" }
-
-# Azure Key Vault
-# azure_kv = { type = "azure-sm", vault_url = "https://myvault.vault.azure.net" }
-
-# 1Password
-# onepassword = { type = "1password", account = "my-account" }
-
-# Bitwarden
-# bitwarden = { type = "bitwarden" }
-
 [secrets]
-# Example secrets (encrypted with age)
-# After generating your age key, you can add secrets like this:
-#   fnox set DATABASE_PASSWORD "my-secret-password"
-#   fnox set API_KEY "my-api-key"
+GITHUB_TOKEN_GENERAL= { description = "Github general PAT token", provider = "age", value = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVeXd5NUtIeTlLa0FZSWF2N1NlbnRySEsyb2UzSW9YeVlieDR2c084OFZ3ClMrK3FuL3lvQVNwL3FOS0xMcVRnRWo2Y0tXcnJLTUpWQ2xpYXZMemVnNkUKLS0tIHN4L2pqRzMwM3p1clN2SWI3Y2Rwdnl1bzVBaDgxUjdnelFreVUzcEM3ZjAKu1l/mwgjH/+hJ84UQbSHcv1bPlWfgRx/ma3WOu3QaYtAHbXMiAu/+PLbpGYTLXKDiWDftryW1ob8Wb6f3gWzm5msJD0f6C2iTH9bnv6Q8n/9crTm+hEzbqxDX3yLE5TUirjnLfLfPthQ2qWTJyyNV5zlce5HtALewDB3aeI=" }
 
-# Default values for development (unencrypted, for local dev only)
-# These are useful for local development when you don't want to encrypt simple values
-# Example:
-# DEV_MODE = { default = "true" }
-# LOCAL_API_URL = { default = "http://localhost:3000" }
-
-# =============================================================================
-# COMMON SECRET EXAMPLES
-# =============================================================================
-
-# Database credentials
-# DATABASE_HOST = { provider = "age", value = "..." }
-# DATABASE_USER = { provider = "age", value = "..." }
-# DATABASE_PASSWORD = { provider = "age", value = "..." }
-# DATABASE_NAME = { provider = "age", value = "..." }
-
-# API Keys
-# AWS_ACCESS_KEY_ID = { provider = "age", value = "..." }
-# AWS_SECRET_ACCESS_KEY = { provider = "age", value = "..." }
-# AZURE_CLIENT_ID = { provider = "age", value = "..." }
-# AZURE_CLIENT_SECRET = { provider = "age", value = "..." }
-# OCI_USER_OCID = { provider = "age", value = "..." }
-# OCI_FINGERPRINT = { provider = "age", value = "..." }
-# OCI_PRIVATE_KEY = { provider = "age", value = "..." }
-
-# SSH Keys (for automation)
-# SSH_PRIVATE_KEY = { provider = "age", value = "..." }
-# SSH_PUBLIC_KEY = { provider = "age", value = "..." }
-
-# =============================================================================
-# PROFILES
-# =============================================================================
-
-# Development profile (default)
-# Uses local defaults and age encryption
-[profiles.development]
-
-[profiles.development.secrets]
-# Add development-specific secrets here
-
-# Production profile
-# Uses cloud secret storage for better security in production
-[profiles.production]
-
-[profiles.production.providers]
-# Example: Use AWS Secrets Manager in production
-# aws = { type = "aws-sm", region = "us-east-1", prefix = "prod/" }
-
-[profiles.production.secrets]
-# Reference secrets from AWS Secrets Manager
-# DATABASE_PASSWORD = { provider = "aws", value = "database-password" }
-# API_KEY = { provider = "aws", value = "api-key" }
-
-# Staging profile
-[profiles.staging]
-
-[profiles.staging.providers]
-# Example: Use AWS Secrets Manager in staging
-# aws = { type = "aws-sm", region = "us-east-1", prefix = "staging/" }
-
-[profiles.staging.secrets]
-# Reference secrets from AWS Secrets Manager
-# DATABASE_PASSWORD = { provider = "aws", value = "database-password" }
+[profiles.oci_aysesmenn_admin.secrets]
+OCI_TENANCY_OCID= { provider = "age", value = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBkemQ5RU5CanZ6R1BYak5Hb2VxeW8rQ1NFZlFjdndRenJuTkFxUFBZbmg0CkR5YkNlZWFUYW5TdklFeHUwTllwdnhHR3NQd1RTWVd3SXdmTk9POHN0VmcKLS0tIDN4KzkrQjJuaG5aNFZMajEvM1REZ0YzaDdJc1BVaTZyWkw5R3hEWXVxaDAKv/4x1IXGKh1gDQGvZtwZTDMeEquDEF5cT8AmLs9Vvf0UJZndlpSNL+iKfsXfYOHqi8ugZLFk5tnR+xjI7dG+OCSCFhZkPDG2MyoFYHa3zmirQ8+iiT/9o6TR/JdAG/hZlgHTbw44cNPiMziQPMmo" }
+OCI_USER_OCID= { provider = "age", value = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBUcTlBdlg5S1dGOXZPdHAwbi9oUHBhbWRCdlFEQlVOZ2pNbFJxS3BkMWtVCnlLaVF0NnBSZDRyejI3cUhBN1MySFdvZjlSUnl2cUMrTkgvQlN2c1JrNWcKLS0tIEQ5b2lkZWNQTHRmUHl2NnlWbWt0ZGZqUzhha3FsOVEzVmpYRnRNK0FzOE0KFpqGSn8QAJA8oyrzeWOVw2+UFr00wdf1JuZN1YJDwTnLNi9//UqYNFlfftawlQ00rk7BSKSVqs1jfdjPgCYx1OtEZb3XbQcLxdf8dpl4LaLcCwMGiDo+jRM6BjjNwT/CNlU02ZOFeFXEHP6g" }
+OCI_REGION= { provider = "age", value = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLK08vczZ3VXpkRFhObVpZZDJzenJ2WFFXWnZWVDBJRTJyN1NjT3VadERjClB4NWV5aVEzMXhvdUlja2kvdWRmRDg1U0cvOVRZSE93TU81VC9ZbVczZGcKLS0tIEhQRkxoQ1VqRUowNUVOOWp3MWxKdGhRcGFwSFRGR21lNGhxV2ZWUnFPU28KCHu24qNKoCt1SCLENRieQrkROfEUeb+BpwFZUe/WcbL9jAG33dkdOu+P/MI=" }
+OCI_FINGERPRINT= { provider = "age", value = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBKaGRIb3ZiK0xpV2VESUJLdENYSjZLa3c2YkY0Tm1ka3d1cW9CaytaZ1M0Cm1HN3ZWZlIyMGp3RWFneStTZDdySW94blh4bkdDak9uZkxSRzZwazFldzAKLS0tIER0bHdKQ3B6Z0ZNNDJIQ3QzcmM0M2JKVFhKMC9CSHZTK0hsUFlXUmxJbmMKC4p8I7kSsq/DGi0iY9+66LCjDQBCbtkw4zcRZp41faAbp0EzH4sTCqQ48BxQ4/pAvcTNoFK1AA3LdmljGhDo7VLOr2JzI1jdezb49Pn3Mw==" }
+OCI_PRIVATE_KEY= { provider = "age", value = "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" }
