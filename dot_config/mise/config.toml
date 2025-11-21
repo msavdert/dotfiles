@@ -24,6 +24,7 @@ zellij = "latest"
 # awscli = "latest"
 # "azure-cli" = "latest"
 # "gcloud" = "latest"
+github-cli = "latest"
 
 # Container tools
 kubectl = "latest"
@@ -67,6 +68,7 @@ legacy_version_file = true
 [alias]
 aws = "awscli"
 az = "azure-cli"
+gh = "github-cli"
 k = "kubectl"
 tf = "terraform"
 tg = "terragrunt"
@@ -82,3 +84,9 @@ VISUAL = "nvim"
 
 # Mise configuration paths
 _.file = ".env"
+
+[tasks.gh-login]
+run = "fnox exec -- gh auth login --with-token $GITHUB_TOKEN && gh auth setup-git"
+
+[tasks.ghl-gen]
+run = "fnox exec -- GITHUB_TOKEN=$GITHUB_TOKEN_GENERAL gh auth login --with-token $GITHUB_TOKEN && gh auth setup-git"

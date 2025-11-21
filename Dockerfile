@@ -28,6 +28,8 @@ RUN apt-get update && \
         locales \
         gnupg2 \
         apt-utils \
+        python3 \
+        python3-pip \
         lsb-release && \
     apt-get autoremove -y && \
     apt-get autoclean && \

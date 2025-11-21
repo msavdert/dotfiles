@@ -11,16 +11,16 @@
 #   fnox exec -- command                 # Run command with secrets loaded
 #
 # First-time setup:
-#   1. Generate age key: age-keygen -o ~/.config/fnox/key.txt
+#   1. Generate age key: age-keygen -o ~/.config/fnox/age.txt
 #   2. Copy your public key (age1...)
 #   3. Update the recipients field below with your public key
 #   4. Initialize: fnox init
 
-[providers]
-# Age encryption provider (default)
-# Replace the recipient with your own age public key
-# Get it from: ~/.config/fnox/key.txt (the public key line)
-age = { type = "age", recipients = ["age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"] }
+default_provider = "age"
+
+[providers.age]
+type = "age"
+recipients = ["age15xm98mxkcxln2ll5mph4tsxwgx49c68z0svdjar3hkqy9glu5cyswex6f7"]
 
 # Additional providers (uncomment as needed)
 # AWS KMS

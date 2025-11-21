@@ -198,7 +198,7 @@ print_summary() {
     echo "To activate the new configuration, reload your shell:"
     echo "  source ~/.bashrc    # For bash"
     echo "  source ~/.zshrc     # For zsh"
-    echo "  exec \$SHELL        # Or start a new shell"
+    echo "  exec -l \$SHELL        # Or start a new shell"
     echo ""
     echo "======================================================================"
 }
