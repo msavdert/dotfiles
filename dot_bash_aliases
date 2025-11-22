@@ -217,6 +217,7 @@ alias klf='kubectl logs -f'
 alias kex='kubectl exec -it'
 alias kapply='kubectl apply -f'
 alias kdel='kubectl delete'
+alias k8st='ssh -f -N -L 6443:localhost:6443 c'
 
 # Helm shortcuts
 alias h='helm'
