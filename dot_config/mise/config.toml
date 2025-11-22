@@ -33,6 +33,8 @@ k9s = "latest"
 helm = "latest"
 flux2 = "latest"
 kustomize = "latest"
+cilium-hubble = "latest"
+cilium-cli = "latest"
 
 # Infrastructure as Code (uncomment as needed)
 terraform = "latest"
@@ -76,7 +78,7 @@ tg = "terragrunt"
 # Environment variables
 [env]
 # Default kubeconfig location
-KUBECONFIG = "$HOME/.kube/config"
+#KUBECONFIG = "$HOME/.kube/config"
 
 # Editor preferences
 EDITOR = "nvim"
