@@ -31,7 +31,10 @@ RUN apt-get update && \
         python3 \
         python3-pip \
         lsb-release \
-        openssh-client && \
+        openssh-client \
+        xclip \
+        luarocks \
+        ripgrep && \
     apt-get autoremove -y && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
