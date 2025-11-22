@@ -45,7 +45,7 @@ Host github.com
 Host c
     HostName c.savdert.com
     User ubuntu
-    IdentityFile ~/ssh/oci_key
+    IdentityFile ~/.ssh/oci_key
     ProxyCommand ~/.local/share/mise/shims/cloudflared access ssh --hostname %h
     ServerAliveInterval 60
     ServerAliveCountMax 3
@@ -55,7 +55,7 @@ Host c
 Host w1
     HostName w1.savdert.com
     User ubuntu
-    IdentityFile ~/ssh/oci_key
+    IdentityFile ~/.ssh/oci_key
     ProxyCommand ~/.local/share/mise/shims/cloudflared access ssh --hostname %h
     ServerAliveInterval 60
     ServerAliveCountMax 3
@@ -65,7 +65,7 @@ Host w1
 Host w2
     HostName w2.savdert.com
     User ubuntu
-    IdentityFile ~/ssh/oci_key
+    IdentityFile ~/.ssh/oci_key
     ProxyCommand ~/.local/share/mise/shims/cloudflared access ssh --hostname %h
     ServerAliveInterval 60
     ServerAliveCountMax 3
@@ -75,7 +75,7 @@ Host w2
 Host w3
     HostName w3.savdert.com
     User ubuntu
-    IdentityFile ~/ssh/oci_key
+    IdentityFile ~/.ssh/oci_key
     ProxyCommand ~/.local/share/mise/shims/cloudflared access ssh --hostname %h
     ServerAliveInterval 60
     ServerAliveCountMax 3
