@@ -15,11 +15,6 @@ Host *
     ServerAliveInterval 60
     ServerAliveCountMax 3
     
-    # Reuse connections for speed
-    ControlMaster auto
-    ControlPath ~/.ssh/sockets/%r@%h:%p
-    ControlPersist 600
-    
     # Security settings
     HashKnownHosts yes
     StrictHostKeyChecking ask
