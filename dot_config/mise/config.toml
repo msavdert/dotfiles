@@ -28,7 +28,7 @@ github-cli = "latest"
 
 # Container tools
 kubectl = "latest"
-kubens = "latest"
+# kubens = "latest"
 k9s = "latest"
 helm = "latest"
 flux2 = "latest"
