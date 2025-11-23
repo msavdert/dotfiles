@@ -167,6 +167,11 @@ if command -v chezmoi &> /dev/null; then
     source <(chezmoi completion bash)
 fi
 
+# sops
+if command -v chezmoi &> /dev/null; then
+    source <(sops completion bash)
+fi
+
 # =============================================================================
 # LOAD ALIASES
 # =============================================================================
