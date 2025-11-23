@@ -35,6 +35,7 @@ flux2 = "latest"
 kustomize = "latest"
 cilium-hubble = "latest"
 cilium-cli = "latest"
+sops = "latest"
 
 # Infrastructure as Code (uncomment as needed)
 terraform = "latest"
