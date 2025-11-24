@@ -48,6 +48,7 @@ yq = "latest"
 cloudflared = "latest"
 neovim = "latest"
 usage = "latest"
+velero = "latest"
 
 # Useful CLI tools (uncomment as needed)
 # ripgrep = "latest"
