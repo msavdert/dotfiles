@@ -50,6 +50,7 @@ neovim = "latest"
 usage = "latest"
 velero = "latest"
 uv = "latest"
+node = "latest"
 
 # Useful CLI tools (uncomment as needed)
 # ripgrep = "latest"
