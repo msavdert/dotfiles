@@ -56,7 +56,4 @@ WORKDIR /home/msavdert
 # Set bash as default shell
 ENV SHELL=/bin/bash
 
-# Set environment variables for dotfiles installation
-ENV DOTFILES_REPO=https://github.com/msavdert/dotfiles.git
-
 CMD ["/bin/bash"]
