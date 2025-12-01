@@ -53,7 +53,7 @@ uv = "latest"
 node = "latest"
 
 # Useful CLI tools (uncomment as needed)
-# ripgrep = "latest"
+ripgrep = "latest"
 # fd = "latest"
 # bat = "latest"
 # eza = "latest"
