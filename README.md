@@ -19,342 +19,136 @@ This will:
 4. Set up fnox for secret management
 5. Configure your shell
 
+> **Important:** After install, restore your age key for secret access. See [fnox guide](docs/FNOX.md#restore-on-new-machine).
+
 ## What's Included
 
 ### Core Tools
-- **mise** - Universal tool version manager
-- **chezmoi** - Dotfile manager with templating support
-- **fnox** - Secret management with age encryption
-- **age** - Modern encryption tool
+- **mise** — Universal tool version manager
+- **chezmoi** — Dotfile manager with templating support
+- **fnox** — Secret management with age encryption
+- **age** — Modern encryption tool
 
 ### Shell & Terminal
-- **bash** - Default shell with custom configurations
-- **starship** - Minimal, fast prompt
-- **zellij** - Terminal multiplexer (modern tmux alternative)
+- **bash** — Default shell with custom configurations
+- **starship** — Minimal, fast prompt
+- **zellij** — Terminal multiplexer (modern tmux alternative)
 
 ### Cloud & Infrastructure
-- **OCI CLI** - Oracle Cloud Infrastructure CLI
-- **kubectl** - Kubernetes command-line tool
-- **kubens** - Easy namespace switching
-- **k9s** - Kubernetes TUI
-- **helm** - Kubernetes package manager
-- **terraform** - Infrastructure as Code
-- **flux2** - GitOps for Kubernetes
-- **kustomize** - Kubernetes configuration management
+- **OCI CLI** — Oracle Cloud Infrastructure CLI
+- **kubectl** — Kubernetes command-line tool
+- **k9s** — Kubernetes TUI
+- **helm** — Kubernetes package manager
+- **terraform** — Infrastructure as Code
+- **flux2** — GitOps for Kubernetes
+- **kustomize** — Kubernetes configuration management
+- **cilium-cli** — Cilium CNI management
 
 ### Development Tools
-- **neovim** - Modern Vim-based text editor
-- **jq** - JSON processor
-- **yq** - YAML/XML/JSON processor
-- **usage** - CLI tool usage specifications
+- **neovim** — Modern Vim-based text editor
+- **jq / yq** — JSON & YAML processors
+- **ripgrep** — Fast search tool
+- **github-cli** — GitHub from the terminal
 
 ## Project Structure
 
 ```
 dotfiles/
-├── install.sh              # Bootstrap script (idempotent, minimal)
-├── .chezmoiignore         # Files to exclude from home directory
-├── .chezmoi.toml.tmpl     # Chezmoi config template
-├── README.md              # This file
-├── docs/
-│   ├── FNOX.md            # Complete fnox usage guide
-│   ├── CHEZMOI.md         # Complete chezmoi usage guide
-│   └── DATABASE_MANAGEMENT.md  # Guide for database tools
-├── dot_bashrc             # Bash configuration
-├── dot_bash_aliases       # Bash aliases
-├── dot_bash_profile       # Bash profile
-├── dot_gitconfig          # Git configuration
+├── install.sh                 # Bootstrap script (idempotent)
+├── Makefile                   # Dev workflow commands
+├── .chezmoi.toml.tmpl         # Chezmoi config template
+├── .chezmoiignore             # Files excluded from home directory
+├── dot_bashrc                 # Bash configuration
+├── dot_bash_aliases           # Bash aliases
+├── dot_bash_profile           # Bash profile (login shell)
+├── dot_gitconfig.tmpl         # Git configuration (templated)
 ├── dot_config/
-│   ├── mise/
-│   │   └── config.toml    # mise tool definitions (managed by chezmoi)
-│   ├── fnox/
-│   │   └── config.toml    # fnox encrypted secrets (managed by chezmoi)
-│   ├── starship.toml      # Starship prompt config
-│   └── zellij/
-│       └── config.kdl     # Zellij terminal multiplexer config
+│   ├── mise/config.toml       # mise tool definitions
+│   ├── starship.toml          # Starship prompt config
+│   └── zellij/config.kdl      # Zellij multiplexer config
 ├── private_dot_ssh/
-│   ├── config.tmpl        # SSH client configuration
-│   └── private_readonly_id_ed25519_github.age  # Encrypted SSH key
-└── Dockerfile             # Test environment
+│   ├── config.tmpl            # SSH client configuration
+│   └── *.age                  # Encrypted SSH keys
+├── fnox.toml                  # Encrypted secrets (safe in git)
+├── Dockerfile                 # Test environment
+├── docker-compose.yml         # Docker dev environment
+├── .github/workflows/
+│   └── docker.yml             # CI: shellcheck + Docker build
+└── docs/
+    ├── CHEZMOI.md             # Chezmoi usage guide
+    ├── FNOX.md                # Secret management guide
+    ├── DATABASE_MANAGEMENT.md # DBA tools & workflows
+    └── TESTING.md             # Testing guide (Docker & OrbStack)
 ```
 
 ## Usage
 
-### Managing Tools with mise
+### Managing Dotfiles
 
 ```bash
-# Install all defined tools
-mise install
-
-# Update all tools
-mise upgrade
-
-# Add a new tool globally
-mise use -g <tool>@<version>
-
-# List installed tools
-mise list
-
-# Show current versions
-mise current
+chezmoi edit ~/.bashrc          # Edit a dotfile
+chezmoi diff                    # Preview changes
+chezmoi apply                   # Apply changes
+chezmoi update                  # Pull from git + apply
 ```
 
-### Managing Dotfiles with chezmoi
+### Managing Tools
 
 ```bash
-# Edit a dotfile
-chezmoi edit ~/.bashrc
-
-# See what would change
-chezmoi diff
-
-# Apply changes
-chezmoi apply
-
-# Update dotfiles from git
-chezmoi update
-
-# Add a new file to dotfiles
-chezmoi add ~/.config/newfile
-
-# Quick edit and apply
-chezmoi edit --apply ~/.bashrc
+mise install                    # Install all defined tools
+mise upgrade                    # Update all tools
+mise use -g <tool>@<version>    # Add a new global tool
+mise list                       # List installed tools
 ```
 
-### Managing Secrets with fnox
+### Managing Secrets
 
 ```bash
-# Initialize fnox (first time)
-fnox init
-
-# Set a secret (encrypted automatically)
-fnox set API_KEY "your-secret-value"
-
-# Get a secret
-fnox get API_KEY
-
-# List all secrets
-fnox list
-
-# Run command with secrets loaded
-fnox exec -- ./deploy.sh
-
-# Edit secrets directly
-fnox edit
+fnox set API_KEY "secret"       # Store a secret (encrypted)
+fnox get API_KEY                # Retrieve a secret
+fnox list                       # List all secrets
+fnox exec -- ./deploy.sh        # Run command with secrets loaded
 ```
 
 ### Shell Aliases
 
-Common aliases are defined in `.bash_aliases`:
+Common aliases defined in `.bash_aliases`:
+
+| Category | Aliases |
+|----------|---------|
+| **Navigation** | `..` `...` `....` |
+| **Files** | `ll` `la` `lt` |
+| **Docker** | `d` `dc` `dps` `dcup` `dcdown` |
+| **Git** | `g` `gs` `ga` `gc` `gp` `gl` |
+| **Kubernetes** | `k` `kn` `kgp` `kgs` `kga` |
+| **Terraform** | `tf` `tfi` `tfp` `tfa` |
+| **Chezmoi** | `cm` `cma` `cdiff` `cme` `cmu` |
+| **Mise** | `m` `mi` `mu` `ml` |
+| **Fnox** | `fe` `fg` `fs` `fl` `fx` |
+
+See full list: `dot_bash_aliases`
+
+## Development & Testing
 
 ```bash
-# Navigation
-..          # cd ..
-...         # cd ../..
-
-# File operations
-ll          # ls -lAh with colors
-la          # ls -A with colors
-
-# Docker
-d           # docker
-dc          # docker compose
-dps         # docker ps
-dcup        # docker compose up -d
-dcdown      # docker compose down
-
-# Git
-g           # git
-gs          # git status
-ga          # git add
-gc          # git commit
-gp          # git push
-gl          # git log (pretty format)
-
-# Kubernetes
-k           # kubectl
-kx          # kubectx
-kn          # kubens
-
-# Mise
-m           # mise
-mi          # mise install
-mu          # mise use
-
-# Chezmoi
-cm          # chezmoi
-cma         # chezmoi apply
-cmd         # chezmoi diff
-cme         # chezmoi edit
+make help     # Show available commands
+make build    # Build Docker test environment
+make shell    # Enter test container
+make test     # Build + run install.sh in clean container
+make lint     # Run shellcheck on all scripts
+make clean    # Stop containers, remove volumes
 ```
 
-See the full list in `.bash_aliases` file.
-
-## Secrets Management
-
-Secrets are managed with fnox + age encryption:
-
-1. **Age encryption**: Secrets are encrypted with your age key
-2. **Safe to commit**: Encrypted secrets in `fnox.toml` can be committed to git
-3. **Easy to use**: Simple CLI to manage secrets
-4. **Flexible**: Support for multiple encryption providers (age, AWS KMS, etc.)
-
-### Initial Setup
-
-```bash
-# Generate an age key (first time)
-age-keygen -o ~/.config/fnox/key.txt
-
-# Your public key will be shown - save it!
-# Public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
-
-# Initialize fnox with your public key
-fnox init --provider age --recipient "age1ql3z..."
-```
-
-### Adding Secrets
-
-```bash
-# Database credentials
-fnox set DB_HOST "db.example.com"
-fnox set DB_USER "admin"
-fnox set DB_PASSWORD "secret-password"
-
-# API keys
-fnox set AWS_ACCESS_KEY "AKIA..."
-fnox set AWS_SECRET_KEY "secret..."
-
-# SSH keys and certificates (multiline)
-fnox set SSH_PRIVATE_KEY "$(cat ~/.ssh/id_rsa)"
-```
-
-## Customization
-
-### Adding a New Tool
-
-1. Add to `mise.toml`:
-```toml
-[tools]
-my-tool = "latest"
-```
-
-2. Install:
-```bash
-mise install my-tool
-```
-
-### Adding a New Dotfile
-
-```bash
-# Add existing file to chezmoi
-chezmoi add ~/.myconfig
-
-# Edit in chezmoi
-chezmoi edit ~/.myconfig
-
-# Apply changes
-chezmoi apply
-```
-
-### Machine-Specific Configuration
-
-Use chezmoi templates for machine-specific configs:
-
-```bash
-# In your dotfile template (.bashrc.tmpl)
-{{ if eq .chezmoi.hostname "work-laptop" }}
-export WORK_SETTING="value"
-{{ end }}
-```
-
-## Updating
-
-Update everything:
-
-```bash
-# Update tools
-mise upgrade
-
-# Update dotfiles from git
-chezmoi update
-
-# Or do it all at once
-mise upgrade && chezmoi update
-```
-
-## Testing
-
-Test your dotfiles in a clean Docker environment:
-
-```bash
-# Build test container
-docker compose build
-
-# Run container
-docker compose up -d
-
-# Exec into container
-docker compose exec dotfiles bash
-
-# Test installation
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
-```
-
-## Troubleshooting
-
-### mise not found
-```bash
-# Reinstall mise
-curl https://mise.run | sh
-
-# Activate mise
-eval "$(~/.local/bin/mise activate bash)"
-```
-
-### chezmoi not applying changes
-```bash
-# Force apply
-chezmoi apply --force
-
-# Check diff first
-chezmoi diff
-```
-
-### fnox can't decrypt
-```bash
-# Check age key exists
-ls -la ~/.config/fnox/key.txt
-
-# Verify key permissions
-chmod 600 ~/.config/fnox/key.txt
-
-# Test decryption
-fnox list
-```
-
-## Contributing
-
-1. Fork this repository
-2. Make your changes
-3. Test in Docker container
-4. Submit a pull request
+See [Testing Guide](docs/TESTING.md) for detailed instructions on Docker and OrbStack testing.
 
 ## Documentation
 
-### Detailed Guides
-- **[FNOX Guide](docs/FNOX.md)** - Complete guide for secret management with fnox + age
-  - Backup & restore procedures
-  - Zero-to-production setup
-  - Key management and recovery
-  - Security best practices
-  
-- **[CHEZMOI Guide](docs/CHEZMOI.md)** - Complete guide for dotfile management with chezmoi
-  - Local changes workflow
-  - Git synchronization
-  - Container development workflow
-  - Multi-machine synchronization
-  
-- **[Database Management Guide](docs/DATABASE_MANAGEMENT.md)** - Guide for DBA-specific tools and workflows
+| Guide | Description |
+|-------|-------------|
+| [CHEZMOI.md](docs/CHEZMOI.md) | Dotfile management with chezmoi |
+| [FNOX.md](docs/FNOX.md) | Secret management with fnox + age |
+| [DATABASE_MANAGEMENT.md](docs/DATABASE_MANAGEMENT.md) | DBA tools & workflows |
+| [TESTING.md](docs/TESTING.md) | Testing with Docker & OrbStack |
 
 ### External Resources
 
@@ -366,7 +160,7 @@ fnox list
 
 ## License
 
-MIT License - Feel free to use this as a template for your own dotfiles!
+MIT License — Feel free to use this as a template for your own dotfiles!
 
 ## Author
 

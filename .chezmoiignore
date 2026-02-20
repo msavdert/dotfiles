@@ -16,9 +16,13 @@ docs/
 # Docker testing environment
 Dockerfile
 docker-compose.yml
+Makefile
 
 # Installation script (this lives in repo, not in home)
 install.sh
+
+# fnox secrets file (managed separately)
+fnox.toml
 
 # CI/CD
 .github/

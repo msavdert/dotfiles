@@ -71,7 +71,7 @@ verbose = false
 legacy_version_file = true
 
 # Plugin aliases (short names)
-[alias]
+[tool_alias]
 aws = "awscli"
 az = "azure-cli"
 gh = "github-cli"

@@ -76,9 +76,11 @@ export PATH="$HOME/.local/bin:$PATH"
 if command -v mise &> /dev/null; then
     eval "$(mise activate bash)"
 
-    # Enable completions
-    mkdir -p "$HOME/.local/share/bash-completion/completions/"
-    mise completion bash --include-bash-completion-lib > ~/.local/share/bash-completion/completions/mise
+    # Enable completions (cached, regenerate with: rm ~/.local/share/bash-completion/completions/mise)
+    if [ ! -f "$HOME/.local/share/bash-completion/completions/mise" ]; then
+        mkdir -p "$HOME/.local/share/bash-completion/completions/"
+        mise completion bash --include-bash-completion-lib > ~/.local/share/bash-completion/completions/mise
+    fi
 fi
 
 # =============================================================================

@@ -1,471 +1,199 @@
-# Working with Chezmoi: Container and GitHub Dotfiles Management
+# Chezmoi — Dotfile Management Guide
 
-This guide provides comprehensive instructions for using Chezmoi to manage your dotfiles, with a focus on container environments and GitHub repository synchronization. Based on the official Chezmoi documentation (FAQ Usage and Daily Operations), this covers all daily workflows and scenarios.
+Practical guide for managing dotfiles with [chezmoi](https://www.chezmoi.io/) in this repository.
 
-## Table of Contents
-- [Overview](#overview)
-- [Initial Setup](#initial-setup)
-- [Daily Operations](#daily-operations)
-- [Container-Specific Workflows](#container-specific-workflows)
-- [GitHub Repository Management](#github-repository-management)
-- [Advanced Scenarios](#advanced-scenarios)
-- [Troubleshooting](#troubleshooting)
+## Key Concepts
 
-## Overview
+| Term | Description |
+|------|-------------|
+| **Source directory** | `~/.local/share/chezmoi` — your dotfiles as templates/code |
+| **Target directory** | `~` — your actual home directory |
+| **Source state** | Desired state computed from source directory |
+| **Target state** | Actual state of files on disk |
 
-Chezmoi is a dotfile manager that treats your dotfiles as code, stored in a Git repository. It supports templating, encryption, and cross-machine synchronization. In container environments, it enables consistent development setups.
+## Daily Workflow
 
-Key concepts:
-- **Source directory**: Where your dotfiles are stored as templates/code
-- **Target directory**: Your home directory where files are applied
-- **Source state**: The desired state computed from source directory
-- **Target state**: The actual state of files in target directory
+### Edit → Preview → Apply
 
-## Initial Setup
-
-### Installing Chezmoi
 ```bash
-# Via install script (recommended)
-sh -c "$(curl -fsLS get.chezmoi.io)"
+# 1. Edit a dotfile
+chezmoi edit ~/.bashrc          # Opens in nvim
+chezmoi edit --apply ~/.bashrc  # Edit + auto-apply on save
 
-# Via package manager
-# macOS: brew install chezmoi
-# Ubuntu: sudo apt install chezmoi
-# Or via mise: mise use chezmoi@latest
+# 2. Preview changes
+chezmoi diff                    # Show what would change
+chezmoi status                  # Show modified/added files
+
+# 3. Apply changes
+chezmoi apply                   # Apply all changes
+chezmoi apply -v                # Verbose apply
 ```
 
-### Initializing with Your Dotfiles Repo
-```bash
-# Initialize with GitHub repo
-chezmoi init https://github.com/msavdert/dotfiles
-
-# Apply dotfiles to home directory
-chezmoi apply
-
-# Or do both in one command
-chezmoi init --apply https://github.com/msavdert/dotfiles
-```
-
-### Container Setup
-For containers (like Docker), use the one-shot mode to avoid leaving traces:
-```bash
-# Install and apply dotfiles, then clean up
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --one-shot msavdert
-```
-
-## Daily Operations
-
-### Editing Dotfiles
-
-#### Method 1: Using chezmoi edit (Recommended)
-```bash
-# Edit a dotfile (opens in your configured editor)
-chezmoi edit ~/.bashrc
-
-# Edit and automatically apply changes when you quit
-chezmoi edit --apply ~/.bashrc
-
-# Edit with live apply on save (requires editor support)
-chezmoi edit --watch ~/.bashrc
-```
-
-#### Method 2: Direct Source Directory Editing
-```bash
-# Open shell in source directory
-chezmoi cd
-
-# Edit files directly, then check changes
-git status
-chezmoi diff
-
-# Apply changes
-chezmoi apply
-```
-
-#### Method 3: Manual Home Directory Editing
-```bash
-# Edit file in home directory
-vim ~/.bashrc
-
-# Then either re-add or merge
-chezmoi re-add ~/.bashrc
-# OR
-chezmoi merge ~/.bashrc
-```
-
-### Checking Status and Differences
+### Sync with Git
 
 ```bash
-# See what files are managed
-chezmoi managed
+# Push local changes
+chezmoi cd                      # cd into source directory
+git add . && git commit -m "update dotfiles" && git push
 
-# See what files are not managed
-chezmoi unmanaged
-
-# See differences between source and target
-chezmoi diff
-
-# See status (modified, added, etc.)
-chezmoi status
-```
-
-### Applying Changes
-
-```bash
-# Apply all changes
-chezmoi apply
-
-# Apply specific file
-chezmoi apply ~/.bashrc
-
-# Apply with verbose output
-chezmoi apply -v
-```
-
-### Committing Changes to Git
-
-#### Manual Commit
-```bash
-# Open shell in source directory
-chezmoi cd
-
-# Standard git workflow
-git add .
-git commit -m "Update dotfiles"
-git push
-```
-
-#### Using chezmoi git Command
-```bash
-# Run git commands in source directory
+# Or use chezmoi's git wrapper
 chezmoi git add .
-chezmoi git commit -m "Update dotfiles"
+chezmoi git commit -m "update dotfiles"
 chezmoi git push
+
+# Pull remote changes
+chezmoi update                  # git pull + apply in one command
 ```
 
-#### Auto-commit Setup
-Add to `~/.config/chezmoi/chezmoi.toml`:
+### Add New Files
+
+```bash
+# Add an existing file to chezmoi management
+chezmoi add ~/.config/newfile
+
+# Add as a template (for machine-specific configs)
+chezmoi add --template ~/.config/newfile
+
+# Add a private file (600 permissions)
+chezmoi add --encrypt ~/.ssh/id_rsa
+```
+
+## Templating
+
+Templates use Go's `text/template` syntax. Any file ending in `.tmpl` is processed as a template.
+
+### Template Variables
+
+Variables are defined in `.chezmoi.toml.tmpl`:
+
 ```toml
-[git]
-    autoCommit = true
-    autoPush = true
+[data]
+    gitUser = "msavdert"
+    gitEmail = "10913156+msavdert@users.noreply.github.com"
 ```
 
-### Pulling and Updating
+### Usage Examples
 
 ```bash
-# Pull latest changes and apply
-chezmoi update
-
-# Pull and see diff without applying
-chezmoi git pull --autostash --rebase && chezmoi diff
-
-# Then apply if satisfied
-chezmoi apply
+# In dot_gitconfig.tmpl
+[user]
+    name = {{ .gitUser }}
+    email = {{ .gitEmail }}
 ```
-
-## Container-Specific Workflows
-
-### Development Container Setup
-
-1. **Base Dockerfile** (from your repo):
-```dockerfile
-FROM ubuntu:24.04
-
-# Install chezmoi and dependencies
-RUN apt-get update && apt-get install -y curl git && \
-    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
-
-# Create user
-RUN useradd -ms /bin/bash devuser
-USER devuser
-WORKDIR /home/devuser
-
-# Set up dotfiles
-RUN chezmoi init --apply https://github.com/msavdert/dotfiles
-
-CMD ["/bin/bash"]
-```
-
-2. **Building and Running**:
-```bash
-docker build -t dev-env .
-docker run -it dev-env
-```
-
-### Container Development Workflow
 
 ```bash
-# In container, edit dotfiles
-chezmoi edit ~/.bashrc
-
-# Test changes
-source ~/.bashrc
-
-# Commit changes back to repo
-chezmoi cd
-git add .
-git commit -m "Update bashrc for container dev"
-git push
-```
-
-### Ephemeral Containers
-
-For short-lived containers, use one-shot mode:
-```bash
-docker run --rm -it ubuntu:24.04 bash -c '
-  apt-get update && apt-get install -y curl git &&
-  sh -c "$(curl -fsLS get.chezmoi.io)" -- init --one-shot msavdert
-'
-```
-
-## GitHub Repository Management
-
-### Repository Structure
-
-Your dotfiles repo should follow this structure:
-```
-dotfiles/
-├── .chezmoiignore          # Files to ignore
-├── .chezmoidata/           # Template data
-├── .chezmoiscripts/        # Scripts to run
-├── .chezmoitemplates/      # Custom templates
-├── dot_bashrc              # Source for ~/.bashrc
-├── dot_gitconfig           # Source for ~/.gitconfig
-├── private_dot_ssh/        # Private SSH keys
-└── docs/                   # Documentation
-```
-
-### Managing Private Files
-
-#### Using chezmoi ignore
-Create `.chezmoiignore`:
-```
-# Private keys
-private_dot_ssh/
-
-# OS-specific files
-**/*.darwin
-**/*.linux
-```
-
-#### Using Encryption
-For sensitive files, use chezmoi's encryption:
-```bash
-# Encrypt a file
-chezmoi encrypt ~/.ssh/id_rsa
-
-# Decrypt when needed
-chezmoi decrypt ~/.ssh/id_rsa
-```
-
-### Branching Strategy
-
-```bash
-# Create feature branch for changes
-chezmoi cd
-git checkout -b feature/add-new-tool
-
-# Make changes
-chezmoi edit ~/.config/newtool
-
-# Test and commit
-chezmoi apply
-git add .
-git commit -m "Add new tool configuration"
-
-# Merge back
-git checkout main
-git merge feature/add-new-tool
-git push
-```
-
-### Handling Conflicts
-
-```bash
-# When pulling causes conflicts
-chezmoi update  # This will show conflicts
-
-# Resolve in source directory
-chezmoi cd
-git status
-# Edit conflicting files
-git add .
-git commit
-
-# Apply resolved changes
-chezmoi apply
-```
-
-## Advanced Scenarios
-
-### Machine-Specific Configurations
-
-#### Using Templates
-Create `dot_bashrc.tmpl`:
-```bash
-# Common bash config
-export PATH="$HOME/bin:$PATH"
-
-# Machine-specific
+# Machine-specific configuration
 {{ if eq .chezmoi.hostname "work-laptop" }}
-export WORK_CONFIG="enabled"
-{{ else if eq .chezmoi.hostname "home-desktop" }}
-export HOME_CONFIG="enabled"
+export WORK_SETTING="value"
+{{ end }}
+
+# OS-specific
+{{ if eq .chezmoi.os "linux" }}
+alias open='xdg-open'
 {{ end }}
 ```
 
-#### Using .chezmoidata
-Create `.chezmoidata/machine.yaml`:
-```yaml
-work-laptop:
-  work_config: true
-home-desktop:
-  home_config: true
-```
+### Debugging Templates
 
-### External File Management
-
-#### Git Repositories as Externals
-For managing external git repos (like vim plugins):
 ```bash
-# Add external git repo
-chezmoi add --external git-repo https://github.com/user/plugin ~/.vim/pack/plugin/start/plugin
+chezmoi execute-template '{{ .chezmoi.hostname }}'
+chezmoi execute-template '{{ .chezmoi.os }}/{{ .chezmoi.arch }}'
+chezmoi data    # Show all available template data
 ```
 
-#### Regular File Externals
-For downloading files:
+## File Naming Convention
+
+Chezmoi uses special prefixes to control file behavior:
+
+| Prefix | Effect | Example |
+|--------|--------|---------|
+| `dot_` | Creates `.` prefix | `dot_bashrc` → `~/.bashrc` |
+| `private_` | Sets `0600` permissions | `private_dot_ssh/` |
+| `readonly_` | Sets read-only | `private_readonly_id_ed25519.age` |
+| `executable_` | Sets `0755` permissions | `executable_script.sh` |
+| `.tmpl` suffix | Process as template | `dot_gitconfig.tmpl` |
+| `.age` suffix | Decrypt with age | `secret.age` |
+
+## Container Workflow
+
+### Quick Bootstrap
+
 ```bash
-chezmoi add --external https://example.com/file.txt ~/.config/file.txt
+# One-shot mode (for ephemeral containers)
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --one-shot msavdert
+
+# Or use the full install script
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
 ```
 
-### Scripts and Hooks
+### Development in Container
 
-#### Run Scripts on Changes
-Create `.chezmoiscripts/run_onchange_after_bashrc.sh`:
 ```bash
-#!/bin/bash
-echo "Bashrc updated, reloading..."
-source ~/.bashrc
-```
+# Start the dev container
+make shell
 
-#### Pre/Post Apply Hooks
-In `chezmoi.toml`:
-```toml
-[hooks]
-    preApply = ["echo 'Applying dotfiles...'"]
-    postApply = ["echo 'Dotfiles applied successfully'"]
-```
+# Inside container, test dotfiles
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
 
-### Password Manager Integration
-
-Chezmoi supports various password managers for secrets in templates.
-
-#### Example with Bitwarden
-```bash
-# Install rbw (Bitwarden CLI)
-chezmoi add --script run_once_install-rbw.sh << 'EOF'
-#!/bin/bash
-cargo install rbw
-EOF
-
-# Use in templates
-# {{ (bitwarden "item-name").password }}
+# Edit and push changes back
+chezmoi edit ~/.bashrc
+chezmoi cd && git add . && git commit -m "update" && git push
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### "chezmoi: command not found"
 ```bash
-# Reinstall
-sh -c "$(curl -fsLS get.chezmoi.io)"
+# "chezmoi: command not found"
+mise install chezmoi        # Reinstall via mise
 
-# Or via mise
-mise use chezmoi@latest
+# Changes not applying
+chezmoi diff               # Check what's different
+chezmoi apply --force      # Force apply
+
+# Template errors
+chezmoi execute-template '{{ .chezmoi.hostname }}'  # Test template syntax
+chezmoi doctor             # Run health check
+
+# Corrupt source directory
+chezmoi init --apply https://github.com/msavdert/dotfiles  # Reinitialize
+
+# Nuclear option
+chezmoi purge              # Remove all managed files
 ```
 
-#### Changes not applying
-```bash
-# Check diff
-chezmoi diff
+### Useful Commands Cheatsheet
 
-# Force apply
-chezmoi apply --force
+```bash
+chezmoi managed            # List all managed files
+chezmoi unmanaged          # List unmanaged files in home
+chezmoi doctor             # Health check
+chezmoi cat ~/.bashrc      # Show what would be applied
+chezmoi forget ~/.oldfile  # Stop managing a file
 ```
 
-#### Permission issues
-```bash
-# Check file permissions
-ls -la ~/.config/chezmoi/
+## Aliases
 
-# Fix permissions
-chmod 755 ~/.config/chezmoi/
-```
+These aliases are defined in `dot_bash_aliases`:
 
-#### Template errors
-```bash
-# Debug template
-chezmoi execute-template '{{ .chezmoi.hostname }}'
-
-# Check template data
-chezmoi data
-```
-
-### Container-Specific Issues
-
-#### No editor in container
-```bash
-# Set editor to a simple one
-export EDITOR=nano
-
-# Or install vim
-apt-get install -y vim
-```
-
-#### Network issues in container
-```bash
-# For GitHub access
-chezmoi init --apply --source https://github.com/msavdert/dotfiles
-```
-
-### Recovery
-
-#### If source directory is corrupted
-```bash
-# Reinitialize
-chezmoi init https://github.com/msavdert/dotfiles
-
-# Or restore from backup
-chezmoi state reset
-```
-
-#### Emergency cleanup
-```bash
-# Remove all chezmoi-managed files
-chezmoi purge
-
-# Remove chezmoi completely
-rm -rf ~/.config/chezmoi ~/.local/share/chezmoi
-```
-
-## Best Practices
-
-1. **Commit Frequently**: Use auto-commit for small changes
-2. **Test in Container**: Always test dotfile changes in a clean container
-3. **Use Templates**: For machine-specific configurations
-4. **Encrypt Secrets**: Use chezmoi's encryption for sensitive files
-5. **Document Changes**: Keep docs/ updated with your workflows
-6. **Branch for Changes**: Don't commit directly to main
-7. **Regular Updates**: Keep chezmoi and your dotfiles updated
+| Alias | Command |
+|-------|---------|
+| `cm` | `chezmoi` |
+| `cma` | `chezmoi apply` |
+| `cdiff` | `chezmoi diff` |
+| `cme` | `chezmoi edit` |
+| `cmea` | `chezmoi edit --apply` |
+| `cmu` | `chezmoi update` |
+| `cms` | `chezmoi status` |
+| `cmcd` | `chezmoi cd` |
 
 ## Resources
 
-- [Official Chezmoi Documentation](https://www.chezmoi.io/)
-- [Chezmoi GitHub](https://github.com/twpayne/chezmoi)
-- [Community Examples](https://github.com/topics/chezmoi)
+- [Chezmoi Documentation](https://www.chezmoi.io/)
 - [Template Functions Reference](https://www.chezmoi.io/reference/templates/functions/)
+- [chezmoi GitHub](https://github.com/twpayne/chezmoi)
 
-This guide covers all essential workflows for managing dotfiles with Chezmoi in both local and container environments. Start with the basic operations and gradually adopt advanced features as needed.</content>
-<parameter name="filePath">/Users/melihsavdert/Documents/all/github/dotfiles/docs/CHEZMOI.md
+---
+
+**Last Updated:** 2026-02-18

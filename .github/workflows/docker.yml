@@ -6,11 +6,31 @@ on:
       - "main"
     paths:
       - "Dockerfile"
+      - "dot_*"
+      - "install.sh"
+      - "private_dot_ssh/**"
+  pull_request:
+    branches:
+      - "main"
   workflow_dispatch:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          additional_files: 'dot_bashrc dot_bash_aliases dot_bash_profile'
+
   build:
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       -
         name: Checkout
