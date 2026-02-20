@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ~/.bash_aliases
 # Managed by chezmoi - https://github.com/msavdert/dotfiles
 # Custom command aliases
@@ -292,7 +293,7 @@ alias nowtime='date +"%H:%M:%S"'
 alias timestamp='date +%s'
 
 # Create a backup with timestamp
-alias bak='function _bak(){ cp "$1" "$1.bak.$(date +%Y%m%d_%H%M%S)"; }; _bak'
+bak() { cp "$1" "$1.bak.$(date +%Y%m%d_%H%M%S)"; }
 
 # Quick web server (Python)
 alias serve='python3 -m http.server'

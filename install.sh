@@ -111,7 +111,8 @@ install_chezmoi() {
     log_step "Installing chezmoi with mise"
     
     # Check if chezmoi is already installed
-    local CHEZMOI_BIN="$("$MISE_BIN" which chezmoi 2>/dev/null || echo "")"
+    local CHEZMOI_BIN
+    CHEZMOI_BIN="$("$MISE_BIN" which chezmoi 2>/dev/null || echo "")"
     
     if [ -n "$CHEZMOI_BIN" ] && [ -x "$CHEZMOI_BIN" ]; then
         log "chezmoi is already installed: $("$CHEZMOI_BIN" --version | head -n1)"
@@ -131,7 +132,8 @@ install_chezmoi() {
 setup_dotfiles() {
     log_step "Setting up dotfiles with chezmoi"
     
-    local CHEZMOI_BIN="$("$MISE_BIN" which chezmoi 2>/dev/null || echo "")"
+    local CHEZMOI_BIN
+    CHEZMOI_BIN="$("$MISE_BIN" which chezmoi 2>/dev/null || echo "")"
     
     if [ -z "$CHEZMOI_BIN" ]; then
         log_error "chezmoi not found after installation"

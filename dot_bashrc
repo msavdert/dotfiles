@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ~/.bashrc
 # Managed by chezmoi - https://github.com/msavdert/dotfiles
 # Interactive shell configuration
@@ -117,12 +118,14 @@ fi
 
 # Enable bash completion
 if [ -f /etc/bash_completion ]; then
+    # shellcheck source=/dev/null
     . /etc/bash_completion
 fi
 
 # User completions
 if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
     for file in "$HOME/.local/share/bash-completion/completions"/*; do
+        # shellcheck source=/dev/null
         [ -f "$file" ] && source "$file"
     done
 fi
@@ -133,17 +136,20 @@ fi
 
 # Kubernetes
 if command -v kubectl &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(kubectl completion bash)
     complete -o default -F __start_kubectl k
 fi
 
 # Helm
 if command -v helm &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(helm completion bash)
 fi
 
 # Flux
 if command -v flux &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(flux completion bash)
 fi
 
@@ -156,26 +162,31 @@ fi
 
 # fnox (secret management)
 if command -v fnox &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(fnox completion bash)
 fi
 
 # k9s
 if command -v k9s &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(k9s completion bash)
 fi
 
 # chezmoi
 if command -v chezmoi &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(chezmoi completion bash)
 fi
 
 # sops
 if command -v sops &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(sops completion bash)
 fi
 
 # velero
 if command -v velero &> /dev/null; then
+    # shellcheck source=/dev/null
     source <(velero completion bash)
 fi
 
@@ -184,6 +195,7 @@ fi
 # =============================================================================
 
 if [ -f "$HOME/.bash_aliases" ]; then
+    # shellcheck source=/dev/null
     . "$HOME/.bash_aliases"
 fi
 
@@ -193,6 +205,7 @@ fi
 
 # Load machine-specific configuration
 if [ -f "$HOME/.bashrc.local" ]; then
+    # shellcheck source=/dev/null
     . "$HOME/.bashrc.local"
 fi
 
@@ -202,7 +215,7 @@ fi
 
 # Create directory and cd into it
 mkcd() {
-    mkdir -p "$1" && cd "$1"
+    mkdir -p "$1" && cd "$1" || return
 }
 
 # Extract various archive formats
@@ -239,7 +252,7 @@ backup() {
 
 # Find process by name
 psgrep() {
-    ps aux | grep -v grep | grep -i -e VSZ -e "$@"
+    pgrep -af "$@" 2>/dev/null || ps aux | grep -v grep | grep -i -e VSZ -e "$@"
 }
 
 # =============================================================================
