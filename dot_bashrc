@@ -252,7 +252,7 @@ backup() {
 
 # Find process by name
 psgrep() {
-    pgrep -af "$@" 2>/dev/null || ps aux | grep -v grep | grep -i -e VSZ -e "$@"
+    pgrep -af "$@"
 }
 
 # =============================================================================
