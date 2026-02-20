@@ -84,6 +84,12 @@ if command -v mise &> /dev/null; then
     fi
 fi
 
+# fnox shell integration (auto-load secrets on cd into dirs with fnox.toml)
+if command -v fnox &> /dev/null; then
+    # shellcheck source=/dev/null
+    eval "$(fnox activate bash)"
+fi
+
 # =============================================================================
 # STARSHIP PROMPT
 # =============================================================================

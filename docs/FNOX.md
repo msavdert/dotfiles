@@ -11,12 +11,12 @@ Practical guide for managing secrets with [fnox](https://fnox.jdx.dev/) + [age](
 └──────────────┘    age decrypt    └──────────────┘
        ▲         ◄──────────────         │
        │              │                  │
-       │     ~/.config/fnox/key.txt      │
+       │     ~/.config/fnox/age.txt      │
        │     (PRIVATE - never commit)    │
 ```
 
 - **fnox.toml** — encrypted secrets, safe in git ✅
-- **key.txt** — private age key, never commit ❌
+- **age.txt** — private age key, never commit ❌
 
 ## Initial Setup
 
@@ -24,8 +24,8 @@ Practical guide for managing secrets with [fnox](https://fnox.jdx.dev/) + [age](
 
 ```bash
 mkdir -p ~/.config/fnox && chmod 700 ~/.config/fnox
-age-keygen -o ~/.config/fnox/key.txt
-chmod 600 ~/.config/fnox/key.txt
+age-keygen -o ~/.config/fnox/age.txt
+chmod 600 ~/.config/fnox/age.txt
 
 # Output shows your PUBLIC key — save it:
 # Public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
@@ -34,7 +34,16 @@ chmod 600 ~/.config/fnox/key.txt
 ### 2. Initialize fnox
 
 ```bash
-fnox init --provider age --recipient "age1ql3z..."
+# Interactive wizard (recommended)
+fnox init
+
+# Or create fnox.toml manually:
+cat > fnox.toml << EOF
+[providers]
+age = { type = "age", recipients = ["$(age-keygen -y ~/.config/fnox/age.txt)"] }
+
+[secrets]
+EOF
 ```
 
 ### 3. Verify
@@ -97,7 +106,7 @@ fnox --profile production exec -- ./deploy.sh
 
 | File | Location | In Git? | Priority |
 |------|----------|---------|----------|
-| `key.txt` | `~/.config/fnox/key.txt` | ❌ Never | 🔴 Critical |
+| `age.txt` | `~/.config/fnox/age.txt` | ❌ Never | 🔴 Critical |
 | `fnox.toml` | Repo root | ✅ Yes | 🟢 Already backed up |
 
 > **⚠️ Lost key = lost secrets permanently.** There is no recovery without the private key.
@@ -106,14 +115,14 @@ fnox --profile production exec -- ./deploy.sh
 
 ```bash
 # Method 1: Password manager (recommended)
-cat ~/.config/fnox/key.txt
+cat ~/.config/fnox/age.txt
 # Copy entire content to a secure note in 1Password/Bitwarden
 
 # Method 2: Encrypted USB
-cp ~/.config/fnox/key.txt /Volumes/SECURE-USB/fnox-key-$(date +%Y%m%d).txt
+cp ~/.config/fnox/age.txt /Volumes/SECURE-USB/fnox-key-$(date +%Y%m%d).txt
 
 # Method 3: Paper backup (last resort)
-cat ~/.config/fnox/key.txt
+cat ~/.config/fnox/age.txt
 # Write down the AGE-SECRET-KEY-... line, store in safe
 ```
 
@@ -126,8 +135,8 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh |
 # 2. Restore age key from backup
 mkdir -p ~/.config/fnox && chmod 700 ~/.config/fnox
 # Paste from password manager, or copy from USB:
-cp /Volumes/SECURE-USB/fnox-key.txt ~/.config/fnox/key.txt
-chmod 600 ~/.config/fnox/key.txt
+cp /Volumes/SECURE-USB/fnox-age.txt ~/.config/fnox/age.txt
+chmod 600 ~/.config/fnox/age.txt
 
 # 3. Verify
 fnox list              # Should list all secret names
@@ -141,9 +150,9 @@ fnox get DB_PASSWORD   # Should decrypt successfully
 fnox export > /tmp/secrets.env
 
 # 2. Generate NEW key
-mv ~/.config/fnox/key.txt ~/.config/fnox/key.txt.old
-age-keygen -o ~/.config/fnox/key.txt
-chmod 600 ~/.config/fnox/key.txt
+mv ~/.config/fnox/age.txt ~/.config/fnox/age.txt.old
+age-keygen -o ~/.config/fnox/age.txt
+chmod 600 ~/.config/fnox/age.txt
 
 # 3. Re-encrypt all secrets with NEW key
 # Update recipient in fnox.toml with new public key
@@ -151,7 +160,7 @@ chmod 600 ~/.config/fnox/key.txt
 
 # 4. Securely delete exports
 shred -u /tmp/secrets.env
-rm ~/.config/fnox/key.txt.old
+rm ~/.config/fnox/age.txt.old
 
 # 5. Rotate actual credentials (DB passwords, API keys, etc.)
 # 6. Commit updated fnox.toml
@@ -193,8 +202,8 @@ fnox exec -- ssh -i <(echo "$SSH_PRIVATE_KEY") user@host
 
 ### ✅ Do
 
-- Back up `key.txt` in **multiple locations** (password manager + USB)
-- Set strict permissions: `chmod 600 key.txt`, `chmod 700 ~/.config/fnox/`
+- Back up `age.txt` in **multiple locations** (password manager + USB)
+- Set strict permissions: `chmod 600 age.txt`, `chmod 700 ~/.config/fnox/`
 - Commit `fnox.toml` to git (encrypted values are safe)
 - Use profiles to separate dev/staging/prod
 - Rotate secrets periodically
@@ -202,7 +211,7 @@ fnox exec -- ssh -i <(echo "$SSH_PRIVATE_KEY") user@host
 
 ### ❌ Don't
 
-- Never commit `key.txt` to git
+- Never commit `age.txt` to git
 - Never share the private key
 - Never store secrets in plain text files
 - Never use the same credentials across environments
@@ -222,17 +231,17 @@ fnox exec -- ssh -i <(echo "$SSH_PRIVATE_KEY") user@host
 
 ```bash
 # Check key exists and has correct permissions
-ls -la ~/.config/fnox/key.txt   # Should be -rw-------
+ls -la ~/.config/fnox/age.txt   # Should be -rw-------
 
 # Verify key format
-head -n 1 ~/.config/fnox/key.txt  # Should start with AGE-SECRET-KEY-
+head -n 1 ~/.config/fnox/age.txt  # Should start with AGE-SECRET-KEY-
 
 # Get public key from private key
-age-keygen -y ~/.config/fnox/key.txt
+age-keygen -y ~/.config/fnox/age.txt
 
 # Test age encryption/decryption directly
-echo "test" | age -r $(age-keygen -y ~/.config/fnox/key.txt) | \
-    age -d -i ~/.config/fnox/key.txt
+echo "test" | age -r $(age-keygen -y ~/.config/fnox/age.txt) | \
+    age -d -i ~/.config/fnox/age.txt
 # Should output: test
 ```
 

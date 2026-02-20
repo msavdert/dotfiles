@@ -143,17 +143,17 @@ mkdir -p ~/.config/fnox && chmod 700 ~/.config/fnox
 
 # 2. Restore the private key from your backup
 #    Option 2a: From password manager — paste the key content:
-cat > ~/.config/fnox/key.txt << 'EOF'
+cat > ~/.config/fnox/age.txt << 'EOF'
 # created: 2024-xx-xx
 # public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
 AGE-SECRET-KEY-1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 EOF
 
 #    Option 2b: From USB:
-cp /mnt/usb/fnox-key.txt ~/.config/fnox/key.txt
+cp /mnt/usb/fnox-key.txt ~/.config/fnox/age.txt
 
 # 3. Set strict permissions
-chmod 600 ~/.config/fnox/key.txt
+chmod 600 ~/.config/fnox/age.txt
 
 # 4. Verify — should list all your secrets
 fnox list
@@ -167,8 +167,8 @@ If this is your very first time setting up fnox:
 ```bash
 # 1. Generate a new age keypair
 mkdir -p ~/.config/fnox && chmod 700 ~/.config/fnox
-age-keygen -o ~/.config/fnox/key.txt
-chmod 600 ~/.config/fnox/key.txt
+age-keygen -o ~/.config/fnox/age.txt
+chmod 600 ~/.config/fnox/age.txt
 
 # Output will show your PUBLIC key:
 # Public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
@@ -185,7 +185,7 @@ fnox list
 fnox get GITHUB_TOKEN_GENERAL
 
 # 5. CRITICAL — Backup your key!
-cat ~/.config/fnox/key.txt
+cat ~/.config/fnox/age.txt
 # → Copy the entire content to a secure note in your password manager
 
 # 6. Commit the updated fnox.toml to git
@@ -194,7 +194,7 @@ cp ~/.config/fnox/fnox.toml ./fnox.toml
 git add fnox.toml && git commit -m "add fnox secrets" && git push
 ```
 
-> **⚠️ WARNING:** Lost key = lost secrets permanently. Always back up `key.txt` in multiple locations.
+> **⚠️ WARNING:** Lost key = lost secrets permanently. Always back up `age.txt` in multiple locations.
 
 ---
 

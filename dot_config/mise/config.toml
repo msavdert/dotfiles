@@ -92,4 +92,38 @@ VISUAL = "nvim"
 _.file = ".env"
 
 [tasks.ghl-gen]
-run = "fnox exec -- echo ${GITHUB_TOKEN_GENERAL} | gh auth login --with-token && gh auth setup-git"
+description = "Authenticate GitHub CLI using fnox"
+run = "fnox exec -- bash -c 'echo $GITHUB_TOKEN_GENERAL | gh auth login --with-token && gh auth setup-git'"
+
+[tasks.doctor]
+description = "Check dotfiles health"
+run = """
+echo "=== chezmoi ===" && chezmoi doctor 2>&1 | grep -c "^ok" | xargs -I{} echo "  {} checks passed"
+echo "=== mise ===" && mise list 2>/dev/null | wc -l | xargs -I{} echo "  {} tools installed"
+echo "=== fnox ===" && fnox list 2>/dev/null | wc -l | xargs -I{} echo "  {} secrets available"
+echo "=== git ===" && echo "  user: $(git config user.name) <$(git config user.email)>"
+"""
+
+[tasks.ssh-restore]
+description = "Restore SSH keys from fnox secrets"
+run = """
+fnox exec -- bash -c '
+  mkdir -p ~/.ssh && chmod 700 ~/.ssh
+  if [ -n "$SSHKEY_K3S" ]; then
+    echo "$SSHKEY_K3S" > ~/.ssh/k3s_key && chmod 600 ~/.ssh/k3s_key
+    echo "✓ k3s SSH key restored"
+  else
+    echo "✗ SSHKEY_K3S not found in fnox"
+  fi
+'
+"""
+
+[tasks.k3s-connect]
+description = "Connect to k3s cluster using fnox kubeconfig"
+run = """
+fnox exec -- bash -c '
+  echo "$KUBECONFIG_K3S" > /tmp/k3s.conf
+  export KUBECONFIG=/tmp/k3s.conf
+  kubectl get nodes && echo "" && echo "✓ Connected! Run: export KUBECONFIG=/tmp/k3s.conf"
+'
+"""
