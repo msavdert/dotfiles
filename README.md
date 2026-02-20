@@ -145,10 +145,12 @@ See [Testing Guide](docs/TESTING.md) for detailed instructions on Docker and Orb
 
 | Guide | Description |
 |-------|-------------|
+| [BOOTSTRAP.md](docs/BOOTSTRAP.md) | **Start here** — Full setup guide with fnox examples |
 | [CHEZMOI.md](docs/CHEZMOI.md) | Dotfile management with chezmoi |
 | [FNOX.md](docs/FNOX.md) | Secret management with fnox + age |
 | [DATABASE_MANAGEMENT.md](docs/DATABASE_MANAGEMENT.md) | DBA tools & workflows |
 | [TESTING.md](docs/TESTING.md) | Testing with Docker & OrbStack |
+| [ORBSTACK.md](docs/ORBSTACK.md) | OrbStack reference guide |
 
 ### External Resources
 

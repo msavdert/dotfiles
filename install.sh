@@ -73,15 +73,33 @@ check_requirements() {
         exit 1
     fi
     
-    # Check for required commands
+    # Auto-install git and curl if missing (Linux only)
     local required_commands=("curl" "git")
+    local missing=()
     for cmd in "${required_commands[@]}"; do
         if ! command_exists "$cmd"; then
-            log_error "Required command not found: $cmd"
-            log_error "Please install $cmd and try again"
-            exit 1
+            missing+=("$cmd")
         fi
     done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        if is_linux; then
+            log_warn "Missing commands: ${missing[*]}. Installing..."
+            if command_exists apt-get; then
+                sudo apt-get update -qq && sudo apt-get install -y -qq "${missing[@]}"
+            elif command_exists dnf; then
+                sudo dnf install -y -q "${missing[@]}"
+            elif command_exists yum; then
+                sudo yum install -y -q "${missing[@]}"
+            else
+                log_error "Cannot auto-install ${missing[*]}. Please install manually."
+                exit 1
+            fi
+        else
+            log_error "Missing commands: ${missing[*]}. Please install them first."
+            exit 1
+        fi
+    fi
     
     log "System requirements met: $(uname -s) $(uname -m)"
 }
