@@ -215,26 +215,34 @@ install_nvim() {
         [ "$arch" = "arm64" ] && os_type="macos-arm64" || os_type="macos-x86_64"
         filename="nvim-${os_type}.tar.gz"
     else
-        # Neovim provides a generic linux64 tarball for x86_64
-        if [ "$arch" = "x86_64" ]; then
-            filename="nvim-linux64.tar.gz"
-            os_type="linux64"
-        else
-            log_warn "Neovim pre-built binaries are mainly for x86_64 and macOS. Skipping on $arch."
-            return 0
-        fi
+        case "$arch" in
+            x86_64) os_type="linux-x86_64" ;;
+            aarch64|arm64) os_type="linux-arm64" ;;
+            *) log_warn "Neovim pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        # Neovim v0.10.0 might use nvim-linux64 for x86_64, but v0.12+ uses nvim-linux-x86_64
+        # We try to use the most common pattern or the exact one we found
+        filename="nvim-${os_type}.tar.gz"
     fi
 
     url="https://github.com/neovim/neovim/releases/download/v${version}/${filename}"
-    log "Downloading Neovim $version..."
+    log "Downloading Neovim $version for $os_type..."
     curl -fsSL -L "$url" -o "/tmp/$filename"
     
     mkdir -p "$HOME/.local/apps"
     rm -rf "$HOME/.local/apps/nvim"
+    
+    # Extract
     tar -xzf "/tmp/$filename" -C "$HOME/.local/apps"
     
-    # The tarball extracts to nvim-<os_type>
-    mv "$HOME/.local/apps/nvim-${os_type}" "$HOME/.local/apps/nvim"
+    # The tarball extracts to nvim-<os_type> or nvim-linux64
+    local extracted_dir=$(find "$HOME/.local/apps" -maxdepth 1 -name "nvim-*" -type d | head -1)
+    if [ -n "$extracted_dir" ]; then
+        mv "$extracted_dir" "$HOME/.local/apps/nvim"
+    else
+        log_error "Could not find extracted Neovim directory"
+        return 1
+    fi
     
     # Link the binary
     ln -sf "$HOME/.local/apps/nvim/bin/nvim" "$BIN_DIR/nvim"
