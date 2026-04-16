@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-readonly DOTFILES_URL="https://github.com/msavdert/dotfiles/archive/refs/heads/main.zip"
+readonly DOTFILES_URL="https://github.com/msavdert/dotfiles/archive/refs/heads/main.tar.gz"
 readonly DOTFILES_REPO="https://github.com/msavdert/dotfiles.git"
 readonly DOTFILES_DIR="$HOME/.dotfiles"
 readonly BIN_DIR="$HOME/.local/bin"
@@ -40,7 +40,7 @@ check_system_dependencies() {
     log_step "Checking system dependencies"
 
     local missing=()
-    local required=(bash curl unzip tar)
+    local required=(bash curl tar)
 
     for tool in "${required[@]}"; do
         if command_exists "$tool"; then
@@ -100,12 +100,12 @@ fetch_dotfiles() {
         log "Cloning repository via git..."
         git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
     else
-        log_warn "Git not found, falling back to ZIP download."
-        curl -fsSL "$DOTFILES_URL" -o "/tmp/dotfiles.zip"
-        unzip -q "/tmp/dotfiles.zip" -d /tmp
-        mv /tmp/dotfiles-main "$DOTFILES_DIR"
-        rm -f "/tmp/dotfiles.zip"
-        log "Repository downloaded as ZIP. Note: git features will be unavailable."
+        log_warn "Git not found, falling back to tarball download."
+        curl -fsSL "$DOTFILES_URL" -o "/tmp/dotfiles.tar.gz"
+        mkdir -p "$DOTFILES_DIR"
+        tar -xzf "/tmp/dotfiles.tar.gz" -C "$DOTFILES_DIR" --strip-components=1
+        rm -f "/tmp/dotfiles.tar.gz"
+        log "Repository downloaded as tarball. Note: git features will be unavailable."
     fi
 }
 

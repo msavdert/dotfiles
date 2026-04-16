@@ -28,6 +28,38 @@ ensure_bin_dir() {
     fi
 }
 
+# Helper to extract ZIP files without requiring the unzip utility
+extract_zip() {
+    local zip_file="$1"
+    local dest_dir="$2"
+    local entry="${3:-}" # Optional: specific file to extract
+
+    if command_exists unzip; then
+        if [ -n "$entry" ]; then
+            unzip -q -o "$zip_file" -d "$dest_dir" "$entry"
+        else
+            unzip -q -o "$zip_file" -d "$dest_dir"
+        fi
+    elif command_exists python3; then
+        log "unzip missing, using python3 to extract..."
+        if [ -n "$entry" ]; then
+            python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
+        else
+            python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
+        fi
+    elif command_exists python; then
+        log "unzip missing, using python to extract..."
+        if [ -n "$entry" ]; then
+            python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
+        else
+            python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
+        fi
+    else
+        log_error "unzip and python (zipfile) missing. Cannot extract $zip_file"
+        return 1
+    fi
+}
+
 # =============================================================================
 # Binary Installers
 # =============================================================================
@@ -83,7 +115,8 @@ install_gh() {
         filename="gh_${version}_${os_type}.zip"
         url="https://github.com/cli/cli/releases/download/v${version}/${filename}"
         curl -fsSL -L "$url" -o "/tmp/$filename"
-        unzip -q -o "/tmp/$filename" -d "/tmp/gh_install"
+        mkdir -p "/tmp/gh_install"
+        extract_zip "/tmp/$filename" "/tmp/gh_install"
         find "/tmp/gh_install" -name "gh" -exec cp {} "$BIN_DIR/" \;
         rm -rf "/tmp/$filename" "/tmp/gh_install"
     else
@@ -118,7 +151,6 @@ install_op() {
     [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
 
     if is_macos; then
-        filename="op_apple_universal_v${version}.pkg" # Actually better to use zip for no-sudo
         filename="op_darwin_${arch}_v${version}.zip"
         url="https://cache.agilebits.com/dist/1P/op/v${version}/$filename"
     else
@@ -127,7 +159,7 @@ install_op() {
     fi
 
     curl -fsSL "$url" -o "/tmp/$filename"
-    unzip -q -o "/tmp/$filename" -d "$BIN_DIR" "op"
+    extract_zip "/tmp/$filename" "$BIN_DIR" "op"
     chmod +x "$BIN_DIR/op"
     rm -f "/tmp/$filename"
 }
