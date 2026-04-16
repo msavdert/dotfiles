@@ -73,7 +73,8 @@ install_zellij() {
     log_step "Installing Zellij"
 
     local version arch filename url
-    version=$(curl -fsSL https://api.github.com/repos/zellij-org/zellij/releases/latest 2>/dev/null | grep '"tag_name"' | sed 's/.*"v\?\([^"]*\)".*/\1/' | head -1)
+    # Use awk to avoid SIGPIPE with pipefail
+    version=$(curl -fsSL https://api.github.com/repos/zellij-org/zellij/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
     [ -z "$version" ] && version="0.41.2"
 
     arch=$(uname -m)
@@ -106,7 +107,8 @@ install_gh() {
     log_step "Installing GitHub CLI"
 
     local version arch os_type filename url
-    version=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest 2>/dev/null | grep '"tag_name"' | sed 's/.*"v\?\([^"]*\)".*/\1/' | head -1)
+    # Use awk to avoid SIGPIPE with pipefail
+    version=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
     [ -z "$version" ] && version="2.61.0"
 
     arch=$(uname -m)

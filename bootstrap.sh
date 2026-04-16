@@ -39,8 +39,8 @@ install_gh_pre() {
     log_step "Installing GitHub CLI (bootstrap priority)"
 
     local version arch os_type filename url
-    # Fetch latest version without jq
-    version=$(curl -fsSL -I https://github.com/cli/cli/releases/latest | grep -i "location:" | grep -oP "v\d+\.\d+\.\d+" | head -1 | sed 's/^v//')
+    # Fetch latest version without jq, safely avoiding SIGPIPE
+    version=$(curl -fsSL -I https://github.com/cli/cli/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
     [ -z "$version" ] && version="2.61.0"
 
     arch=$(uname -m)
