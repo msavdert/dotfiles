@@ -104,6 +104,11 @@ if [ -f ~/.bash_aliases ]; then
     source ~/.bash_aliases
 fi
 
+# Load local settings (untracked)
+if [ -f ~/.bash_local ]; then
+    source ~/.bash_local
+fi
+
 # =============================================================================
 # Git Identity Check
 # =============================================================================
