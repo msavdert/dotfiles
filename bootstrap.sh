@@ -77,7 +77,9 @@ install_gh_pre() {
 
 check_system_dependencies() {
     log_step "Checking system dependencies"
-    local required=(bash curl tar)
+    # curl is omitted because we assume it exists if this script is running (curl | bash)
+    # or it will fail naturally when first used.
+    local required=(bash tar)
     local missing=()
     for tool in "${required[@]}"; do
         command_exists "$tool" && log "Found: $tool" || missing+=("$tool")
@@ -103,10 +105,20 @@ fetch_dotfiles() {
         fi
     fi
 
+    # Try gh repo clone first (Best Practice with GH CLI)
+    if command_exists git && command_exists gh; then
+        log "Using gh repo clone..."
+        if gh repo clone msavdert/dotfiles "$DOTFILES_DIR"; then
+            return 0
+        fi
+    fi
+
+    # Fallback 1: Standard git clone
     if command_exists git; then
         log "Cloning repository via git..."
         git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
     else
+        # Fallback 2: Tarball
         log_warn "Git not found, falling back to tarball download."
         curl -fsSL "$DOTFILES_URL" -o "/tmp/dotfiles.tar.gz"
         mkdir -p "$DOTFILES_DIR"
