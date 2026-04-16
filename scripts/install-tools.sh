@@ -144,20 +144,22 @@ install_op() {
     log_step "Installing 1Password CLI"
 
     local version arch filename url
-    version=$(curl -fsSL https://api.github.com/repos/1Password/op/releases/latest 2>/dev/null | grep '"tag_name"' | sed 's/.*"v\?\([^"]*\)".*/\1/' | head -1)
-    [ -z "$version" ] && version="2.28.0"
+    # Fetch latest version from update page
+    version=$(curl -fsSL https://app-updates.agilebits.com/product_history/CLI2 | grep -oiP 'v\d+\.\d+\.\d+' | head -1 | sed 's/^v//')
+    [ -z "$version" ] && version="2.35.0"
 
     arch=$(uname -m)
     [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
 
     if is_macos; then
         filename="op_darwin_${arch}_v${version}.zip"
-        url="https://cache.agilebits.com/dist/1P/op/v${version}/$filename"
+        url="https://cache.agilebits.com/dist/1P/op2/pkg/v${version}/$filename"
     else
         filename="op_linux_${arch}_v${version}.zip"
-        url="https://cache.agilebits.com/dist/1P/op/v${version}/$filename"
+        url="https://cache.agilebits.com/dist/1P/op2/pkg/v${version}/$filename"
     fi
 
+    log "Downloading op $version..."
     curl -fsSL "$url" -o "/tmp/$filename"
     extract_zip "/tmp/$filename" "$BIN_DIR" "op"
     chmod +x "$BIN_DIR/op"
@@ -175,15 +177,16 @@ install_jq() {
     local version="1.7.1"
     local arch url
     arch=$(uname -m)
-    [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
-
+    
     if is_macos; then
-        url="https://github.com/jqlang/jq/releases/download/jq-${version}/jq-osx-amd64" # jq seems to provide only amd64/arm64 for osx
-        [ "$(uname -m)" = "arm64" ] && url="https://github.com/jqlang/jq/releases/download/jq-${version}/jq-macos-arm64" || url="https://github.com/jqlang/jq/releases/download/jq-${version}/jq-macos-amd64"
+        # jqlang provides specific binaries for macos
+        [ "$arch" = "arm64" ] && url="https://github.com/jqlang/jq/releases/download/jq-${version}/jq-macos-arm64" || url="https://github.com/jqlang/jq/releases/download/jq-${version}/jq-macos-amd64"
     else
+        [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
         url="https://github.com/jqlang/jq/releases/download/jq-${version}/jq-linux-${arch}"
     fi
 
+    log "Downloading jq $version..."
     curl -fsSL -L "$url" -o "$BIN_DIR/jq"
     chmod +x "$BIN_DIR/jq"
 }
@@ -200,6 +203,9 @@ main() {
     echo ""
 
     ensure_bin_dir
+    
+    # Export PATH just in case
+    export PATH="$BIN_DIR:$PATH"
 
     if is_macos && command_exists brew; then
         log_step "Homebrew detected, using it for tools"
