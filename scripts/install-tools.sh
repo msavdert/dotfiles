@@ -144,9 +144,13 @@ install_op() {
     log_step "Installing 1Password CLI"
 
     local version arch filename url
-    # Fetch latest version from update page
-    version=$(curl -fsSL https://app-updates.agilebits.com/product_history/CLI2 | grep -oiP 'v\d+\.\d+\.\d+' | head -1 | sed 's/^v//')
-    [ -z "$version" ] && version="2.35.0"
+    # Fetch latest stable version from update page
+    # Using python3 if available for robust parsing, or a fallback string
+    if command_exists python3; then
+        version=$(python3 -c "import urllib.request, re; content = urllib.request.urlopen('https://app-updates.agilebits.com/product_history/CLI2').read().decode(); links = re.findall(r'v([0-9.]+)/op_linux', content); print(links[0] if links else '2.33.1')" 2>/dev/null || echo "2.33.1")
+    else
+        version="2.33.1"
+    fi
 
     arch=$(uname -m)
     [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
