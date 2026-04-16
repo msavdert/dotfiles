@@ -33,6 +33,8 @@ All configs are symlinked from `~/.dotfiles/` to `~`. For example:
 - `~/.dotfiles/bash/.bashrc` → `~/.bashrc`
 - `~/.dotfiles/git/.gitconfig` → `~/.gitconfig`
 
+If a file already exists at the destination, `link.sh` backs it up as `~/.bashrc.backup.YYYYMMDDHHMMSS` before creating the symlink.
+
 ## Common Commands
 
 ### Bootstrap (fresh machine)
@@ -83,6 +85,16 @@ export GIT_AUTHOR_EMAIL="you@example.com"
 - `git/.gitconfig` — Uses env vars for identity, safe defaults
 - `tmux/.tmux.conf` — Prefix `C-a`, vim-style navigation, dark status bar
 
+## 1Password Helper (ops.sh)
+
+The `ops` alias runs commands with 1Password secrets injected:
+```bash
+ops -- gh auth status        # Run with secrets loaded
+ops --secret API_KEY -- echo $API_KEY  # Get specific secret
+```
+
+For `ops` to work, store secrets in a 1Password item named `dotfiles` with fields matching the env var names.
+
 ## Testing
 
 Test on fresh VM using OrbStack:
@@ -91,4 +103,10 @@ orb create ubuntu test-vm
 orb shell test-vm
 curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 source ~/.bashrc
+```
+
+To lint shell scripts locally:
+```bash
+brew install shellcheck  # macOS
+shellcheck -s bash bootstrap.sh scripts/*.sh
 ```
