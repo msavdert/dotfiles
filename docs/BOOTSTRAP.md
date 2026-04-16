@@ -33,7 +33,7 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
 This will:
 1. Detect your OS
 2. Install Homebrew (macOS) or use apt/dnf (Linux)
-3. Install core tools: git, curl, bash, tmux, gh
+3. Install core tools: git, curl, bash, tmux, gh, nvim
 4. Install 1Password CLI
 5. Clone dotfiles to `~/.dotfiles`
 6. Create symlinks to your home directory

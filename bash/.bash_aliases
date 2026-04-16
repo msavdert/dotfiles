@@ -112,3 +112,8 @@ ops() {
     op-signin
     op run -- "$@"
 }
+
+# Neovim
+alias v='nvim'
+alias vi='nvim'
+alias vim='nvim'

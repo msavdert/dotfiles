@@ -197,6 +197,51 @@ install_jq() {
     chmod +x "$BIN_DIR/jq"
 }
 
+install_nvim() {
+    if command_exists nvim; then
+        log "Neovim already installed: $(nvim --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing Neovim"
+
+    local version arch os_type filename url
+    # Use awk to avoid SIGPIPE
+    version=$(curl -fsSL https://api.github.com/repos/neovim/neovim/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
+    [ -z "$version" ] && version="0.10.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="macos-arm64" || os_type="macos-x86_64"
+        filename="nvim-${os_type}.tar.gz"
+    else
+        # Neovim provides a generic linux64 tarball for x86_64
+        if [ "$arch" = "x86_64" ]; then
+            filename="nvim-linux64.tar.gz"
+            os_type="linux64"
+        else
+            log_warn "Neovim pre-built binaries are mainly for x86_64 and macOS. Skipping on $arch."
+            return 0
+        fi
+    fi
+
+    url="https://github.com/neovim/neovim/releases/download/v${version}/${filename}"
+    log "Downloading Neovim $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    mkdir -p "$HOME/.local/apps"
+    rm -rf "$HOME/.local/apps/nvim"
+    tar -xzf "/tmp/$filename" -C "$HOME/.local/apps"
+    
+    # The tarball extracts to nvim-<os_type>
+    mv "$HOME/.local/apps/nvim-${os_type}" "$HOME/.local/apps/nvim"
+    
+    # Link the binary
+    ln -sf "$HOME/.local/apps/nvim/bin/nvim" "$BIN_DIR/nvim"
+    chmod +x "$BIN_DIR/nvim"
+    rm -f "/tmp/$filename"
+}
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -209,12 +254,13 @@ main() {
 
     if is_macos && command_exists brew; then
         log_step "Homebrew detected, using it for tools"
-        brew install gh 1password-cli zellij jq 2>/dev/null || true
+        brew install gh 1password-cli zellij jq neovim 2>/dev/null || true
     else
         install_gh
         install_op
         install_zellij
         install_jq
+        install_nvim
     fi
 }
 

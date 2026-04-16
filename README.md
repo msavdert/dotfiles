@@ -40,6 +40,7 @@ After bootstrap:
 ### Shell & Multiplexer
 - **bash** with minimal, high-performance configuration
 - **Zellij** modern terminal workspace (replaces tmux)
+- **Neovim (nvim)** modernized, high-performance editor (v, vi, vim)
 - Essential aliases (git, docker, navigation)
 - Built-in bash completion
 
@@ -51,6 +52,7 @@ After bootstrap:
 ### Tools & Secrets
 - **GitHub CLI (gh)** for repository and PR management
 - **1Password CLI (op)** integration via `ops` helper
+- **Neovim (nvim)** modernized editor
 - **jq** for JSON processing
 
 ## Project Structure
@@ -102,7 +104,13 @@ ops -- gh auth status
 ops --secret API_KEY -- echo $API_KEY
 ```
 
+
 ## Supported Systems
+
+- **macOS** (Ventura and later)
+- **Ubuntu** 20.04+ (including minimal Docker images)
+- **Debian** 11+
+- **Rocky Linux / Oracle Linux** 8+
 
 - **macOS** (Ventura and later)
 - **Ubuntu** 20.04+ (including minimal Docker images)
