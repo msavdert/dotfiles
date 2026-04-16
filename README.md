@@ -1,171 +1,135 @@
-# dotfiles
+# Dotfiles
 
-My personal dotfiles managed with [mise](https://mise.jdx.dev/) + [chezmoi](https://www.chezmoi.io/) + [fnox](https://fnox.jdx.dev/).
+Minimal dotfiles setup for macOS and Linux. No framework dependencies — just symlinks and a bootstrap script.
 
 **Repository:** `https://github.com/msavdert/dotfiles`
 
 ## Quick Start
 
-Bootstrap a new machine with a single command:
+Bootstrap a new machine with one command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 ```
 
-This will:
-1. Install mise (tool version manager)
-2. Install all required tools (chezmoi, fnox, age, starship, zellij, etc.)
-3. Initialize chezmoi with your dotfiles
-4. Set up fnox for secret management
-5. Configure your shell
+After bootstrap:
 
-> **Important:** After install, restore your age key for secret access. See [fnox guide](docs/FNOX.md#restore-on-new-machine).
+1. Set git identity:
+   ```bash
+   export GIT_AUTHOR_NAME="Your Name"
+   export GIT_AUTHOR_EMAIL="you@example.com"
+   ```
+
+2. Sign in to 1Password:
+   ```bash
+   op signin
+   ```
+
+3. Authenticate GitHub CLI:
+   ```bash
+   gh auth login
+   ```
+
+4. Reload shell:
+   ```bash
+   source ~/.bashrc
+   ```
 
 ## What's Included
 
-### Core Tools
-- **mise** — Universal tool version manager
-- **chezmoi** — Dotfile manager with templating support
-- **fnox** — Secret management with age encryption
-- **age** — Modern encryption tool
+### Shell
+- **bash** with minimal configuration
+- **tmux** terminal multiplexer
+- Essential aliases (git, docker, navigation)
+- Built-in bash completion
 
-### Shell & Terminal
-- **bash** — Default shell with custom configurations
-- **starship** — Minimal, fast prompt
-- **zellij** — Terminal multiplexer (modern tmux alternative)
+### Git
+- Environment-based identity (no hardcoded names/email)
+- Useful aliases (`g`, `gs`, `gc`, `gl`, etc.)
+- Safe defaults (rebase on pull, auto-stash on rebase)
 
-### Cloud & Infrastructure
-- **OCI CLI** — Oracle Cloud Infrastructure CLI
-- **kubectl** — Kubernetes command-line tool
-- **k9s** — Kubernetes TUI
-- **helm** — Kubernetes package manager
-- **terraform** — Infrastructure as Code
-- **flux2** — GitOps for Kubernetes
-- **kustomize** — Kubernetes configuration management
-- **cilium-cli** — Cilium CNI management
-
-### Development Tools
-- **neovim** — Modern Vim-based text editor
-- **jq / yq** — JSON & YAML processors
-- **ripgrep** — Fast search tool
-- **github-cli** — GitHub from the terminal
+### Secrets
+- **1Password CLI** integration via `ops` helper
 
 ## Project Structure
 
 ```
 dotfiles/
-├── install.sh                 # Bootstrap script (idempotent)
-├── Makefile                   # Dev workflow commands
-├── .chezmoi.toml.tmpl         # Chezmoi config template
-├── .chezmoiignore             # Files excluded from home directory
-├── dot_bashrc                 # Bash configuration
-├── dot_bash_aliases           # Bash aliases
-├── dot_bash_profile           # Bash profile (login shell)
-├── dot_gitconfig.tmpl         # Git configuration (templated)
-├── dot_config/
-│   ├── mise/config.toml       # mise tool definitions
-│   ├── starship.toml          # Starship prompt config
-│   └── zellij/config.kdl      # Zellij multiplexer config
-├── private_dot_ssh/
-│   ├── config.tmpl            # SSH client configuration
-│   └── *.age                  # Encrypted SSH keys
-├── fnox.toml                  # Encrypted secrets (safe in git)
-├── Dockerfile                 # Test environment
-├── docker-compose.yml         # Docker dev environment
-├── .github/workflows/
-│   └── docker.yml             # CI: shellcheck + Docker build
-└── docs/
-    ├── CHEZMOI.md             # Chezmoi usage guide
-    ├── FNOX.md                # Secret management guide
-    ├── DATABASE_MANAGEMENT.md # DBA tools & workflows
-    └── TESTING.md             # Testing guide (Docker & OrbStack)
+├── bootstrap.sh           # Main bootstrap script
+├── bash/
+│   ├── .bashrc           # Shell configuration
+│   ├── .bash_aliases     # Aliases
+│   └── .bash_profile     # Login shell
+├── git/
+│   └── .gitconfig        # Git configuration
+├── tmux/
+│   └── .tmux.conf        # Tmux configuration
+├── ssh/
+│   └── config            # SSH client config
+└── scripts/
+    ├── link.sh           # Create symlinks
+    ├── install-tools.sh  # Install tools only
+    └── ops.sh            # 1Password helper
 ```
 
-## Usage
+## Common Tasks
 
-### Managing Dotfiles
-
+### Add a new alias
+Edit `bash/.bash_aliases`, then:
 ```bash
-chezmoi edit ~/.bashrc          # Edit a dotfile
-chezmoi diff                    # Preview changes
-chezmoi apply                   # Apply changes
-chezmoi update                  # Pull from git + apply
+source ~/.bashrc
 ```
 
-### Managing Tools
-
+### Update dotfiles
 ```bash
-mise install                    # Install all defined tools
-mise upgrade                    # Update all tools
-mise use -g <tool>@<version>    # Add a new global tool
-mise list                       # List installed tools
+cd ~/.dotfiles && git pull origin main
 ```
 
-### Managing Secrets
-
+### Install new tools
 ```bash
-fnox set API_KEY "secret"       # Store a secret (encrypted)
-fnox get API_KEY                # Retrieve a secret
-fnox list                       # List all secrets
-fnox exec -- ./deploy.sh        # Run command with secrets loaded
+# Install on current OS
+./scripts/install-tools.sh
+
+# Or manually with Homebrew (macOS)
+brew install curl git tmux
+
+# Or apt (Debian/Ubuntu)
+sudo apt-get install git curl tmux
 ```
 
-### Shell Aliases
-
-Common aliases defined in `.bash_aliases`:
-
-| Category | Aliases |
-|----------|---------|
-| **Navigation** | `..` `...` `....` |
-| **Files** | `ll` `la` `lt` |
-| **Docker** | `d` `dc` `dps` `dcup` `dcdown` |
-| **Git** | `g` `gs` `ga` `gc` `gp` `gl` |
-| **Kubernetes** | `k` `kn` `kgp` `kgs` `kga` |
-| **Terraform** | `tf` `tfi` `tfp` `tfa` |
-| **Chezmoi** | `cm` `cma` `cdiff` `cme` `cmu` |
-| **Mise** | `m` `mi` `mu` `ml` |
-| **Fnox** | `fe` `fg` `fs` `fl` `fx` |
-
-See full list: `dot_bash_aliases`
-
-## Development & Testing
-
+### Use 1Password secrets
 ```bash
-make help     # Show available commands
-make build    # Build Docker test environment
-make shell    # Enter test container
-make test     # Build + run install.sh in clean container
-make lint     # Run shellcheck on all scripts
-make clean    # Stop containers, remove volumes
+# Run a command with secrets loaded
+ops -- gh auth status
+
+# Get a specific secret
+ops --secret API_KEY -- echo $API_KEY
 ```
 
-See [Testing Guide](docs/TESTING.md) for detailed instructions on Docker and OrbStack testing.
+## Supported Systems
 
-## Documentation
+- **macOS** (Ventura and later)
+- **Ubuntu** 20.04+
+- **Debian** 11+
+- **Rocky Linux** 8+
+- **Oracle Linux** 8+
 
-| Guide | Description |
-|-------|-------------|
-| [BOOTSTRAP.md](docs/BOOTSTRAP.md) | **Start here** — Full setup guide with fnox examples |
-| [CHEZMOI.md](docs/CHEZMOI.md) | Dotfile management with chezmoi |
-| [FNOX.md](docs/FNOX.md) | Secret management with fnox + age |
-| [DATABASE_MANAGEMENT.md](docs/DATABASE_MANAGEMENT.md) | DBA tools & workflows |
-| [TESTING.md](docs/TESTING.md) | Testing with Docker & OrbStack |
-| [ORBSTACK.md](docs/ORBSTACK.md) | OrbStack reference guide |
+## Design Principles
 
-### External Resources
+1. **No framework dependencies** — No mise, chezmoi, or fnox. Just git and symlinks.
+2. **Works in a fresh VM** — Uses system package managers, not custom tooling.
+3. **Bash completion works out of the box** — Uses system bash-completion.
+4. **Simple prompt** — No starship or other prompt tools. Just PS1.
+5. **Git identity via environment** — `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL`.
 
-- [mise documentation](https://mise.jdx.dev/)
-- [chezmoi documentation](https://www.chezmoi.io/)
-- [fnox documentation](https://fnox.jdx.dev/)
-- [starship documentation](https://starship.rs/)
-- [zellij documentation](https://zellij.dev/)
+## Migrating from Old Setup
+
+If you're switching from the old (chezmoi/mise/fnox) setup:
+
+1. Your `~/.bashrc`, `~/.gitconfig`, etc. will be backed up as `~/.bashrc.backup.*`
+2. New symlinks will be created pointing to `~/.dotfiles/`
+3. Set your git identity and 1Password secrets in your shell profile
 
 ## License
 
-MIT License — Feel free to use this as a template for your own dotfiles!
-
-## Author
-
-**msavdert**
-- GitHub: [@msavdert](https://github.com/msavdert)
-- Email: 10913156+msavdert@users.noreply.github.com
+MIT — Feel free to use as a template!

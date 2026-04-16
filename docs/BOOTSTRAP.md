@@ -1,371 +1,252 @@
-# Bootstrap Guide — Setting Up Your Environment from Scratch
+# Bootstrap Guide
 
-Complete walkthrough for setting up the dotfiles environment on a fresh system. Follow these steps in order.
+Complete guide for setting up your dotfiles environment on a fresh system.
 
 ## Overview
 
 ```
-┌──────────┐     ┌───────┐     ┌─────────┐     ┌──────┐     ┌───────────┐
-│ install.sh│ ──► │ mise  │ ──► │ chezmoi │ ──► │ fnox │ ──► │ Ready! ✓  │
-│ (bootstrap)│    │ (tools)│    │ (dotfiles)│   │(secrets)│   │           │
-└──────────┘     └───────┘     └─────────┘     └──────┘     └───────────┘
+┌──────────────┐     ┌──────────────┐     ┌───────────┐
+│ bootstrap.sh │ ──► │ Homebrew/apt│ ──► │  Symlinks │
+│  (one step)  │     │  (tools)    │     │  (link)   │
+└──────────────┘     └──────────────┘     └───────────┘
 ```
 
----
-
-## Method 1: OrbStack VM (Recommended for Full Testing)
-
-### Step 1 — Create the VM
+## Quick Start
 
 ```bash
-# From Mac terminal
-orb create ubuntu devenv
-orb -m devenv
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 ```
 
-### Step 2 — Run Bootstrap
+## Supported Systems
+
+| OS | Package Manager | Status |
+|----|----------------|--------|
+| macOS | Homebrew | Tested |
+| Ubuntu | apt | Tested |
+| Debian | apt | Tested |
+| Rocky Linux | dnf | Tested |
+| Oracle Linux | dnf | Tested |
+
+## Step-by-Step
+
+### Step 1 — Run Bootstrap
 
 ```bash
-# Inside the VM (git & curl are auto-installed if missing)
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 ```
 
-### Step 3 — Activate Shell
+This will:
+1. Detect your OS
+2. Install Homebrew (macOS) or use apt/dnf (Linux)
+3. Install core tools: git, curl, bash, tmux, gh
+4. Install 1Password CLI
+5. Clone dotfiles to `~/.dotfiles`
+6. Create symlinks to your home directory
+
+### Step 2 — Set Git Identity
+
+Edit your `~/.bash_profile` or `~/.bashrc`:
 
 ```bash
-source ~/.bashrc
+export GIT_AUTHOR_NAME="Your Name"
+export GIT_AUTHOR_EMAIL="you@example.com"
 ```
 
-### Step 4 — Verify Installation
+Or add to `~/.bash_profile`:
 
 ```bash
-# All tools installed?
-mise list
-
-# Chezmoi healthy?
-chezmoi doctor
-
-# Git config templated correctly?
-git config user.name     # Should show: msavdert
-git config user.email    # Should show: 10913156+msavdert@users.noreply.github.com
-
-# Prompt working?
-starship --version
-
-# Aliases loaded?
-alias | wc -l            # Should be 100+
-```
-
-> **Note:** `chezmoi doctor` may show a hardlink error on OrbStack/Docker — this is expected (cross-device link) and doesn't affect functionality.
-
-### Step 5 — Set Up fnox Secrets
-
-See [fnox Setup](#fnox-setup-secrets) below.
-
-### Cleanup
-
-```bash
-# Exit VM
-exit
-
-# Delete VM when done testing
-orb delete devenv
-```
-
----
-
-## Method 2: Docker Container
-
-### Step 1 — Build & Enter
-
-```bash
-cd ~/Documents/all/github/dotfiles
-make build
-make shell
-```
-
-### Step 2 — Run Bootstrap Inside Container
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
-source ~/.bashrc
-```
-
-### Step 3 — Verify
-
-Same verification commands as Method 1.
-
-### Cleanup
-
-```bash
-exit
-make clean    # Stop container and remove volumes
-```
-
----
-
-## Method 3: Fresh Linux Machine (Real Server/Desktop)
-
-### Step 1 — Ensure Required Packages
-
-```bash
-# On Ubuntu/Debian (install.sh does this automatically now)
-sudo apt update && sudo apt install -y curl git
-
-# On RHEL/Fedora
-sudo dnf install -y curl git
-```
-
-### Step 2 — Bootstrap
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
-source ~/.bashrc
-```
-
-### Step 3 — Verify + fnox Setup
-
-Same steps as above, then proceed to fnox setup.
-
----
-
-## fnox Setup (Secrets)
-
-fnox uses age encryption to manage secrets. After bootstrap, you need to either **restore your existing key** or **create a new one**.
-
-### Option A: Restore Existing Key (Existing User)
-
-If you already have an age key backed up (password manager, USB, etc.):
-
-```bash
-# 1. Create fnox config directory
-mkdir -p ~/.config/fnox && chmod 700 ~/.config/fnox
-
-# 2. Restore the private key from your backup
-#    Option 2a: From password manager — paste the key content:
-cat > ~/.config/fnox/age.txt << 'EOF'
-# created: 2024-xx-xx
-# public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
-AGE-SECRET-KEY-1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+cat >> ~/.bash_profile << 'EOF'
+export GIT_AUTHOR_NAME="Your Name"
+export GIT_AUTHOR_EMAIL="you@example.com"
 EOF
-
-#    Option 2b: From USB:
-cp /mnt/usb/fnox-key.txt ~/.config/fnox/age.txt
-
-# 3. Set strict permissions
-chmod 600 ~/.config/fnox/age.txt
-
-# 4. Verify — should list all your secrets
-fnox list
-fnox get GITHUB_TOKEN_GENERAL    # Should decrypt successfully
 ```
 
-### Option B: First-Time Setup (New User)
-
-If this is your very first time setting up fnox:
+### Step 3 — Sign in to 1Password
 
 ```bash
-# 1. Generate a new age keypair
-mkdir -p ~/.config/fnox && chmod 700 ~/.config/fnox
-age-keygen -o ~/.config/fnox/age.txt
-chmod 600 ~/.config/fnox/age.txt
+# Sign in (uses your default account)
+op signin
 
-# Output will show your PUBLIC key:
-# Public key: age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
-# SAVE THIS PUBLIC KEY — you need it for fnox.toml
-
-# 2. Initialize fnox
-fnox init --provider age --recipient "age1ql3z..."
-
-# 3. Add your first secret
-fnox set GITHUB_TOKEN_GENERAL "ghp_xxxxxxxxxxxxxxxxxxxx"
-
-# 4. Verify
-fnox list
-fnox get GITHUB_TOKEN_GENERAL
-
-# 5. CRITICAL — Backup your key!
-cat ~/.config/fnox/age.txt
-# → Copy the entire content to a secure note in your password manager
-
-# 6. Commit the updated fnox.toml to git
-cd ~/.local/share/chezmoi
-cp ~/.config/fnox/fnox.toml ./fnox.toml
-git add fnox.toml && git commit -m "add fnox secrets" && git push
+# Or specify account
+op signin my.1password.com
 ```
 
-> **⚠️ WARNING:** Lost key = lost secrets permanently. Always back up `age.txt` in multiple locations.
-
----
-
-## fnox Best Practices & Examples
-
-### Best Practice: Organize with Profiles
-
-Separate secrets by context using profiles:
+### Step 4 — Authenticate GitHub CLI
 
 ```bash
-# Default profile — personal/general secrets
-fnox set GITHUB_TOKEN_GENERAL "ghp_personal_token"
-fnox set CLOUDFLARE_API_TOKEN "cf_api_token"
+# Interactive login
+gh auth login
 
-# Work profile — work-related secrets
-fnox set --profile work DB_HOST "prod-db.company.com"
-fnox set --profile work DB_USER "admin"
-fnox set --profile work DB_PASSWORD "super-secret"
-
-# OCI profile — cloud credentials
-fnox set --profile oci_aysesmenn OCI_TENANCY_OCID "ocid1.tenancy..."
-fnox set --profile oci_aysesmenn OCI_USER_OCID "ocid1.user..."
-fnox set --profile oci_aysesmenn OCI_REGION "eu-frankfurt-1"
+# Or with token from 1Password
+ops --secret GITHUB_TOKEN -- gh auth login --with-token
 ```
 
-### Example 1: GitHub CLI Authentication
+### Step 5 — Verify
 
 ```bash
-# Store token
-fnox set GITHUB_TOKEN_GENERAL "ghp_xxxxxxxxxxxxxxxxxxxx"
+# Reload shell
+source ~/.bashrc
 
-# Authenticate GitHub CLI using fnox
-fnox exec -- bash -c 'echo $GITHUB_TOKEN_GENERAL | gh auth login --with-token'
-gh auth setup-git
+# Check git config
+git config user.name   # Should show your name
+git config user.email  # Should show your email
 
-# Or use the mise task shortcut:
-mise run ghl-gen
+# Check tmux
+tmux new -s test  # Create a test session
+tmux kill-session -t test  # Clean up
+
+# Check 1Password
+op vault list
+
+# Check GitHub CLI
+gh auth status
 ```
 
-### Example 2: PostgreSQL Connection
+## Manual Installation
+
+If you prefer to install manually:
+
+### 1. Clone Dotfiles
 
 ```bash
-# Store database credentials
-fnox set PGHOST "db.example.com"
-fnox set PGUSER "admin"
-fnox set PGPASSWORD "secure-password"
-fnox set PGDATABASE "production"
-
-# Connect — psql reads PG* env vars automatically
-fnox exec -- psql
-
-# Or with a specific profile
-fnox set --profile work PGHOST "work-db.internal"
-fnox --profile work exec -- psql
+git clone https://github.com/msavdert/dotfiles.git ~/.dotfiles
 ```
 
-### Example 3: Kubernetes / k3s Setup
+### 2. Create Symlinks
 
 ```bash
-# Store kubeconfig
-fnox set KUBECONFIG_K3S "$(cat ~/.kube/config)"
-
-# Use kubeconfig
-fnox exec -- bash -c 'echo "$KUBECONFIG_K3S" > /tmp/kube.conf && kubectl --kubeconfig=/tmp/kube.conf get pods'
-
-# Store SSH key for k3s nodes
-fnox set SSHKEY_K3S "$(cat ~/.ssh/k3s_key)"
+cd ~/.dotfiles
+bash scripts/link.sh
 ```
 
-### Example 4: OCI CLI Configuration
+### 3. Install Tools
 
 ```bash
-# Your OCI credentials are already in the oci_aysesmenn profile
-fnox --profile oci_aysesmenn exec -- oci iam region list
+# macOS
+brew install git curl bash tmux gh bash-completion@2
 
-# List compute instances
-fnox --profile oci_aysesmenn exec -- oci compute instance list \
-    --compartment-id $OCI_TENANCY_OCID
+# Ubuntu/Debian
+sudo apt-get install git curl bash tmux gh bash-completion jq
+
+# RHEL/Rocky/Oracle Linux
+sudo dnf install git curl bash tmux jq
 ```
 
-### Example 5: Terraform with Cloudflare
+### 4. Install 1Password CLI
+
+See: https://1password.com/downloads/command-line/
+
+## 1Password Integration
+
+### Storing Secrets
+
+Store secrets in 1Password with these naming conventions:
+
+| Secret | Item Name | Field |
+|--------|-----------|-------|
+| GitHub token | dotfiles | GITHUB_TOKEN |
+| Database password | dotfiles | DB_PASSWORD |
+| API key | dotfiles | API_KEY |
+
+### Using Secrets
 
 ```bash
-# Terraform variables stored as secrets
-fnox set TF_VAR_cloudflared_token "your-tunnel-token"
+# Get a secret directly
+ops --secret DB_PASSWORD -- echo $DB_PASSWORD
 
-# Run terraform with secrets
-fnox exec -- terraform plan
-fnox exec -- terraform apply
+# Run a command with secrets
+ops -- psql
+
+# Export all secrets from an item
+eval "$(op signin)"
+op run --no-interactive -- echo "$SECRET_NAME"
 ```
 
-### Example 6: SSH Key Management
+## Directory Structure
+
+```
+~/.dotfiles/           # Clone of this repo
+├── bash/
+│   ├── .bashrc       # → ~/.bashrc
+│   ├── .bash_aliases # → ~/.bash_aliases
+│   └── .bash_profile # → ~/.bash_profile
+├── git/
+│   └── .gitconfig    # → ~/.gitconfig
+├── tmux/
+│   └── .tmux.conf    # → ~/.tmux.conf
+└── ssh/
+    └── config        # → ~/.ssh/config
+```
+
+## Troubleshooting
+
+### "bash: git: command not found"
+
+Install git manually:
 
 ```bash
-# Store SSH private key
-fnox set SSH_PRIVATE_KEY "$(cat ~/.ssh/id_ed25519)"
+# Ubuntu/Debian
+sudo apt-get update && sudo apt-get install -y git
 
-# Restore SSH key from fnox
-fnox exec -- bash -c 'echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519'
+# RHEL/Rocky
+sudo dnf install -y git
+
+# macOS
+brew install git
 ```
 
-### Best Practice: Security Rules
-
-```
-✅ DO:
-• Back up key.txt in 2+ places (password manager + USB/paper)
-• Use profiles to isolate contexts (personal / work / cloud)
-• Commit fnox.toml to git (encrypted values are safe)
-• Set chmod 600 key.txt, chmod 700 ~/.config/fnox/
-• Rotate secrets quarterly
-• Test restores regularly
-
-❌ DON'T:
-• Never commit key.txt to git
-• Never share the private key
-• Never store secrets in plain text (.env files)
-• Never reuse the same secret across environments
-```
-
----
-
-## Post-Setup Checklist
-
-After completing the bootstrap and fnox setup, verify everything:
+### "bash: tmux: command not found"
 
 ```bash
-# ┌─────────────────────────────────────────────────┐
-# │             VERIFICATION CHECKLIST               │
-# └─────────────────────────────────────────────────┘
+# Ubuntu/Debian
+sudo apt-get install -y tmux
 
-echo "--- Tools ---"
-mise list | head -5
-echo "..."
-
-echo "--- Shell ---"
-starship --version
-echo "Aliases: $(alias | wc -l)"
-
-echo "--- Git ---"
-git config user.name
-git config user.email
-
-echo "--- Chezmoi ---"
-chezmoi doctor 2>&1 | grep -E "^(ok|error)"
-
-echo "--- fnox ---"
-fnox list 2>/dev/null && echo "✓ fnox working" || echo "✗ fnox: restore key.txt first"
-
-echo "--- SSH ---"
-ls -la ~/.ssh/config && echo "✓ SSH config exists" || echo "✗ SSH config missing"
+# macOS
+brew install tmux
 ```
 
----
+### "op: command not found"
 
-## Quick Reference
+Install 1Password CLI:
 
-| Task | Command |
-|------|---------|
-| Bootstrap fresh system | `curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh \| bash` |
-| Reload shell | `source ~/.bashrc` |
-| Restore fnox key | `cp backup/key.txt ~/.config/fnox/key.txt && chmod 600 ~/.config/fnox/key.txt` |
-| Verify secrets | `fnox list` |
-| Set a secret | `fnox set KEY "value"` |
-| Get a secret | `fnox get KEY` |
-| Run with secrets | `fnox exec -- command` |
-| Update dotfiles | `chezmoi update` |
-| Test in Docker | `make shell` |
-| Test in OrbStack | `orb create ubuntu devenv && orb -m devenv` |
-| Clean OrbStack VM | `orb delete devenv` |
-| Clean Docker | `make clean` |
+```bash
+# macOS
+brew install 1password-cli
 
----
+# Linux
+curl -fsSL https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor -o /usr/share/keyrings/1password-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/1password.list
+sudo apt-get update && sudo apt-get install -y 1password-cli
+```
 
-**Last Updated:** 2026-02-19
+### Git prompt shows empty name/email
+
+Set your git identity:
+
+```bash
+export GIT_AUTHOR_NAME="Your Name"
+export GIT_AUTHOR_EMAIL="you@example.com"
+```
+
+Add to `~/.bash_profile` to persist.
+
+### Tmux prefix not working (C-a not working)
+
+The config uses `C-a` as prefix (instead of default `C-b`). Press `C-a` then your command.
+
+## Next Steps
+
+- Add your SSH keys to 1Password
+- Customize aliases in `~/.bash_aliases`
+- Add personal settings to `~/.bashrc`
+- Configure your editor: `export EDITOR=vim`
+
+## Uninstall
+
+To remove the symlinks and restore backups:
+
+```bash
+cd ~/.dotfiles
+./scripts/unlink.sh  # Removes symlinks, restores backups
+rm -rf ~/.dotfiles    # Remove repo
+```

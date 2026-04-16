@@ -14,19 +14,11 @@ Thumbs.db
 *.pfx
 .env.local
 .env.*.local
-secrets/
 *.secret
 
-# Chezmoi
-.chezmoi.state.boltdb
-
-# fnox encrypted secrets (the values are encrypted, so fnox.toml is safe to commit)
-# But keep backups private
-*.fnox.backup
-
-# Local configuration overrides
-*.local
-.local/
+# Backup files
+*.backup.*
+*.backup
 
 # Editor files
 .vscode/
@@ -47,3 +39,7 @@ test-output/
 # Logs
 *.log
 logs/
+
+# 1Password CLI session
+.op
+.oprc
