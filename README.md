@@ -122,13 +122,9 @@ ops --secret API_KEY -- echo $API_KEY
 4. **Simple prompt** — No starship or other prompt tools. Just PS1.
 5. **Git identity via environment** — `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL`.
 
-## Migrating from Old Setup
+## Reference
 
-If you're switching from the old (chezmoi/mise/fnox) setup:
-
-1. Your `~/.bashrc`, `~/.gitconfig`, etc. will be backed up as `~/.bashrc.backup.*`
-2. New symlinks will be created pointing to `~/.dotfiles/`
-3. Set your git identity and 1Password secrets in your shell profile
+https://dotfiles.github.io/
 
 ## License
 
