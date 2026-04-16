@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Symlink creation script
+# Symlink creation script (No-Sudo)
 # Creates symlinks from home directory to dotfiles
 
 set -euo pipefail
@@ -16,19 +16,40 @@ readonly NC='\033[0m'
 log() { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_skip() { echo -e "${YELLOW}[SKIP]${NC} $*"; }
 
+# Portable way to get absolute path without realpath/readlink -f
+get_abs_path() {
+    local path="$1"
+    if [[ "$path" == /* ]]; then
+        echo "$path"
+    else
+        echo "$PWD/$path" | sed 's#/\./#/#g; s#/[^/]*/\.\./#/#g' # Simple normalization
+    fi
+}
+
 # Create a symlink, backing up existing file if it exists
 link_file() {
     local src="$1"
     local dest="$2"
     local description="${3:-"$dest"}"
 
-    # Resolve to absolute path
-    src="$(realpath "$src")"
+    # Resolve src to absolute path
+    # Using a simpler but effective way for dotfiles context
+    if [[ "$src" != /* ]]; then
+        src="$(cd "$(dirname "$src")" && pwd)/$(basename "$src")"
+    fi
 
     # Check if destination already exists
     if [ -e "$dest" ] || [ -L "$dest" ]; then
         # If it's already a symlink pointing to our file, skip
-        if [ -L "$dest" ] && [ "$(readlink -f "$dest")" == "$src" ]; then
+        local current_link
+        current_link=$(readlink "$dest" || echo "")
+        
+        # Resolve current_link to absolute for comparison if it's relative
+        if [[ -n "$current_link" && "$current_link" != /* ]]; then
+             current_link="$(cd "$(dirname "$dest")" && pwd)/$current_link"
+        fi
+
+        if [ "$current_link" == "$src" ]; then
             log_skip "$description (already linked)"
             return 0
         fi

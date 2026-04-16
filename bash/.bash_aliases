@@ -88,23 +88,27 @@ alias myip='curl -s http://ipecho.net/plain; echo'
 alias localip="ip -4 addr show 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127.0.0.1"
 
 # =============================================================================
-# Tmux
+# Zellij (Terminal Multiplexer)
 # =============================================================================
 
-alias t='tmux'
-alias tl='tmux list-sessions'
-alias ta='tmux attach'
-alias tk='tmux kill-session'
+alias z='zellij'
+alias zl='zellij list-sessions'
+alias za='zellij attach'
+alias zk='zellij kill-session'
 
 # =============================================================================
 # 1Password (via op CLI)
 # =============================================================================
 
-# Sign in to 1Password
-alias op-signin='eval "$(op signin)"'
+# Sign in to 1Password (conditional)
+op-signin() {
+    if ! op account list &>/dev/null || ! op whoami &>/dev/null; then
+        eval "$(op signin)"
+    fi
+}
 
 # Run a command with 1Password secrets
 ops() {
-    eval "$(op signin)"
+    op-signin
     op run -- "$@"
 }

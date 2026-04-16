@@ -47,8 +47,10 @@ export LESS_TERMCAP_us=$'\033[1;32m'
 # Path
 # =============================================================================
 
-# Local bin
-export PATH="$HOME/.local/bin:$PATH"
+# Local bin with deduplication
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
 
 # =============================================================================
 # Bash Completion
@@ -67,12 +69,13 @@ fi
 # Prompt (Simplified - no external dependencies)
 # =============================================================================
 
-# Git branch in prompt
+# Git branch in prompt (fast)
 git_branch() {
     local branch
-    branch=$(git branch 2>/dev/null | grep '^\*' | cut -d' ' -f2)
-    if [ -n "$branch" ]; then
-        echo " ($branch)"
+    if branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); then
+        if [[ "$branch" != "HEAD" ]]; then
+            echo " ($branch)"
+        fi
     fi
 }
 

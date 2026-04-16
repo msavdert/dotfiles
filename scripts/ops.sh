@@ -52,7 +52,7 @@ export_secrets() {
 
 # Sign in to 1Password
 signin() {
-    if ! op account list &>/dev/null; then
+    if ! op account list &>/dev/null || ! op whoami &>/dev/null; then
         echo "Signing in to 1Password..."
         eval "$(op signin)"
     fi
@@ -73,6 +73,7 @@ main() {
             --secret)
                 local secret_name="$2"
                 shift 2
+                signin
                 op read "op://$item_name/$secret_name"
                 exit 0
                 ;;
@@ -101,7 +102,8 @@ main() {
     signin
 
     # Run command with 1Password
-    op run --no-interactive --env-file <(op signin --account my.1password.com --raw) -- "${command[@]}"
+    # op run injections work by passing secrets as environment variables or templates
+    op run -- "${command[@]}"
 }
 
 main "$@"
