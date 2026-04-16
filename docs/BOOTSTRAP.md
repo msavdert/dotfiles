@@ -1,14 +1,14 @@
-# Bootstrap Guide
+# Bootstrap Guide (No-Sudo)
 
-Complete guide for setting up your dotfiles environment on a fresh system.
+Complete guide for setting up your modernized, root-free dotfiles environment on any Linux or macOS system.
 
 ## Overview
 
 ```
-┌──────────────┐     ┌──────────────┐     ┌───────────┐
-│ bootstrap.sh │ ──► │ Homebrew/apt│ ──► │  Symlinks │
-│  (one step)  │     │  (tools)    │     │  (link)   │
-└──────────────┘     └──────────────┘     └───────────┘
+┌──────────────┐      ┌────────────────┐      ┌───────────┐
+│ bootstrap.sh │ ───► │ ~/.local/bin   │ ───► │  Symlinks │
+│  (No-Sudo)   │      │ (Binaries)     │      │  (link)   │
+└──────────────┘      └────────────────┘      └───────────┘
 ```
 
 ## Quick Start
@@ -19,11 +19,6 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
 
 ## Supported Systems
 
-| OS | Package Manager | Status |
-|----|----------------|--------|
-| macOS | Homebrew | Tested |
-| Ubuntu | apt | Tested |
-| Debian | apt | Tested |
 | Rocky Linux | dnf | Tested |
 | Oracle Linux | dnf | Tested |
 

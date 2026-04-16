@@ -132,16 +132,36 @@ main() {
     # Add BIN_DIR to PATH for current session
     export PATH="$BIN_DIR:$PATH"
 
+    echo ""
+    echo "======================================================================"
+    echo "Dotfiles Bootstrap (No-Sudo)"
+    echo "======================================================================"
+    echo ""
+
     check_system_dependencies
+    
+    echo ""
+    log_step "Step 1: Installing core tools..."
     install_gh_pre
+    
+    echo ""
+    log_step "Step 2: Fetching dotfiles..."
     fetch_dotfiles
 
+    echo ""
+    log_step "Step 3: Installing tools and creating links..."
     # Run installation scripts from the repo
     bash "$DOTFILES_DIR/scripts/install-tools.sh"
     bash "$DOTFILES_DIR/scripts/link.sh"
 
-    log_step "Bootstrap completed successfully!"
-    echo "Next steps: source ~/.bashrc"
+    echo ""
+    echo "======================================================================"
+    echo -e "${GREEN}Bootstrap completed successfully!${NC}"
+    echo "======================================================================"
+    echo ""
+    echo "Next steps:"
+    echo "  source ~/.bashrc"
+    echo "======================================================================"
 }
 
 main "$@"

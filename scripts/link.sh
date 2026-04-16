@@ -73,9 +73,6 @@ link_file() {
 }
 
 # Main
-echo ""
-echo "Creating symlinks..."
-
 # Bash configs
 link_file "$DOTFILES_DIR/bash/.bashrc" "$HOME/.bashrc"
 link_file "$DOTFILES_DIR/bash/.bash_aliases" "$HOME/.bash_aliases"
@@ -84,14 +81,11 @@ link_file "$DOTFILES_DIR/bash/.bash_profile" "$HOME/.bash_profile"
 # Git config
 link_file "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 
-# Tmux config
-link_file "$DOTFILES_DIR/tmux/.tmux.conf" "$HOME/.tmux.conf"
+# Zellij config
+link_file "$DOTFILES_DIR/zellij/config.kdl" "$HOME/.config/zellij/config.kdl"
 
 # SSH config (only if source exists)
 if [ -f "$DOTFILES_DIR/ssh/config" ]; then
     link_file "$DOTFILES_DIR/ssh/config" "$HOME/.ssh/config" "SSH config"
     chmod 600 "$HOME/.ssh/config" 2>/dev/null || true
 fi
-
-echo ""
-echo "Symlinks created successfully!"

@@ -1,0 +1,10 @@
+// Zellij Configuration
+// Managed in: dotfiles/zellij/config.kdl
+
+theme "default"
+default_layout "compact"
+pane_frames false
+copy_on_select true
+
+// Keybindings, themes, and other settings can be added here
+// See: https://zellij.dev/documentation/config.html

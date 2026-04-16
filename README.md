@@ -1,6 +1,6 @@
 # Dotfiles
 
-Minimal dotfiles setup for macOS and Linux. No framework dependencies — just symlinks and a bootstrap script.
+Minimal, modern, and **No-Sudo** dotfiles setup for macOS and Linux. No framework dependencies — just symlinks and a bootstrap script.
 
 **Repository:** `https://github.com/msavdert/dotfiles`
 
@@ -37,9 +37,9 @@ After bootstrap:
 
 ## What's Included
 
-### Shell
-- **bash** with minimal configuration
-- **tmux** terminal multiplexer
+### Shell & Multiplexer
+- **bash** with minimal, high-performance configuration
+- **Zellij** modern terminal workspace (replaces tmux)
 - Essential aliases (git, docker, navigation)
 - Built-in bash completion
 
@@ -48,8 +48,10 @@ After bootstrap:
 - Useful aliases (`g`, `gs`, `gc`, `gl`, etc.)
 - Safe defaults (rebase on pull, auto-stash on rebase)
 
-### Secrets
-- **1Password CLI** integration via `ops` helper
+### Tools & Secrets
+- **GitHub CLI (gh)** for repository and PR management
+- **1Password CLI (op)** integration via `ops` helper
+- **jq** for JSON processing
 
 ## Project Structure
 
@@ -62,13 +64,13 @@ dotfiles/
 │   └── .bash_profile     # Login shell
 ├── git/
 │   └── .gitconfig        # Git configuration
-├── tmux/
-│   └── .tmux.conf        # Tmux configuration
+├── zellij/
+│   └── config.kdl        # Zellij configuration
 ├── ssh/
 │   └── config            # SSH client config
 └── scripts/
     ├── link.sh           # Create symlinks
-    ├── install-tools.sh  # Install tools only
+    ├── install-tools.sh  # Install tools only (no-sudo)
     └── ops.sh            # 1Password helper
 ```
 
@@ -87,14 +89,8 @@ cd ~/.dotfiles && git pull origin main
 
 ### Install new tools
 ```bash
-# Install on current OS
+# Re-run installation for all tools (no-sudo binary downloads)
 ./scripts/install-tools.sh
-
-# Or manually with Homebrew (macOS)
-brew install curl git tmux
-
-# Or apt (Debian/Ubuntu)
-sudo apt-get install git curl tmux
 ```
 
 ### Use 1Password secrets
@@ -109,22 +105,17 @@ ops --secret API_KEY -- echo $API_KEY
 ## Supported Systems
 
 - **macOS** (Ventura and later)
-- **Ubuntu** 20.04+
+- **Ubuntu** 20.04+ (including minimal Docker images)
 - **Debian** 11+
-- **Rocky Linux** 8+
-- **Oracle Linux** 8+
+- **Rocky Linux / Oracle Linux** 8+
 
 ## Design Principles
 
-1. **No framework dependencies** — No mise, chezmoi, or fnox. Just git and symlinks.
-2. **Works in a fresh VM** — Uses system package managers, not custom tooling.
-3. **Bash completion works out of the box** — Uses system bash-completion.
-4. **Simple prompt** — No starship or other prompt tools. Just PS1.
-5. **Git identity via environment** — `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL`.
-
-## Reference
-
-https://dotfiles.github.io/
+1. **No-Sudo / User-Space** — Everything installs to `~/.local/bin`. No root access required.
+2. **Binary Performance** — Installs optimized binaries directly from GitHub releases.
+3. **No framework dependencies** — No mise, chezmoi, or oh-my-zsh. Just bash and symlinks.
+4. **Works in minimal environments** — Handles absence of `git`, `unzip`, etc. gracefully.
+5. **Simple prompt** — High performance PS1 with fast git status.
 
 ## License
 
