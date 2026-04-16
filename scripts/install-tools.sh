@@ -16,6 +16,7 @@ readonly NC='\033[0m'
 log() { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+log_skip() { echo -e "${YELLOW}[SKIP]${NC} $*"; }
 log_step() { echo -e "${BLUE}==>${NC} $*"; }
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
@@ -66,7 +67,7 @@ extract_zip() {
 
 install_zellij() {
     if command_exists zellij; then
-        log "Zellij already installed: $(zellij --version 2>&1 | head -1)"
+        log_skip "Zellij already installed: $(zellij --version 2>&1 | head -1)"
         return 0
     fi
 
@@ -100,7 +101,7 @@ install_zellij() {
 
 install_gh() {
     if command_exists gh; then
-        log "GitHub CLI already installed: $(gh --version | head -1)"
+        log_skip "GitHub CLI already installed: $(gh --version | head -1)"
         return 0
     fi
 
@@ -139,7 +140,7 @@ install_gh() {
 
 install_op() {
     if command_exists op; then
-        log "1Password CLI already installed: $(op --version)"
+        log_skip "1Password CLI already installed: $(op --version)"
         return 0
     fi
 
@@ -174,14 +175,17 @@ install_op() {
 
 install_jq() {
     if command_exists jq; then
-        log "jq already installed: $(jq --version)"
+        log_skip "jq already installed: $(jq --version | head -1)"
         return 0
     fi
 
     log_step "Installing jq"
 
-    local version="1.7.1"
-    local arch url
+    local version arch url
+    # Use awk to avoid SIGPIPE with pipefail
+    version=$(curl -fsSL https://api.github.com/repos/jqlang/jq/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/jq-//')
+    [ -z "$version" ] && version="1.7.1"
+
     arch=$(uname -m)
     
     if is_macos; then
@@ -199,7 +203,7 @@ install_jq() {
 
 install_nvim() {
     if command_exists nvim; then
-        log "Neovim already installed: $(nvim --version | head -1)"
+        log_skip "Neovim already installed: $(nvim --version | head -1)"
         return 0
     fi
 

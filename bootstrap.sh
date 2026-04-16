@@ -21,6 +21,7 @@ readonly NC='\033[0m'
 log() { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+log_skip() { echo -e "${YELLOW}[SKIP]${NC} $*"; }
 log_step() { echo -e "${BLUE}==>${NC} $*"; }
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
@@ -32,7 +33,7 @@ is_macos() { [[ "$(uname -s)" == "Darwin" ]]; }
 
 install_gh_pre() {
     if command_exists gh; then
-        log "GitHub CLI already installed: $(gh --version | head -1)"
+        log_skip "GitHub CLI already installed: $(gh --version | head -1)"
         return 0
     fi
 
