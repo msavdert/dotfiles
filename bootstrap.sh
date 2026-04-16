@@ -161,7 +161,7 @@ install_zellij() {
 
     url="https://github.com/zellij-org/zellij/releases/download/${version}/${filename}"
     log "Downloading $url"
-    curl -fsSL "$url" -o "/tmp/$filename" || {
+    curl -fsSL -L "$url" -o "/tmp/$filename" || {
         log_warn "Failed to download zellij, skipping installation"
         return 0
     }
@@ -194,11 +194,8 @@ install_gh() {
         filename="gh_${version}_${os_type}.zip"
         url="https://github.com/cli/cli/releases/download/v${version}/${filename}"
         log "Downloading $url"
-        curl -fsSL "$url" -o "/tmp/$filename"
-        unzip -o "/tmp/$filename" -d "$INSTALL_DIR" 2>/dev/null || {
-            unzip -o "/tmp/$filename" -d /tmp/gh_unzip
-            mv /tmp/gh_unzip/gh*/bin/gh "$INSTALL_DIR/" 2>/dev/null || mv /tmp/gh_unzip/gh "$INSTALL_DIR/" 2>/dev/null || true
-        }
+        curl -fsSL -L "$url" -o "/tmp/$filename"
+        unzip -o "/tmp/$filename" -d "$INSTALL_DIR"
         rm -f "/tmp/$filename"
     else
         case "$arch" in
@@ -209,10 +206,10 @@ install_gh() {
         filename="gh_${version}_linux_${arch}.tar.gz"
         url="https://github.com/cli/cli/releases/download/v${version}/${filename}"
         log "Downloading $url"
-        curl -fsSL "$url" -o "/tmp/$filename"
+        curl -fsSL -L "$url" -o "/tmp/$filename"
         tar -xzf "/tmp/$filename" -C /tmp
-        cp /tmp/gh_"$version"/bin/gh "$INSTALL_DIR/"
-        rm -rf "/tmp/$filename" "/tmp/gh_$version"
+        cp /tmp/gh_"$version"_linux_"$arch"/bin/gh "$INSTALL_DIR/"
+        rm -rf "/tmp/$filename" "/tmp/gh_${version}_linux_${arch}"
     fi
 
     chmod +x "$INSTALL_DIR/gh"
