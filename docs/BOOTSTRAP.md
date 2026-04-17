@@ -61,6 +61,16 @@ echo "export GITHUB_TOKEN=\"$(op read 'op://dotfiles/github/token')\"" >> ~/.bas
 source ~/.bashrc
 ```
 
+### SSH Configuration (Optional):
+```bash
+# Fetch SSH local config and OCI private key from 1Password
+op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
+chmod 600 ~/.ssh/config.local
+
+op read "op://dotfiles/oci_key/private key" > ~/.ssh/oci_key
+chmod 600 ~/.ssh/oci_key
+```
+
 ---
 
 ## 4. Verification
