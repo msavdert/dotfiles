@@ -456,18 +456,22 @@ install_eza() {
 
     arch=$(uname -m)
     if is_macos; then
+        # eza usually doesn't provide macOS binaries in releases, Homebrew is preferred.
+        # This fallback is unlikely to work for latest versions without a direct link.
         filename="eza_x86_64-apple-darwin.zip"
         url="https://github.com/eza-community/eza/releases/download/v${version}/${filename}"
+        log "Attempting to download eza $version for macOS..."
         curl -fsSL -L "$url" -o "/tmp/$filename"
         extract_zip "/tmp/$filename" "$BIN_DIR" "eza"
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
-            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-gnu" ;; # eza uses -gnu for aarch64
             *) log_warn "eza pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
         esac
         filename="eza_${os_type}.tar.gz"
         url="https://github.com/eza-community/eza/releases/download/v${version}/${filename}"
+        log "Downloading eza $version..."
         curl -fsSL -L "$url" -o "/tmp/$filename"
         tar -xzf "/tmp/$filename" -C "$BIN_DIR"
     fi
