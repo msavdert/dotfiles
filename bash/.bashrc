@@ -77,35 +77,16 @@ if [ -d "$USER_COMPLETIONS_DIR" ] && type -t _get_comp_words_by_ref >/dev/null 2
 fi
 
 # =============================================================================
-# Prompt (Simplified - no external dependencies)
+# Prompt
 # =============================================================================
 
-# Git branch in prompt (fast)
-git_branch() {
-    local branch
-    if branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); then
-        if [[ "$branch" != "HEAD" ]]; then
-            echo " ($branch)"
-        fi
-    fi
-}
+# Default minimal prompt (fallback if starship is not available)
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 
-# Exit status
-exit_status() {
-    local ex=$?
-    if [ $ex -ne 0 ]; then
-        echo " [$ex]"
-    fi
-}
-
-# Colors
-CYAN='\[\033[01;36m\]'
-GREEN='\[\033[01;32m\]'
-BLUE='\[\033[01;34m\]'
-RED='\[\033[01;31m\]'
-RESET='\[\033[00m\]'
-
-PS1="${GREEN}\u@\h${RESET}:${CYAN}\w${RESET}\$(git_branch)${RED}\$(exit_status)${RESET}\$ "
+# Starship (modern prompt) - initialized in .bash_aliases or here
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi
 
 # =============================================================================
 # Aliases

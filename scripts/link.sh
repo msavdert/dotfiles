@@ -19,10 +19,16 @@ log_skip() { echo -e "${YELLOW}[SKIP]${NC} $*"; }
 # Portable way to get absolute path without realpath/readlink -f
 get_abs_path() {
     local path="$1"
-    if [[ "$path" == /* ]]; then
-        echo "$path"
+    # Resolve to absolute path using subshell and cd
+    if [ -d "$path" ]; then
+        (cd "$path" && pwd)
+    elif [ -f "$path" ]; then
+        local dir
+        dir=$(cd "$(dirname "$path")" && pwd)
+        echo "$dir/$(basename "$path")"
     else
-        echo "$PWD/$path" | sed 's#/\./#/#g; s#/[^/]*/\.\./#/#g' # Simple normalization
+        # Fallback for paths that don't exist yet
+        echo "$PWD/$path" | sed 's#/\./#/#g; s#/[^/]*/\.\./#/#g'
     fi
 }
 
@@ -83,6 +89,17 @@ link_file "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 
 # Zellij config
 link_file "$DOTFILES_DIR/zellij/config.kdl" "$HOME/.config/zellij/config.kdl"
+
+# Neovim config
+if [ -d "$DOTFILES_DIR/nvim" ]; then
+    link_file "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
+fi
+
+# Modern tool configs
+link_file "$DOTFILES_DIR/config/starship.toml" "$HOME/.config/starship.toml"
+link_file "$DOTFILES_DIR/config/bat/config" "$HOME/.config/bat/config"
+link_file "$DOTFILES_DIR/config/btop/btop.conf" "$HOME/.config/btop/btop.conf"
+link_file "$DOTFILES_DIR/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 
 # SSH config
 if [ -f "$DOTFILES_DIR/ssh/config" ]; then

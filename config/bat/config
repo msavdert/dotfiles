@@ -1,0 +1,6 @@
+# Bat configuration
+--theme="base16"
+--italic-text=always
+--style="numbers,changes,header"
+--map-syntax "*.jenkinsfile:Groovy"
+--map-syntax "*.props:Java Properties"

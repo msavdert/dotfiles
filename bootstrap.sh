@@ -28,19 +28,14 @@ command_exists() { command -v "$1" >/dev/null 2>&1; }
 is_macos() { [[ "$(uname -s)" == "Darwin" ]]; }
 
 # =============================================================================
-# Helper: GH CLI Installer (Pre-repo)
+# Helper: GH CLI Installer (Minimal for Bootstrap)
 # =============================================================================
 
 install_gh_pre() {
-    if command_exists gh; then
-        log_skip "GitHub CLI already installed: $(gh --version | head -1)"
-        return 0
-    fi
-
+    if command_exists gh; then return 0; fi
     log_step "Installing GitHub CLI (bootstrap priority)"
 
     local version arch os_type filename url
-    # Fetch latest version without jq, safely avoiding SIGPIPE
     version=$(curl -fsSL -I https://github.com/cli/cli/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
     [ -z "$version" ] && version="2.61.0"
 
@@ -49,27 +44,19 @@ install_gh_pre() {
         [ "$arch" = "arm64" ] && os_type="macOS_arm64" || os_type="macOS_amd64"
         filename="gh_${version}_${os_type}.zip"
         url="https://github.com/cli/cli/releases/download/v${version}/${filename}"
-        log "Downloading gh $version for macOS..."
         curl -fsSL -L "$url" -o "/tmp/$filename"
-        # macOS always has unzip
         unzip -q -o "/tmp/$filename" -d "/tmp/gh_install"
         find "/tmp/gh_install" -name "gh" -exec cp {} "$BIN_DIR/" \;
-        rm -rf "/tmp/$filename" "/tmp/gh_install"
     else
-        case "$arch" in
-            x86_64) arch="amd64" ;;
-            aarch64|arm64) arch="arm64" ;;
-            *) arch="386" ;;
-        esac
+        [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
         filename="gh_${version}_linux_${arch}.tar.gz"
         url="https://github.com/cli/cli/releases/download/v${version}/${filename}"
-        log "Downloading gh $version for Linux ($arch)..."
         curl -fsSL -L "$url" -o "/tmp/$filename"
         tar -xzf "/tmp/$filename" -C "/tmp"
         cp "/tmp/gh_${version}_linux_${arch}/bin/gh" "$BIN_DIR/"
-        rm -rf "/tmp/$filename" "/tmp/gh_${version}_linux_${arch}"
     fi
     chmod +x "$BIN_DIR/gh"
+    rm -rf "/tmp/$filename" "/tmp/gh_install" "/tmp/gh_${version}_linux_"* 2>/dev/null || true
 }
 
 # =============================================================================
