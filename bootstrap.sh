@@ -162,6 +162,14 @@ main() {
     echo ""
     echo "Next steps:"
     echo "  source ~/.bashrc"
+    
+    if ! command_exists _get_comp_words_by_ref && [[ ! -f /usr/share/bash-completion/bash_completion ]]; then
+        echo ""
+        log_warn "bash-completion package not found."
+        echo "  To enable tab-completions for gh, op, and zellij, please install it:"
+        echo "  Linux: sudo apt install bash-completion (or dnf install bash-completion)"
+        echo "  macOS: brew install bash-completion@2"
+    fi
     echo "======================================================================"
 }
 

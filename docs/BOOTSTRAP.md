@@ -27,8 +27,8 @@ The project uses a **private** `~/.bash_local` file for your sensitive configura
 ### Step A: Set Git Identity
 ```bash
 cat >> ~/.bash_local << 'EOF'
-export GIT_AUTHOR_NAME="Your Name"
-export GIT_AUTHOR_EMAIL="you@example.com"
+export GIT_AUTHOR_NAME="msavdert"
+export GIT_AUTHOR_EMAIL="github@savdert.com"
 EOF
 source ~/.bashrc
 ```
@@ -84,5 +84,8 @@ gh repo list
 ## 5. Troubleshooting
 
 - **"Command not found"**: Ensure `~/.local/bin` is in your PATH (done automatically by `.bashrc`). Run `source ~/.bashrc`.
+- **"_get_comp_words_by_ref: command not found"**: This means the `bash-completion` package is missing on your system.
+  - **Linux**: `sudo apt install bash-completion`
+  - **macOS**: `brew install bash-completion@2` (then restart your shell).
 - **"401 Unauthorized"**: Ensure your `GITHUB_TOKEN` is correct. You can re-run the hydration command in Step 3.
 - **Symlinks**: If you need to re-link files, run `bash ~/.dotfiles/scripts/link.sh`.

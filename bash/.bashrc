@@ -66,8 +66,9 @@ elif [ -f /usr/share/bash-completion/bash_completion ]; then
 fi
 
 # Load user-specific completions from XDG_DATA_HOME
+# Only attempt to load if bash-completion core functions are available
 USER_COMPLETIONS_DIR="$XDG_DATA_HOME/bash-completion/completions"
-if [ -d "$USER_COMPLETIONS_DIR" ]; then
+if [ -d "$USER_COMPLETIONS_DIR" ] && type -t _get_comp_words_by_ref >/dev/null 2>&1; then
     for completion_file in "$USER_COMPLETIONS_DIR"/*; do
         if [ -f "$completion_file" ]; then
             source "$completion_file"
