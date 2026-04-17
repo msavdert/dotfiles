@@ -1,140 +1,88 @@
 # Bootstrap Guide (No-Sudo)
 
-Complete guide for setting up your modernized, root-free dotfiles environment on any Linux or macOS system.
+This is the comprehensive step-by-step guide for setting up your modernized, root-free dotfiles environment.
 
-## Overview
+## 1. Quick Start
 
-```
-┌──────────────┐      ┌────────────────┐      ┌───────────┐
-│ bootstrap.sh │ ───► │ ~/.local/bin   │ ───► │  Symlinks │
-│  (No-Sudo)   │      │ (Binaries)     │      │  (link)   │
-└──────────────┘      └────────────────┘      └───────────┘
-```
-
-## Quick Start
+Run the bootstrap script to prepare your environment:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 ```
 
-## Step-by-Step
+This script will:
+1. Detect architecture (x86_64, ARM64) and OS.
+2. Install `gh` (GitHub CLI) as a binary.
+3. Clone dotfiles to `~/.dotfiles`.
+4. Install core binaries: `op`, `zellij`, `jq`, `nvim`.
+5. Create symlinks for all configurations.
+6. Generate shell completions for the installed tools.
 
-### Step 1 — Run Bootstrap
+---
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
-```
+## 2. Personal Configuration (`~/.bash_local`)
 
-This will:
-1. Detect your OS and Architecture (x86_64, ARM64)
-2. Install GitHub CLI (`gh`) as a binary
-3. Clone dotfiles to `~/.dotfiles`
-4. Install core tools as binaries: `op`, `zellij`, `jq`, `nvim`
-5. Create symlinks for all configurations
-6. Generate shell completions for all tools
+The project uses a **private** `~/.bash_local` file for your sensitive configuration. This file is ignored by Git.
 
-### Step 2 — Set Git Identity
-
-Add your identity to the **private** `~/.bash_local` file so it is never pushed to public repositories:
-
+### Step A: Set Git Identity
 ```bash
 cat >> ~/.bash_local << 'EOF'
-export GIT_AUTHOR_NAME="msavdert"
-export GIT_AUTHOR_EMAIL="github@savdert.com"
+export GIT_AUTHOR_NAME="Your Name"
+export GIT_AUTHOR_EMAIL="you@example.com"
 EOF
 source ~/.bashrc
 ```
 
-### Step 3 — Secure 1Password Setup (Recommended)
-
-Instead of a full login, use a **Service Account** and **Secret References** for stable, scoped access:
-
-1.  Log in to **1Password.com**.
-2.  Create a new vault named **"dotfiles"**.
-3.  Go to **Developer > Directory > Service Accounts** and create a token scoped **only** to the "dotfiles" vault.
-4.  Save the token to your local config:
-    ```bash
-    echo 'export OP_SERVICE_ACCOUNT_TOKEN="ov_your_token"' >> ~/.bash_local
-    source ~/.bashrc
-    ```
-5.  Create a secret item via CLI (or in the browser):
-    ```bash
-    # This creates an item named 'github' with a 'token' field
-    op item create --vault dotfiles --category login --title github "token[password]=ghp_your_pat_here"
-    ```
-6.  Reference the secret in your `~/.bash_local`:
-    ```bash
-    echo 'export GITHUB_TOKEN="op://dotfiles/github/token"' >> ~/.bash_local
-    source ~/.bashrc
-    ```
-
-Now `op run` will automatically inject `GITHUB_TOKEN` from 1Password!
-
-### Step 4 — Authenticate GitHub CLI
-
+### Step B: 1Password Service Account
+1. Create a **Service Account** on [1Password.com](https://my.1password.com) scoped to your "dotfiles" vault.
+2. Add the token to your local config:
 ```bash
-# Using the secret from 1Password via native op run
-op run -- bash -c 'echo "$GITHUB_TOKEN" | gh auth login --with-token'
+echo 'export OP_SERVICE_ACCOUNT_TOKEN="ov_your_token_here"' >> ~/.bash_local
+source ~/.bashrc
 ```
 
-### Step 5 — Verify
+---
+
+## 3. Hydrate Secrets (The Hybrid Method)
+
+Instead of using `op run` for every command, we fetch secrets **once** and store them in your private `~/.bash_local`. This is fast, secure, and native.
+
+### Fetch your GitHub Token:
+```bash
+# This fetches the token from 1Password and writes it to your local config
+echo "export GITHUB_TOKEN=\"$(op read 'op://dotfiles/github/token')\"" >> ~/.bash_local
+source ~/.bashrc
+```
+
+### Login to GitHub CLI:
+```bash
+# Since the token is now in your environment, gh will detect it automatically
+gh auth status
+```
+
+---
+
+## 4. Verification
+
+Verify that all tools are correctly installed and linked:
 
 ```bash
-# Reload shell
-source ~/.bashrc
-
-# Check git config
-git config user.name   # Should show your name
-git config user.email  # Should show your email
-
-# Check Tools
+# Check binaries
 z --version     # Zellij
 v --version     # Neovim
 jq --version    # jq
 
 # Check 1Password
-op vault list
+op whoami
 
-# Check GitHub CLI
-gh auth status
+# Check GitHub
+gh repo list
 ```
 
-## 1Password Integration
+---
 
-### Using Secrets
+## 5. Troubleshooting
 
-The most secure way to use secrets is via **Secret References** and the `op run` command:
-
-```bash
-# Run any command with secrets injected from 1Password
-op run -- my-command
-
-# Example: Run a script that needs an API key
-op run -- ./deploy.sh
-```
-
-## Directory Structure
-
-```
-~/.dotfiles/           # Clone of this repo
-├── bash/
-│   ├── .bashrc       # → ~/.bashrc
-│   ├── .bash_aliases # → ~/.bash_aliases
-│   └── .bash_profile # → ~/.bash_profile
-├── git/
-│   └── .gitconfig    # → ~/.gitconfig
-├── zellij/
-│   └── config.kdl    # → ~/.config/zellij/config.kdl
-└── ssh/
-    └── config        # → ~/.ssh/config
-```
-
-## Uninstall
-
-To remove the symlinks and restore backups:
-
-```bash
-cd ~/.dotfiles
-./scripts/unlink.sh  # Removes symlinks, restores backups
-rm -rf ~/.dotfiles    # Remove repo
-```
+- **"Command not found"**: Ensure `~/.local/bin` is in your PATH (done automatically by `.bashrc`). Run `source ~/.bashrc`.
+- **"401 Unauthorized"**: Ensure your `GITHUB_TOKEN` is correct. You can re-run the hydration command in Step 3.
+- **Symlinks**: If you need to re-link files, run `bash ~/.dotfiles/scripts/link.sh`.
