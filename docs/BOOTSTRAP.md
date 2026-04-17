@@ -47,18 +47,22 @@ source ~/.bashrc
 
 Instead of using `op run` for every command, we fetch secrets **once** and store them in your private `~/.bash_local`. This is fast, secure, and native.
 
-### Fetch your GitHub Token:
+### Create a Secret (Example):
+If you haven't stored your GitHub token in 1Password yet, you can do it via CLI:
+```bash
+op item create --vault dotfiles --category login --title github "token[password]=ghp_your_pat_here"
+```
+
+### Fetch and Localize:
 ```bash
 # This fetches the token from 1Password and writes it to your local config
 echo "export GITHUB_TOKEN=\"$(op read 'op://dotfiles/github/token')\"" >> ~/.bash_local
 source ~/.bashrc
 ```
 
-### Login to GitHub CLI:
-```bash
-# Since the token is now in your environment, gh will detect it automatically
-gh auth status
-```
+### Best Practices for Secrets:
+- **Separate Items:** Create a separate 1Password item for each service (e.g., one item for `github`, one for `openai`, one for `aws`). 
+- **Why?** This makes your references cleaner (`op://dotfiles/github/token`), allows for better item history, and follows the principle of least privilege if you ever need to share specific secrets.
 
 ---
 
@@ -76,16 +80,15 @@ jq --version    # jq
 op whoami
 
 # Check GitHub
-gh repo list
+gh auth status
 ```
 
 ---
 
 ## 5. Troubleshooting
 
-- **"Command not found"**: Ensure `~/.local/bin` is in your PATH (done automatically by `.bashrc`). Run `source ~/.bashrc`.
+- **"Command not found"**: Ensure `~/.local/bin` is in your PATH. Run `source ~/.bashrc`.
 - **"_get_comp_words_by_ref: command not found"**: This means the `bash-completion` package is missing on your system.
   - **Linux**: `sudo apt install bash-completion`
   - **macOS**: `brew install bash-completion@2` (then restart your shell).
 - **"401 Unauthorized"**: Ensure your `GITHUB_TOKEN` is correct. You can re-run the hydration command in Step 3.
-- **Symlinks**: If you need to re-link files, run `bash ~/.dotfiles/scripts/link.sh`.
