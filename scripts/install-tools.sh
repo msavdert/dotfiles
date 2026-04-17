@@ -58,14 +58,15 @@ extract_zip() {
     elif command_exists uv; then
         log "unzip and python missing, attempting to use uv for extraction..."
         # Ensure a python is available via uv
-        if ! uv python find &>/dev/null; then
-            log "uv: installing a standalone python into ~/.local/share/uv..."
-            uv python install --managed 3.12 &>/dev/null
+        if ! uv python find 3.12 &>/dev/null; then
+            log "uv: installing a standalone python 3.12 into ~/.local/share/uv..."
+            uv python install 3.12
         fi
+        
         if [ -n "$entry" ]; then
-            uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
+            uv run --python 3.12 python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
         else
-            uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
+            uv run --python 3.12 python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
         fi
     else
         log_error "unzip, python, and uv missing. Cannot extract $zip_file"
