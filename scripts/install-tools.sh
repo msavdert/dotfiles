@@ -734,6 +734,228 @@ install_lazygit() {
     rm -f "/tmp/$filename"
 }
 
+install_yq() {
+    if command_exists yq; then
+        log_skip "yq already installed: $(yq --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing yq"
+
+    local version arch os_type filename url tag
+    tag=$(curl -fsSL -I https://github.com/mikefarah/yq/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$tag" ] && tag="v4.44.1"
+    version=$(echo "$tag" | sed 's/^v//')
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="darwin_arm64" || os_type="darwin_amd64"
+    else
+        [ "$arch" = "x86_64" ] && os_type="linux_amd64" || os_type="linux_arm64"
+    fi
+
+    filename="yq_${os_type}.tar.gz"
+    url="https://github.com/mikefarah/yq/releases/download/${tag}/${filename}"
+    
+    log "Downloading yq $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    tar -xzf "/tmp/$filename" -C "/tmp"
+    # yq puts the binary as ./yq_<os_type> in the root or just yq
+    local extracted_bin=$(find "/tmp" -maxdepth 1 -name "yq_${os_type}*" | head -1)
+    if [ -n "$extracted_bin" ]; then
+        cp "$extracted_bin" "$BIN_DIR/yq"
+        chmod +x "$BIN_DIR/yq"
+    fi
+    rm -f "/tmp/$filename" "$extracted_bin"
+}
+
+install_btop() {
+    if command_exists btop; then
+        log_skip "btop already installed: $(btop --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing btop"
+
+    local version arch os_type filename url tag
+    tag=$(curl -fsSL -I https://github.com/aristocratos/btop/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$tag" ] && tag="v1.3.2"
+    version=$(echo "$tag" | sed 's/^v//')
+
+    arch=$(uname -m)
+    if is_macos; then
+        log_warn "btop does not provide macOS pre-built binaries. Use 'brew install btop'."
+        return 0
+    fi
+
+    case "$arch" in
+        x86_64) os_type="x86_64-unknown-linux-musl" ;;
+        aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+        *) log_warn "btop pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+    esac
+
+    filename="btop-${os_type}.tbz"
+    url="https://github.com/aristocratos/btop/releases/download/${tag}/${filename}"
+    
+    log "Downloading btop $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    mkdir -p "/tmp/btop_install"
+    tar -xjf "/tmp/$filename" -C "/tmp/btop_install"
+    # btop extracted contains bin/btop
+    if [ -f "/tmp/btop_install/btop/bin/btop" ]; then
+        cp "/tmp/btop_install/btop/bin/btop" "$BIN_DIR/btop"
+        chmod +x "$BIN_DIR/btop"
+    fi
+    rm -rf "/tmp/$filename" "/tmp/btop_install"
+}
+
+install_yazi() {
+    if command_exists yazi; then
+        log_skip "yazi already installed: $(yazi --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing yazi"
+
+    local version arch os_type filename url tag
+    tag=$(curl -fsSL -I https://github.com/sxyazi/yazi/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$tag" ] && tag="v0.3.3"
+    version=$(echo "$tag" | sed 's/^v//')
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="aarch64-apple-darwin" || os_type="x86_64-apple-darwin"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "yazi pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+    fi
+
+    filename="yazi-${os_type}.zip"
+    url="https://github.com/sxyazi/yazi/releases/download/${tag}/${filename}"
+    
+    log "Downloading yazi $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    mkdir -p "/tmp/yazi_install"
+    extract_zip "/tmp/$filename" "/tmp/yazi_install"
+    # yazi extracted contains yazi-<os_type>/yazi
+    local extracted_dir=$(find "/tmp/yazi_install" -maxdepth 1 -name "yazi-*" -type d | head -1)
+    if [ -n "$extracted_dir" ]; then
+        cp "$extracted_dir/yazi" "$BIN_DIR/yazi"
+        #[ -f "$extracted_dir/ya" ] && cp "$extracted_dir/ya" "$BIN_DIR/ya" # ya is the CLI companion
+        chmod +x "$BIN_DIR/yazi"
+    fi
+    rm -rf "/tmp/$filename" "/tmp/yazi_install"
+}
+
+install_direnv() {
+    if command_exists direnv; then
+        log_skip "direnv already installed: $(direnv version)"
+        return 0
+    fi
+
+    log_step "Installing direnv"
+
+    local arch os_type filename url
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="darwin-arm64" || os_type="darwin-amd64"
+    else
+        [ "$arch" = "x86_64" ] && os_type="linux-amd64" || os_type="linux-arm64"
+    fi
+
+    filename="direnv.${os_type}"
+    url="https://github.com/direnv/direnv/releases/latest/download/${filename}"
+    
+    log "Downloading direnv..."
+    curl -fsSL -L "$url" -o "$BIN_DIR/direnv"
+    chmod +x "$BIN_DIR/direnv"
+}
+
+install_tldr() {
+    if command_exists tldr; then
+        log_skip "tldr (tealdeer) already installed: $(tldr --version)"
+        return 0
+    fi
+
+    log_step "Installing tealdeer (tldr)"
+
+    local arch os_type filename url
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="macos-aarch64" || os_type="macos-x86_64"
+    else
+        [ "$arch" = "x86_64" ] && os_type="linux-x86_64-musl" || os_type="linux-armv7-musleabihf"
+    fi
+
+    filename="tealdeer-${os_type}"
+    url="https://github.com/dbrgn/tealdeer/releases/latest/download/${filename}"
+    
+    log "Downloading tealdeer..."
+    curl -fsSL -L "$url" -o "$BIN_DIR/tldr"
+    chmod +x "$BIN_DIR/tldr"
+    
+    # Initialize cache
+    $BIN_DIR/tldr --update 2>/dev/null || true
+}
+
+install_dust() {
+    if command_exists dust; then
+        log_skip "dust already installed: $(dust --version)"
+        return 0
+    fi
+
+    log_step "Installing dust"
+
+    local version arch os_type filename url tag
+    tag=$(curl -fsSL -I https://github.com/bootandy/dust/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$tag" ] && tag="v1.1.1"
+    version=$(echo "$tag" | sed 's/^v//')
+
+    arch=$(uname -m)
+    if is_macos; then
+        # dust provides x86_64-apple-darwin which works on arm64 via Rosetta
+        os_type="x86_64-apple-darwin"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "dust pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+    fi
+
+    filename="dust-${tag}-${os_type}.tar.gz"
+    url="https://github.com/bootandy/dust/releases/download/${tag}/${filename}"
+    
+    log "Downloading dust..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    tar -xzf "/tmp/$filename" -C "/tmp"
+    local extracted_dir=$(find "/tmp" -maxdepth 1 -name "dust-*" -type d | head -1)
+    if [ -n "$extracted_dir" ]; then
+        cp "$extracted_dir/dust" "$BIN_DIR/dust"
+        chmod +x "$BIN_DIR/dust"
+    fi
+    rm -rf "/tmp/$filename" "$extracted_dir"
+}
+
+install_httpie() {
+    if command_exists http; then
+        log_skip "httpie already installed"
+        return 0
+    fi
+
+    log_step "Installing httpie via uv"
+    if command_exists uv; then
+        uv tool install httpie 2>/dev/null || log_warn "uv tool install httpie failed"
+    else
+        log_warn "uv not found, skipping httpie installation"
+    fi
+}
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -749,6 +971,7 @@ main() {
         brew install \
             gh 1password-cli zellij jq neovim uv \
             ripgrep fd bat eza fzf zoxide git-delta starship bottom lazygit \
+            yq btop yazi direnv tealdeer dust httpie \
             2>/dev/null || true
     else
         install_uv
@@ -767,6 +990,13 @@ main() {
         install_starship
         install_bottom
         install_lazygit
+        install_yq
+        install_btop
+        install_yazi
+        install_direnv
+        install_tldr
+        install_dust
+        install_httpie
     fi
 
     generate_completions

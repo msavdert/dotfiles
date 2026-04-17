@@ -88,7 +88,11 @@ alias reload='source ~/.bashrc'
 
 # Disk usage
 alias df='df -h'
-alias du='du -h'
+if command -v dust >/dev/null 2>&1; then
+    alias du='dust'
+else
+    alias du='du -h'
+fi
 
 # Modern tools replacements
 if command -v bat >/dev/null 2>&1; then
@@ -106,6 +110,19 @@ fi
 
 if command -v lazygit >/dev/null 2>&1; then
     alias lg='lazygit'
+fi
+
+if command -v yazi >/dev/null 2>&1; then
+    alias y='yazi'
+fi
+
+if command -v yq >/dev/null 2>&1; then
+    alias query='yq'
+fi
+
+# Direnv (automatic environment loading)
+if command -v direnv >/dev/null 2>&1; then
+    eval "$(direnv hook bash)"
 fi
 
 # =============================================================================
