@@ -2,8 +2,6 @@
 
 Minimal, modern, and **No-Sudo** dotfiles setup for macOS and Linux. No framework dependencies — just binaries and symlinks.
 
-**Repository:** `https://github.com/msavdert/dotfiles`
-
 ## 🚀 Quick Start
 
 One command to rule them all:
