@@ -1,8 +1,11 @@
 ---
 title: "Building the Ultimate 'No-Sudo' Modern Dotfiles: A Native & Secure Approach"
-date: 2026-04-17
+date: 2026-04-17 10:00:00 +0300
 categories: [DevOps, Productivity]
 tags: [dotfiles, 1password, neovim, zellij, uv, bash, automation]
+layout: post
+author: msavdert
+description: "How I modernized my dotfiles infrastructure using a native, no-sudo, and secure approach with 1Password and uv."
 ---
 
 # Building the Ultimate "No-Sudo" Modern Dotfiles: A Native & Secure Approach
