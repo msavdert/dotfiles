@@ -60,6 +60,17 @@ echo "export GITHUB_TOKEN=\"$(op read 'op://dotfiles/github/token')\"" >> ~/.bas
 source ~/.bashrc
 ```
 
+### Step C: SSH Key Hydration
+If you have private keys stored in 1Password (e.g., your `oci_key`), you can hydrate them easily:
+```bash
+# Ensure directory exists with correct permissions
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+
+# Fetch key from 1Password and set permission
+op read "op://dotfiles/oci_key/private key" > ~/.ssh/oci_key
+chmod 600 ~/.ssh/oci_key
+```
+
 ### Best Practices for Secrets:
 - **Separate Items:** Create a separate 1Password item for each service (e.g., one item for `github`, one for `openai`, one for `aws`). 
 - **Why?** This makes your references cleaner (`op://dotfiles/github/token`), allows for better item history, and follows the principle of least privilege if you ever need to share specific secrets.

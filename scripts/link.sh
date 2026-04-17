@@ -84,8 +84,10 @@ link_file "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 # Zellij config
 link_file "$DOTFILES_DIR/zellij/config.kdl" "$HOME/.config/zellij/config.kdl"
 
-# SSH config (only if source exists)
+# SSH config
 if [ -f "$DOTFILES_DIR/ssh/config" ]; then
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
     link_file "$DOTFILES_DIR/ssh/config" "$HOME/.ssh/config" "SSH config"
-    chmod 600 "$HOME/.ssh/config" 2>/dev/null || true
+    chmod 600 "$HOME/.ssh/config"
 fi
