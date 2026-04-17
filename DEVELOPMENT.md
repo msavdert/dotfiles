@@ -82,6 +82,12 @@ Use `~/.bash_local` for your private environment variables (Git identity, OP tok
 ### Clean Output
 Use `log_step`, `log`, and `log_warn` functions to keep the output consistent and professional.
 
+### Shell Completions
+Completions are stored in `~/.local/share/bash-completion/completions/`. When adding a new tool:
+1. Update `generate_completions()` in `scripts/install-tools.sh`.
+2. Use the tool's built-in completion command (e.g., `mytool completion bash > "$comp_dir/mytool"`).
+3. The `.bashrc` will automatically pick up and source the new file.
+
 ---
 
 ## Testing Changes

@@ -274,6 +274,29 @@ main() {
         install_jq
         install_nvim
     fi
+
+    generate_completions
+}
+
+generate_completions() {
+    log_step "Generating shell completions"
+    local comp_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
+    mkdir -p "$comp_dir"
+
+    if command_exists gh; then
+        gh completion -s bash > "$comp_dir/gh"
+        log "Generated gh completion"
+    fi
+
+    if command_exists op; then
+        op completion bash > "$comp_dir/op"
+        log "Generated op completion"
+    fi
+
+    if command_exists zellij; then
+        zellij setup --generate-completion bash > "$comp_dir/zellij"
+        log "Generated zellij completion"
+    fi
 }
 
 main "$@"

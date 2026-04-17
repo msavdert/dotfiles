@@ -65,6 +65,16 @@ elif [ -f /usr/share/bash-completion/bash_completion ]; then
     source /usr/share/bash-completion/bash_completion
 fi
 
+# Load user-specific completions from XDG_DATA_HOME
+USER_COMPLETIONS_DIR="$XDG_DATA_HOME/bash-completion/completions"
+if [ -d "$USER_COMPLETIONS_DIR" ]; then
+    for completion_file in "$USER_COMPLETIONS_DIR"/*; do
+        if [ -f "$completion_file" ]; then
+            source "$completion_file"
+        fi
+    done
+fi
+
 # =============================================================================
 # Prompt (Simplified - no external dependencies)
 # =============================================================================
