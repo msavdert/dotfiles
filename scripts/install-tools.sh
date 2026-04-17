@@ -55,8 +55,20 @@ extract_zip() {
         else
             python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
         fi
+    elif command_exists uv; then
+        log "unzip and python missing, attempting to use uv for extraction..."
+        # Ensure a python is available via uv
+        if ! uv python find &>/dev/null; then
+            log "uv: installing a standalone python into ~/.local/share/uv..."
+            uv python install --managed 3.12 &>/dev/null
+        fi
+        if [ -n "$entry" ]; then
+            uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
+        else
+            uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
+        fi
     else
-        log_error "unzip and python (zipfile) missing. Cannot extract $zip_file"
+        log_error "unzip, python, and uv missing. Cannot extract $zip_file"
         return 1
     fi
 }
@@ -254,6 +266,53 @@ install_nvim() {
     rm -f "/tmp/$filename"
 }
 
+install_uv() {
+    if command_exists uv; then
+        log_skip "uv already installed: $(uv --version 2>&1 | head -1)"
+        return 0
+    fi
+
+    log_step "Installing uv (Python manager)"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL https://api.github.com/repos/astral-sh/uv/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
+    [ -z "$version" ] && version="0.1.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="aarch64-apple-darwin" || os_type="x86_64-apple-darwin"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-gnu" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-gnu" ;;
+            *) log_warn "uv pre-built binaries not found for $arch, skipping."; return 0 ;;
+        esac
+    fi
+
+    filename="uv-${os_type}.tar.gz"
+    url="https://github.com/astral-sh/uv/releases/download/${version}/${filename}"
+    
+    log "Downloading uv $version for $os_type..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    # Extract
+    mkdir -p "/tmp/uv_install"
+    tar -xzf "/tmp/$filename" -C "/tmp/uv_install"
+    
+    # uv tarball contains a directory uv-x86_64-unknown-linux-gnu/ which contains uv and uvx
+    local extracted_dir=$(find "/tmp/uv_install" -maxdepth 1 -name "uv-*" -type d | head -1)
+    if [ -n "$extracted_dir" ]; then
+        cp "$extracted_dir/uv" "$BIN_DIR/uv"
+        cp "$extracted_dir/uvx" "$BIN_DIR/uvx"
+    else
+        log_error "Could not find extracted uv directory"
+        return 1
+    fi
+    
+    chmod +x "$BIN_DIR/uv" "$BIN_DIR/uvx"
+    rm -rf "/tmp/$filename" "/tmp/uv_install"
+}
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -266,8 +325,9 @@ main() {
 
     if is_macos && command_exists brew; then
         log_step "Homebrew detected, using it for tools"
-        brew install gh 1password-cli zellij jq neovim 2>/dev/null || true
+        brew install gh 1password-cli zellij jq neovim uv 2>/dev/null || true
     else
+        install_uv
         install_gh
         install_op
         install_zellij
@@ -296,6 +356,11 @@ generate_completions() {
     if command_exists zellij; then
         zellij setup --generate-completion bash > "$comp_dir/zellij"
         log "Generated zellij completion"
+    fi
+
+    if command_exists uv; then
+        uv generate-shell-completion bash > "$comp_dir/uv"
+        log "Generated uv completion"
     fi
 }
 
