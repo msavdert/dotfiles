@@ -81,7 +81,7 @@ Since keeping VPS IP addresses in a public repository is a security risk, we use
 1. Create a `config.local` item in 1Password (as a Document or in Notes) with your private host definitions:
    ```ssh
    Host devenv
-       HostName 129.153.230.150
+       HostName [IP_ADDRESS]
        User opc
        IdentityFile ~/.ssh/oci_key
    ```
