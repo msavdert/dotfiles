@@ -123,3 +123,27 @@ gh auth status
   - **RHEL/Fedora**: `sudo dnf install -y bash-completion`
   - **macOS**: `brew install bash-completion@2`
 - **"401 Unauthorized"**: Ensure your `GITHUB_TOKEN` is correct. You can re-run the hydration command in Step 3.
+
+---
+
+## 6. Maintenance & Updates
+
+### Updating Tools
+Since tools are installed as standalone binaries in `~/.local/bin`, the simplest and most reliable way to update a tool is to delete its binary and re-run the installation script:
+
+```bash
+# Example: Updating bottom (btm)
+rm ~/.local/bin/btm
+./scripts/install-tools.sh
+```
+
+This forces the script to fetch the latest release from GitHub and re-install any related assets (like shell completions).
+
+### Updating Dotfiles
+To pull the latest changes from your repository and update symlinks:
+
+```bash
+cd ~/.dotfiles
+git pull
+./scripts/link.sh
+```
