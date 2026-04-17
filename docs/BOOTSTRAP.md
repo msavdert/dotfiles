@@ -89,7 +89,7 @@ Since keeping VPS IP addresses in a public repository is a security risk, we use
 2. Hydrate it during bootstrap:
    ```bash
    # Fetch private hosts from 1Password
-   op read "op://dotfiles/config.local/notes plain" > ~/.ssh/config.local
+   op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
    chmod 600 ~/.ssh/config.local
    ```
 
