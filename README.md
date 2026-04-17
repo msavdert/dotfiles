@@ -105,6 +105,29 @@ ops --secret API_KEY -- echo $API_KEY
 ```
 
 
+## Local Customization
+
+The project supports a private configuration file at `~/.bash_local`. Use this for sensitive environment variables that should NOT be pushed to GitHub:
+
+1. Create the file:
+   ```bash
+   touch ~/.bash_local
+   ```
+2. Add your private exports (Git identity, API tokens, etc.):
+   ```bash
+   export GIT_AUTHOR_NAME="Your Name"
+   export GIT_AUTHOR_EMAIL="you@example.com"
+   export OP_SERVICE_ACCOUNT_TOKEN="your-token-here"
+   ```
+
+## Security & Secrets
+
+For maximum security, this project recommends using **1Password Service Accounts**. This allows the CLI to access **only specific vaults** (e.g., a "dotfiles" vault) rather than your entire 1Password account.
+
+- **Vault Scoping:** Create a dedicated vault in 1Password for your dotfiles.
+- **Service Account:** Generate a token scoped only to that vault.
+- **Persistence:** Store the token in `~/.bash_local`.
+
 ## Supported Systems
 
 - **macOS** (Ventura and later)

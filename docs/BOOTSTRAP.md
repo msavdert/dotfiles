@@ -40,31 +40,31 @@ This will:
 
 ### Step 2 — Set Git Identity
 
-Edit your `~/.bash_profile` or `~/.bashrc`:
+Add your identity to the **private** `~/.bash_local` file so it is never pushed to public repositories:
 
 ```bash
-export GIT_AUTHOR_NAME="Your Name"
-export GIT_AUTHOR_EMAIL="you@example.com"
-```
-
-Or add to `~/.bash_profile`:
-
-```bash
-cat >> ~/.bash_profile << 'EOF'
+cat >> ~/.bash_local << 'EOF'
 export GIT_AUTHOR_NAME="Your Name"
 export GIT_AUTHOR_EMAIL="you@example.com"
 EOF
+source ~/.bashrc
 ```
 
-### Step 3 — Sign in to 1Password
+### Step 3 — Secure 1Password Setup (Recommended)
 
-```bash
-# Sign in (uses your default account)
-op signin
+Instead of a full login, use a **Service Account** to limit access to a single vault:
 
-# Or specify account
-op signin my.1password.com
-```
+1.  Log in to **1Password.com** in your browser.
+2.  Create a new vault named **"dotfiles"** (or similar).
+3.  Go to **Developer > Service Accounts**.
+4.  Create a new Service Account and grant it access **only** to the "dotfiles" vault.
+5.  Copy the token and save it to your local config:
+    ```bash
+    echo 'export OP_SERVICE_ACCOUNT_TOKEN="your-token-here"' >> ~/.bash_local
+    source ~/.bashrc
+    ```
+
+Now `op` will work instantly without `op signin` and can only see the secrets you explicitly put in that vault.
 
 ### Step 4 — Authenticate GitHub CLI
 
@@ -86,9 +86,11 @@ source ~/.bashrc
 git config user.name   # Should show your name
 git config user.email  # Should show your email
 
-# Check tmux
-tmux new -s test  # Create a test session
-tmux kill-session -t test  # Clean up
+# Check Zellij
+z --version
+
+# Check Neovim
+v --version
 
 # Check 1Password
 op vault list

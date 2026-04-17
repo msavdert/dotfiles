@@ -76,6 +76,9 @@ Always prefer downloading a pre-built binary over using `apt`, `dnf`, or `brew` 
 ### Portable Extraction
 Avoid relying on `unzip`. Use `tar` (standard) or use the `extract_zip` helper function in `install-tools.sh` which falls back to Python 3.
 
+### Local Customization & Secrets
+Use `~/.bash_local` for your private environment variables (Git identity, OP tokens). This file is ignored by Git and is the correct place for local-only overrides.
+
 ### Clean Output
 Use `log_step`, `log`, and `log_warn` functions to keep the output consistent and professional.
 
