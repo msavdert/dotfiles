@@ -75,6 +75,7 @@ Verify that all tools are correctly installed and linked:
 z --version     # Zellij
 v --version     # Neovim
 jq --version    # jq
+uv --version    # uv
 
 # Check 1Password
 op whoami
@@ -88,7 +89,8 @@ gh auth status
 ## 5. Troubleshooting
 
 - **"Command not found"**: Ensure `~/.local/bin` is in your PATH. Run `source ~/.bashrc`.
-- **"_get_comp_words_by_ref: command not found"**: This means the `bash-completion` package is missing on your system.
-  - **Linux**: `sudo apt install bash-completion`
-  - **macOS**: `brew install bash-completion@2` (then restart your shell).
+- **"_get_comp_words_by_ref: command not found"**: This means the core completion package is missing.
+  - **Ubuntu/Debian**: `sudo apt update && sudo apt install -y bash-completion`
+  - **RHEL/Fedora**: `sudo dnf install -y bash-completion`
+  - **macOS**: `brew install bash-completion@2`
 - **"401 Unauthorized"**: Ensure your `GITHUB_TOKEN` is correct. You can re-run the hydration command in Step 3.
