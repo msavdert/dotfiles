@@ -31,4 +31,4 @@ Host *
 # -----------------------------------------------------------------------------
 # Common Shortcuts (Non-sensitive)
 # -----------------------------------------------------------------------------
-# (Buraya genel, IP içermeyen aliaslar eklenebilir)
+# (Additional general aliases that don't contain sensitive IPs can be added here)
