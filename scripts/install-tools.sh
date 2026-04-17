@@ -339,11 +339,15 @@ install_rg() {
 
     arch=$(uname -m)
     if is_macos; then
-        filename="ripgrep-${version}-x86_64-apple-darwin.tar.gz" # Universal binary usually
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            filename="ripgrep-${version}-aarch64-apple-darwin.tar.gz"
+        else
+            filename="ripgrep-${version}-x86_64-apple-darwin.tar.gz"
+        fi
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
-            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-gnu" ;; # ripgrep uses -gnu for aarch64
             *) log_warn "ripgrep pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
         esac
         filename="ripgrep-${version}-${os_type}.tar.gz"
@@ -374,7 +378,11 @@ install_fd() {
 
     arch=$(uname -m)
     if is_macos; then
-        filename="fd-v${version}-x86_64-apple-darwin.tar.gz"
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            filename="fd-v${version}-aarch64-apple-darwin.tar.gz"
+        else
+            filename="fd-v${version}-x86_64-apple-darwin.tar.gz"
+        fi
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
@@ -409,7 +417,11 @@ install_bat() {
 
     arch=$(uname -m)
     if is_macos; then
-        filename="bat-v${version}-x86_64-apple-darwin.tar.gz"
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            filename="bat-v${version}-aarch64-apple-darwin.tar.gz"
+        else
+            filename="bat-v${version}-x86_64-apple-darwin.tar.gz"
+        fi
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
@@ -507,8 +519,11 @@ install_zoxide() {
 
     arch=$(uname -m)
     if is_macos; then
-        os_type="apple-darwin" # Single binary for mac
-        filename="zoxide-${version}-x86_64-apple-darwin.tar.gz" 
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            filename="zoxide-${version}-aarch64-apple-darwin.tar.gz"
+        else
+            filename="zoxide-${version}-x86_64-apple-darwin.tar.gz"
+        fi
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
@@ -541,11 +556,15 @@ install_delta() {
 
     arch=$(uname -m)
     if is_macos; then
-        filename="delta-${version}-x86_64-apple-darwin.tar.gz"
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            filename="delta-${version}-aarch64-apple-darwin.tar.gz"
+        else
+            filename="delta-${version}-x86_64-apple-darwin.tar.gz"
+        fi
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
-            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-gnu" ;; # delta uses -gnu for aarch64
             *) log_warn "delta pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
         esac
         filename="delta-${version}-${os_type}.tar.gz"
@@ -610,7 +629,11 @@ install_bottom() {
 
     arch=$(uname -m)
     if is_macos; then
-        filename="bottom_x86_64-apple-darwin.tar.gz" # Universal/compat
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            filename="bottom_aarch64-apple-darwin.tar.gz"
+        else
+            filename="bottom_x86_64-apple-darwin.tar.gz"
+        fi
     else
         case "$arch" in
             x86_64) os_type="x86_64-unknown-linux-musl" ;;
@@ -643,9 +666,17 @@ install_lazygit() {
 
     arch=$(uname -m)
     if is_macos; then
-        [ "$arch" = "arm64" ] && os_type="Darwin_arm64" || os_type="Darwin_x86_64"
+        if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+            os_type="darwin_arm64"
+        else
+            os_type="darwin_x86_64"
+        fi
     else
-        [ "$arch" = "x86_64" ] && os_type="Linux_x86_64" || os_type="Linux_arm64"
+        if [ "$arch" = "x86_64" ]; then
+            os_type="linux_x86_64"
+        else
+            os_type="linux_arm64"
+        fi
     fi
 
     filename="lazygit_${version}_${os_type}.tar.gz"
