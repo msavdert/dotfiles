@@ -32,7 +32,7 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
   - **bat & eza** (Modern cat & ls)
   - **zoxide** (Smarter cd)
   - **starship** (Cross-shell Prompt)
-  - **btop & btm** (System Monitors)
+  - **btop** (System monitor)
   - **yazi** (Blazing Fast File Manager)
   - **yq & jq** (YAML/JSON Processors)
   - **direnv** (Automatic Env Loading)
@@ -51,14 +51,17 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
 
 ```
 dotfiles/
-├── bootstrap.sh           # Main entry point (curled)
+├── bootstrap.sh           # Main entry point (installs uv & python first)
 ├── scripts/
 │   ├── install-tools.sh  # No-sudo binary installer (gh, nvim, rg, fzf, etc.)
-│   └── link.sh           # Configuration symlinker
+│   ├── link.sh           # Configuration symlinker
+│   └── test-in-docker.sh # Local testing automation
 ├── bash/                 # ~/.bashrc, aliases, profile
+├── config/               # ~/.config/ (starship, bat, btop, lazygit)
 ├── zellij/               # ~/.config/zellij/
 ├── git/                  # ~/.gitconfig
-└── ssh/                  # ~/.ssh/config
+├── ssh/                  # ~/.ssh/config
+└── nvim/                 # ~/.config/nvim/
 ```
 
 ## License

@@ -12,11 +12,12 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
 
 This script will:
 1. Detect architecture (x86_64, ARM64) and OS.
-2. Install `gh` (GitHub CLI) as a binary.
-3. Clone dotfiles to `~/.dotfiles`.
-4. Install core binaries: `op`, `zellij`, `jq`, `nvim`.
-5. Create symlinks for all configurations.
-6. Generate shell completions for the installed tools.
+2. Install `uv` (Tool Manager) and ensure a portable Python environment.
+3. Install `gh` (GitHub CLI) as a binary.
+4. Clone dotfiles to `~/.dotfiles`.
+5. Install core binaries: `op`, `zellij`, `jq`, `nvim`, `rg`, `fd`, `bat`, `eza`, `fzf`, `zoxide`, `delta`, `starship`, `btop`, `yazi`, `direnv`, `tldr`, `dust`, `httpie`.
+6. Create symlinks for all configurations (including the new `config/` directory).
+7. Generate shell completions for the installed tools.
 
 ---
 
@@ -60,39 +61,6 @@ echo "export GITHUB_TOKEN=\"$(op read 'op://dotfiles/github/token')\"" >> ~/.bas
 source ~/.bashrc
 ```
 
-### Step C: SSH Key Hydration
-If you have private keys stored in 1Password (e.g., your `oci_key`), you can hydrate them easily:
-```bash
-# Ensure directory exists with correct permissions
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-
-# Fetch key from 1Password and set permission
-op read "op://dotfiles/oci_key/private key" > ~/.ssh/oci_key
-chmod 600 ~/.ssh/oci_key
-```
-
-### Best Practices for Secrets:
-- **Separate Items:** Create a separate 1Password item for each service (e.g., one item for `github`, one for `openai`, one for `aws`). 
-- **Why?** This makes your references cleaner (`op://dotfiles/github/token`), allows for better item history, and follows the principle of least privilege if you ever need to share specific secrets.
-
-### Step D: SSH Private Environments
-Since keeping VPS IP addresses in a public repository is a security risk, we use a local, git-ignored file for sensitive hosts.
-
-1. Create a `config.local` item in 1Password (as a Document or in Notes) with your private host definitions:
-   ```ssh
-   Host devenv
-       HostName [IP_ADDRESS]
-       User opc
-       IdentityFile ~/.ssh/oci_key
-   ```
-
-2. Hydrate it during bootstrap:
-   ```bash
-   # Fetch private hosts from 1Password
-   op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
-   chmod 600 ~/.ssh/config.local
-   ```
-
 ---
 
 ## 4. Verification
@@ -101,12 +69,14 @@ Verify that all tools are correctly installed and linked:
 
 ```bash
 # Check binaries
-z --version     # Zellij
-v --version     # Neovim
-rg --version    # ripgrep
-y --version     # yazi
-btm --version   # bottom
-tldr --version  # tealdeer
+z --version       # Zellij
+v --version       # Neovim
+rg --version      # ripgrep
+y --version       # yazi
+btop --version    # btop
+tldr --version    # tealdeer
+uv --version      # uv
+python --version  # uv-managed python
 
 # Check 1Password & GitHub
 op whoami
@@ -132,8 +102,8 @@ gh auth status
 Since tools are installed as standalone binaries in `~/.local/bin`, the simplest and most reliable way to update a tool is to delete its binary and re-run the installation script:
 
 ```bash
-# Example: Updating bottom (btm)
-rm ~/.local/bin/btm
+# Example: Updating btop
+rm ~/.local/bin/btop
 ./scripts/install-tools.sh
 ```
 

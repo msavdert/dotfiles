@@ -7,64 +7,61 @@ This guide explains how to maintain, modify, and expand these dotfiles.
 The project follows a **No-Sudo** principle. Tools are installed as standalone binaries in user-space (`~/.local/bin`), and configurations are linked via symlinks.
 
 ### Core Components
-- `bootstrap.sh`: The entry point. Handles dependency checks, `gh` CLI installation, and repo fetching.
-- `scripts/install-tools.sh`: The worker script for tool installation. Downloads binaries from GitHub releases.
+- `bootstrap.sh`: The entry point. Handles `uv` installation, `uv`-managed Python environment, and repo fetching.
+- `scripts/install-tools.sh`: The worker script for tool installation. Uses a unified `github_tool_install` helper.
 - `scripts/link.sh`: Manages symlinks. Handles existing file backups automatically.
-- `bash/`, `git/`, `zellij/`: Configuration source directories.
+- `scripts/test-in-docker.sh`: Automated local testing script (Ubuntu 24.04).
+- `bash/`, `git/`, `zellij/`, `nvim/`, `config/`: Source directories for configuration.
 
 ---
 
 ## Adding a New Tool
 
-To add a new tool (e.g., `bat`, `eza`, `fzf`), follow these steps:
+To add a new tool, follow these steps:
 
 ### 1. Update `scripts/install-tools.sh`
-Add a new `install_<tool>` function. Use the following template for GitHub-based tools:
+
+#### A. Define Filename and Extraction Functions
+Most tools follow a standard GitHub Release pattern. Define how to find the binary and how to extract it.
 
 ```bash
-install_mytool() {
-    if command_exists mytool; then
-        return 0
-    fi
+# Example for a hypothetical tool 'mytool'
+mytool_filename() {
+    local version="$1" arch=$(uname -m)
+    [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
+    echo "mytool_${version}_linux_${arch}.tar.gz"
+}
 
-    log_step "Installing MyTool"
-    local version arch filename url
-    
-    # Get latest tag and version (handle 'v' prefix if needed)
-    tag=$(curl -fsSL -I https://github.com/owner/repo/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
-    version=$(echo "$tag" | sed 's/^v//')
-    
-    arch=$(uname -m)
-    # Map architectures
-    [ "$arch" = "x86_64" ] && arch="amd64"
-    
-    # Construct URL (check the repo's release naming convention)
-    filename="mytool_${version}_linux_${arch}.tar.gz"
-    url="https://github.com/owner/repo/releases/download/${tag}/${filename}"
-    
-    curl -fsSL -L "$url" -o "/tmp/$filename"
-    # Extract using the appropriate helper (extract_zip, extract_tar_bz2, etc.)
-    tar -xzf "/tmp/$filename" -C "$BIN_DIR"
-    chmod +x "$BIN_DIR/mytool"
-    rm -f "/tmp/$filename"
+mytool_extract() {
+    # extracted binary is usually in same folder
+    tar -xzf "$1" -C "$BIN_DIR"
 }
 ```
 
-### 2. Register in `main()`
-Add your new function to the `main()` loop in `install-tools.sh`.
+#### B. Register the Installer
+```bash
+install_mytool() {
+    github_tool_install "owner/repo" "mytool" "mytool --version" mytool_filename mytool_extract
+}
+```
 
-### 3. (Optional) Add Aliases
+#### C. Add to Main Loop
+Add `mytool` to the `tools` array in the `main()` function.
+
+### 2. Register Shell Completion
+Update `install_completion()` to generate completions for your tool if it supports it.
+
+### 3. Add Aliases
 Add shortcuts to `bash/.bash_aliases`.
 
 ---
 
 ## Adding a New Configuration (Symlink)
 
-1. Create a directory for your config (e.g., `fzf/`).
-2. Add your config files there.
-3. Update `scripts/link.sh` to include a new `link_file` call:
+1. Create a directory (if complex) or a file in `config/` (for modern tools following XDG) or in the root for others.
+2. Update `scripts/link.sh` to include a new `link_file` call:
    ```bash
-   link_file "$DOTFILES_DIR/mytool/config" "$HOME/.config/mytool/config"
+   link_file "$DOTFILES_DIR/config/mytool/config" "$HOME/.config/mytool/config"
    ```
 
 ---
@@ -72,47 +69,24 @@ Add shortcuts to `bash/.bash_aliases`.
 ## Best Practices
 
 ### No-Sudo First
-Always prefer downloading a pre-built binary over using `apt`, `dnf`, or `brew` (unless on macOS where `brew` is standard). This ensures the script works on locked-down servers and minimal containers.
+Always prefer downloading a pre-built binary. This ensures the script works on locked-down servers and minimal containers.
 
-### Portable Extraction
-Avoid relying on `unzip` or `bzip2`. Use the built-in helper functions in `install-tools.sh` which fallback to Python 3 for compatibility:
-- `extract_zip`: Handles `.zip` files.
-- `extract_tar_bz2`: Handles `.tar.bz2` or `.tbz` files.
-- Standard `tar -xzf` is safe for `.tar.gz` (gzip is standard).
+### Reliable Extraction via uv
+We use `uv`-managed Python as the ultimate fallback for extracting ZIP and TBZ files. This ensures portability even on minimal Debian/Linux systems without `unzip` or `bzip2`.
+- `extract_zip`: Uses `uv run python`.
+- `extract_tar_bz2`: Uses `uv run python`.
 
 ### Local Customization & Secrets
-Use `~/.bash_local` for your private environment variables (Git identity, OP tokens). This file is ignored by Git and is the correct place for local-only overrides.
-
-### Clean Output
-Use `log_step`, `log`, and `log_warn` functions to keep the output consistent and professional.
-
-### Shell Completions
-Completions are stored in `~/.local/share/bash-completion/completions/`. When adding a new tool:
-1. Update `generate_completions()` in `scripts/install-tools.sh`.
-2. Use the tool's built-in completion command (e.g., `mytool completion bash > "$comp_dir/mytool"`).
-3. The `.bashrc` will automatically pick up and source the new file.
+Use `~/.bash_local` for your private environment variables (Git identity, OP tokens). This file is ignored by Git.
 
 ---
 
 ## Testing Changes
 
-Always test your changes in a clean environment before pushing:
+Before pushing, use the automated testing script:
 
-### Docker (Linux)
 ```bash
-# Start a fresh container
-docker run -it --rm ubuntu:24.04 bash
-
-# Inside the container
-apt update && apt install -y curl tar python3
-curl -fsSL https://raw.githubusercontent.com/your-username/dotfiles/main/bootstrap.sh | bash
-source ~/.bashrc
+bash scripts/test-in-docker.sh
 ```
 
-### macOS
-If you have OrbStack installed:
-```bash
-orb create ubuntu test-env
-orb shell test-env
-# Run bootstrap...
-```
+This uses **OrbStack** (if available) to spin up a clean Ubuntu 24.04 container and runs the full bootstrap process.
