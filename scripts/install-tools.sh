@@ -74,6 +74,25 @@ extract_zip() {
     fi
 }
 
+# Helper to extract tar.bz2 files without requiring the bzip2 utility
+extract_tar_bz2() {
+    local archive="$1"
+    local dest_dir="$2"
+
+    if command_exists bzip2; then
+        tar -xjf "$archive" -C "$dest_dir"
+    elif command_exists python3; then
+        log "bzip2 missing, using python3 to extract .tbz..."
+        python3 -c "import tarfile,sys; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2])" "$archive" "$dest_dir"
+    elif command_exists python; then
+        log "bzip2 missing, using python to extract .tbz..."
+        python -c "import tarfile,sys; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2])" "$archive" "$dest_dir"
+    else
+        log_error "bzip2 and python missing. Cannot extract $archive"
+        return 1
+    fi
+}
+
 # =============================================================================
 # Binary Installers
 # =============================================================================
@@ -801,7 +820,7 @@ install_btop() {
     curl -fsSL -L "$url" -o "/tmp/$filename"
     
     mkdir -p "/tmp/btop_install"
-    tar -xjf "/tmp/$filename" -C "/tmp/btop_install"
+    extract_tar_bz2 "/tmp/$filename" "/tmp/btop_install"
     # btop extracted contains bin/btop
     if [ -f "/tmp/btop_install/btop/bin/btop" ]; then
         cp "/tmp/btop_install/btop/bin/btop" "$BIN_DIR/btop"
