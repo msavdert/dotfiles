@@ -95,6 +95,14 @@ check_system_dependencies() {
 fetch_dotfiles() {
     log_step "Fetching dotfiles repository"
 
+    # Detect if we are running from within a dotfiles directory already
+    # This is common in CI environments where the repo is already checked out
+    if [ -f "scripts/install-tools.sh" ] && [ -f "scripts/link.sh" ] && [ ! -d "$DOTFILES_DIR" ]; then
+        log "Detected local dotfiles repository. Linking to $DOTFILES_DIR..."
+        ln -s "$(pwd)" "$DOTFILES_DIR"
+        return 0
+    fi
+
     if [ -d "$DOTFILES_DIR" ]; then
         if [ -d "$DOTFILES_DIR/.git" ]; then
             log "Dotfiles exists and is a git repo. Updating..."

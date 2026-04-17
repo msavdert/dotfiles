@@ -1,0 +1,86 @@
+name: Test Dotfiles
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Latest
+            os: macos-latest
+          - name: Ubuntu Latest
+            os: ubuntu-latest
+          - name: Rocky Linux 9
+            os: ubuntu-latest
+            container: rockylinux:9
+          - name: Debian 12
+            os: ubuntu-latest
+            container: debian:12-slim
+
+    container: ${{ matrix.container }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install CI Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "::group::Installing dependencies for ${{ matrix.name }}"
+          if command -v apt-get >/dev/null; then
+            apt-get update && apt-get install -y curl git tar procps
+          elif command -v dnf >/dev/null; then
+            dnf install -y curl git tar procps-ng
+          fi
+          echo "::endgroup::"
+
+      - name: Run Bootstrap (First Time)
+        run: |
+          echo "::group::Bootstrapping (Initial Run)"
+          # Run the script. It should detect we are in the repo and link accordingly
+          ./bootstrap.sh
+          echo "::endgroup::"
+
+      - name: Run Bootstrap (Idempotency Check)
+        run: |
+          echo "::group::Bootstrapping (Second Run - Idempotency)"
+          ./bootstrap.sh
+          echo "::endgroup::"
+
+      - name: Verify Binaries
+        run: |
+          echo "::group::Verifying installed tools"
+          export PATH="$HOME/.local/bin:$PATH"
+          
+          echo "Verifying gh..."
+          gh --version
+          
+          echo "Verifying uv..."
+          uv --version
+          
+          echo "Verifying zellij..."
+          zellij --version
+          
+          echo "Verifying nvim..."
+          nvim --version
+          
+          echo "Verifying jq..."
+          jq --version
+          echo "::endgroup::"
+
+      - name: Verify Symlinks
+        run: |
+          echo "::group::Verifying symlinks"
+          [ -L "$HOME/.bashrc" ] || (echo "bashrc is not a symlink" && exit 1)
+          [ -L "$HOME/.gitconfig" ] || (echo "gitconfig is not a symlink" && exit 1)
+          echo "All critical symlinks verified."
+          echo "::endgroup::"
