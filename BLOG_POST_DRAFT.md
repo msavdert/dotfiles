@@ -1,14 +1,9 @@
 ---
 title: "Building the Ultimate 'No-Sudo' Modern Dotfiles: A Native & Secure Approach"
-date: 2026-04-16 23:00:00 +0300
+date: 2026-04-16 09:00:00 +0000
 categories: [DevOps, Productivity]
 tags: [dotfiles, 1password, neovim, zellij, uv, bash, automation]
-layout: post
-author: msavdert
-description: "How I modernized my dotfiles infrastructure using a native, no-sudo, and secure approach with 1Password and uv."
 ---
-
-# Building the Ultimate "No-Sudo" Modern Dotfiles: A Native & Secure Approach
 
 Managing my developer environment across multiple machines (macOS, Ubuntu, Oracle Linux, and minimal Docker containers) has always been a challenge. Most dotfiles setups I've seen rely on brittle helper scripts, global `sudo` installations, or manual token handling.
 
