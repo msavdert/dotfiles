@@ -29,35 +29,16 @@ ensure_bin_dir() {
     fi
 }
 
-# Helper to extract ZIP files without requiring the unzip utility
+# Helper to extract ZIP files using Python (managed via uv)
 extract_zip() {
     local zip_file="$1"
     local dest_dir="$2"
-    local entry="${3:-}" # Optional: specific file to extract
+    local entry="${3:-}"
 
-    if command_exists unzip; then
-        if [ -n "$entry" ]; then
-            unzip -q -o "$zip_file" -d "$dest_dir" "$entry"
-        else
-            unzip -q -o "$zip_file" -d "$dest_dir"
-        fi
-    elif command_exists python3; then
-        log "unzip missing, using python3 to extract..."
-        if [ -n "$entry" ]; then
-            python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
-        else
-            python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
-        fi
-    elif command_exists python; then
-        log "unzip missing, using python to extract..."
-        if [ -n "$entry" ]; then
-            python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
-        else
-            python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
-        fi
+    if [ -n "$entry" ]; then
+        uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extract(sys.argv[3], sys.argv[2])" "$zip_file" "$dest_dir" "$entry"
     else
-        log_error "unzip and python missing. Cannot extract $zip_file"
-        return 1
+        uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$zip_file" "$dest_dir"
     fi
 }
 
@@ -469,32 +450,6 @@ install_starship() {
 }
 
 
-# bottom (btm)
-btm_filename() {
-    local arch=$(uname -m)
-    if is_macos; then [ "$arch" = "arm64" ] && echo "bottom_aarch64-apple-darwin.tar.gz" || echo "bottom_x86_64-apple-darwin.tar.gz"; else
-        case "$arch" in
-            x86_64) echo "bottom_x86_64-unknown-linux-musl.tar.gz" ;;
-            aarch64|arm64) echo "bottom_aarch64-unknown-linux-musl.tar.gz" ;;
-        esac
-    fi
-}
-btm_extract() {
-    tar -xzf "$1" -C "$BIN_DIR"
-    log "Downloading bottom completions..."
-    local comp_url="https://github.com/ClementTsang/bottom/releases/download/${2}/completion.tar.gz"
-    local comp_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
-    mkdir -p "$comp_dir"
-    if curl -fsSL -L "$comp_url" -o "/tmp/btm_comp.tar.gz"; then
-        tar -xzf "/tmp/btm_comp.tar.gz" -C "/tmp" --no-same-owner 2>/dev/null || true
-        [ -f "/tmp/btm.bash" ] && cp "/tmp/btm.bash" "$comp_dir/btm"
-    fi
-    rm -f "/tmp/btm_comp.tar.gz" "/tmp/btm.bash" 2>/dev/null || true
-}
-install_bottom() {
-    github_tool_install "ClementTsang/bottom" "btm" "btm --version" btm_filename btm_extract
-}
-
 # lazygit
 lazygit_filename() {
     local version="$1" arch=$(uname -m)
@@ -536,11 +491,16 @@ btop_filename() {
         esac
     fi
 }
+# Helper to extract .tar.bz2 (tbz) files using Python (managed via uv)
+extract_tar_bz2() {
+    local tar_file="$1"
+    local dest_dir="$2"
+
+    uv run python -c "import tarfile,sys; t=tarfile.open(sys.argv[1], 'r:bz2'); t.extractall(sys.argv[2], filter='fully_trusted') if hasattr(tarfile, 'data_filter') else t.extractall(sys.argv[2])" "$tar_file" "$dest_dir"
+}
 btop_extract() {
     # btop uses .tbz
-    if command_exists bzip2; then tar -xjf "$1" -C "/tmp"; else
-        python3 -c "import tarfile,sys; t=tarfile.open(sys.argv[1], 'r:bz2'); t.extractall(sys.argv[2])" "$1" "/tmp"
-    fi
+    extract_tar_bz2 "$1" "/tmp"
     cp "/tmp/btop/bin/btop" "$BIN_DIR/btop"
     rm -rf "/tmp/btop"
 }
@@ -635,12 +595,12 @@ main() {
         log_step "Homebrew detected, using it for tools"
         brew install \
             gh 1password-cli zellij jq neovim uv \
-            ripgrep fd bat eza fzf zoxide git-delta starship bottom lazygit \
+            ripgrep fd bat eza fzf zoxide git-delta starship lazygit \
             yq btop yazi direnv tealdeer dust httpie \
             2>/dev/null || true
     else
         # Preferred installation order
-        local tools=(uv gh op zellij jq nvim rg fd bat eza fzf zoxide delta starship bottom lazygit yq btop yazi direnv tldr dust httpie)
+        local tools=(uv gh op zellij jq nvim rg fd bat eza fzf zoxide delta starship lazygit yq btop yazi direnv tldr dust httpie)
         for tool in "${tools[@]}"; do
             "install_$tool"
         done

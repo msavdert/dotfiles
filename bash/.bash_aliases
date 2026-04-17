@@ -100,10 +100,6 @@ if command -v bat >/dev/null 2>&1; then
     alias catp='bat' # With paging and line numbers
 fi
 
-if command -v btm >/dev/null 2>&1; then
-    alias top='btm'
-fi
-
 if command -v fd >/dev/null 2>&1; then
     alias find='fd'
 fi

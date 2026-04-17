@@ -28,6 +28,31 @@ command_exists() { command -v "$1" >/dev/null 2>&1; }
 is_macos() { [[ "$(uname -s)" == "Darwin" ]]; }
 
 # =============================================================================
+# Helper: uv & Python Installer (Bootstrap Priority)
+# =============================================================================
+
+install_uv_pre() {
+    if command_exists uv; then return 0; fi
+    log_step "Installing uv (bootstrap priority)"
+    # Install uv via its official installer
+    curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
+    # Ensure it's in path for this session
+    export PATH="$HOME/.local/bin:$PATH"
+    
+    if ! command_exists uv; then
+        log_error "uv installation failed."
+        exit 1
+    fi
+}
+
+install_python_pre() {
+    log_step "Ensuring Python environment via uv"
+    # Install a portable python
+    uv python install 3.12 >/dev/null 2>&1 || true
+    # We can use 'uv run python' safely from now on
+}
+
+# =============================================================================
 # Helper: GH CLI Installer (Minimal for Bootstrap)
 # =============================================================================
 
@@ -45,7 +70,15 @@ install_gh_pre() {
         filename="gh_${version}_${os_type}.zip"
         url="https://github.com/cli/cli/releases/download/v${version}/${filename}"
         curl -fsSL -L "$url" -o "/tmp/$filename"
-        unzip -q -o "/tmp/$filename" -d "/tmp/gh_install"
+        
+        # Use unzip if available, fallback to uv-managed python
+        if command_exists unzip; then
+            unzip -q -o "/tmp/$filename" -d "/tmp/gh_install"
+        else
+            log "unzip missing, using python to extract..."
+            mkdir -p "/tmp/gh_install"
+            uv run python -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "/tmp/$filename" "/tmp/gh_install"
+        fi
         find "/tmp/gh_install" -name "gh" -exec cp {} "$BIN_DIR/" \;
     else
         [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
@@ -137,7 +170,9 @@ main() {
     check_system_dependencies
     
     echo ""
-    log_step "Step 1: Installing core tools..."
+    log_step "Step 1: Installing core tools (uv & python)..."
+    install_uv_pre
+    install_python_pre
     install_gh_pre
     
     echo ""
