@@ -87,9 +87,9 @@ install_zellij() {
     log_step "Installing Zellij"
 
     local version arch filename url
-    # Use awk to avoid SIGPIPE with pipefail
-    version=$(curl -fsSL https://api.github.com/repos/zellij-org/zellij/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
-    [ -z "$version" ] && version="0.41.2"
+    # Use Redirect method to avoid GitHub API rate limits
+    version=$(curl -fsSL -I https://github.com/zellij-org/zellij/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.44.1"
 
     arch=$(uname -m)
     case "$arch" in
@@ -121,8 +121,8 @@ install_gh() {
     log_step "Installing GitHub CLI"
 
     local version arch os_type filename url
-    # Use awk to avoid SIGPIPE with pipefail
-    version=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
+    # Use Redirect method to avoid GitHub API rate limits
+    version=$(curl -fsSL -I https://github.com/cli/cli/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
     [ -z "$version" ] && version="2.61.0"
 
     arch=$(uname -m)
@@ -195,8 +195,8 @@ install_jq() {
     log_step "Installing jq"
 
     local version arch url
-    # Use awk to avoid SIGPIPE with pipefail
-    version=$(curl -fsSL https://api.github.com/repos/jqlang/jq/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/jq-//')
+    # Use Redirect method to avoid GitHub API rate limits
+    version=$(curl -fsSL -I https://github.com/jqlang/jq/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/jq-//')
     [ -z "$version" ] && version="1.7.1"
 
     arch=$(uname -m)
@@ -223,8 +223,8 @@ install_nvim() {
     log_step "Installing Neovim"
 
     local version arch os_type filename url
-    # Use awk to avoid SIGPIPE
-    version=$(curl -fsSL https://api.github.com/repos/neovim/neovim/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
+    # Use Redirect method to avoid GitHub API rate limits
+    version=$(curl -fsSL -I https://github.com/neovim/neovim/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
     [ -z "$version" ] && version="0.10.0"
 
     arch=$(uname -m)
@@ -276,8 +276,9 @@ install_uv() {
     log_step "Installing uv (Python manager)"
 
     local version arch os_type filename url
-    version=$(curl -fsSL https://api.github.com/repos/astral-sh/uv/releases/latest 2>/dev/null | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
-    [ -z "$version" ] && version="0.1.0"
+    # Use Redirect method to avoid GitHub API rate limits
+    version=$(curl -fsSL -I https://github.com/astral-sh/uv/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.4.0"
 
     arch=$(uname -m)
     if is_macos; then

@@ -39,7 +39,7 @@ jobs:
           if command -v apt-get >/dev/null; then
             apt-get update && apt-get install -y curl git tar procps
           elif command -v dnf >/dev/null; then
-            dnf install -y curl git tar procps-ng
+            dnf install -y --allowerasing curl git tar procps-ng
           fi
           echo "::endgroup::"
 
