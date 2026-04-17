@@ -30,19 +30,20 @@ install_mytool() {
     log_step "Installing MyTool"
     local version arch filename url
     
-    # Get latest version (safely)
-    version=$(curl -fsSL https://api.github.com/repos/owner/repo/releases/latest | awk -F'"' '/tag_name/ {print $4; exit}' | sed 's/^v//')
+    # Get latest tag and version (handle 'v' prefix if needed)
+    tag=$(curl -fsSL -I https://github.com/owner/repo/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    version=$(echo "$tag" | sed 's/^v//')
     
     arch=$(uname -m)
-    # Map architectures if needed
+    # Map architectures
     [ "$arch" = "x86_64" ] && arch="amd64"
     
     # Construct URL (check the repo's release naming convention)
     filename="mytool_${version}_linux_${arch}.tar.gz"
-    url="https://github.com/owner/repo/releases/download/v${version}/${filename}"
+    url="https://github.com/owner/repo/releases/download/${tag}/${filename}"
     
     curl -fsSL -L "$url" -o "/tmp/$filename"
-    # Extract and move to $BIN_DIR
+    # Extract using the appropriate helper (extract_zip, extract_tar_bz2, etc.)
     tar -xzf "/tmp/$filename" -C "$BIN_DIR"
     chmod +x "$BIN_DIR/mytool"
     rm -f "/tmp/$filename"
@@ -74,7 +75,10 @@ Add shortcuts to `bash/.bash_aliases`.
 Always prefer downloading a pre-built binary over using `apt`, `dnf`, or `brew` (unless on macOS where `brew` is standard). This ensures the script works on locked-down servers and minimal containers.
 
 ### Portable Extraction
-Avoid relying on `unzip`. Use `tar` (standard) or use the `extract_zip` helper function in `install-tools.sh` which falls back to Python 3.
+Avoid relying on `unzip` or `bzip2`. Use the built-in helper functions in `install-tools.sh` which fallback to Python 3 for compatibility:
+- `extract_zip`: Handles `.zip` files.
+- `extract_tar_bz2`: Handles `.tar.bz2` or `.tbz` files.
+- Standard `tar -xzf` is safe for `.tar.gz` (gzip is standard).
 
 ### Local Customization & Secrets
 Use `~/.bash_local` for your private environment variables (Git identity, OP tokens). This file is ignored by Git and is the correct place for local-only overrides.

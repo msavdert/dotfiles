@@ -32,6 +32,11 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
   - **bat & eza** (Modern cat & ls)
   - **zoxide** (Smarter cd)
   - **starship** (Cross-shell Prompt)
+  - **btop & btm** (System Monitors)
+  - **yazi** (Blazing Fast File Manager)
+  - **yq & jq** (YAML/JSON Processors)
+  - **direnv** (Automatic Env Loading)
+  - **tldr, dust, httpie** (Modern CLI Utils)
 - **Portable:** Same experience on Oracle Linux, Ubuntu, macOS, and Debian.
 - **Secure:** Integrated with 1Password Service Accounts for secret management.
 
@@ -48,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
 dotfiles/
 ├── bootstrap.sh           # Main entry point (curled)
 ├── scripts/
-│   ├── install-tools.sh  # No-sudo binary installer (uv, gh, op, zellij, nvim)
+│   ├── install-tools.sh  # No-sudo binary installer (gh, nvim, rg, fzf, etc.)
 │   └── link.sh           # Configuration symlinker
 ├── bash/                 # ~/.bashrc, aliases, profile
 ├── zellij/               # ~/.config/zellij/

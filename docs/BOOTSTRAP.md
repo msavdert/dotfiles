@@ -103,13 +103,13 @@ Verify that all tools are correctly installed and linked:
 # Check binaries
 z --version     # Zellij
 v --version     # Neovim
-jq --version    # jq
-uv --version    # uv
+rg --version    # ripgrep
+y --version     # yazi
+btm --version   # bottom
+tldr --version  # tealdeer
 
-# Check 1Password
+# Check 1Password & GitHub
 op whoami
-
-# Check GitHub
 gh auth status
 ```
 
