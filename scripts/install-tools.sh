@@ -480,17 +480,19 @@ install_eza() {
         local comp_url="https://github.com/eza-community/eza/releases/download/v${version}/completions-${version}.tar.gz"
         local comp_filename="eza_completion.tar.gz"
         local comp_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
+        local tmp_eza_extract="/tmp/eza_comp_extract"
         
         mkdir -p "$comp_dir"
+        mkdir -p "$tmp_eza_extract"
         curl -fsSL -L "$comp_url" -o "/tmp/$comp_filename"
-        tar -xzf "/tmp/$comp_filename" -C "/tmp"
+        tar -xzf "/tmp/$comp_filename" -C "$tmp_eza_extract"
         # completions tarball contains a target/ directory or files directly
-        local eza_comp_file=$(find "/tmp" -name "eza.bash" | head -1)
+        local eza_comp_file=$(find "$tmp_eza_extract" -name "eza.bash" | head -1)
         if [ -n "$eza_comp_file" ]; then
             cp "$eza_comp_file" "$comp_dir/eza"
             log "Installed eza completion"
         fi
-        rm -rf "/tmp/$comp_filename" "/tmp/target" "/tmp/completions" 2>/dev/null || true
+        rm -rf "$tmp_eza_extract" "/tmp/$comp_filename" 2>/dev/null || true
     fi
     chmod +x "$BIN_DIR/eza"
     rm -f "/tmp/$filename"
@@ -677,16 +679,21 @@ install_bottom() {
     local comp_url="https://github.com/ClementTsang/bottom/releases/download/${version}/completion.tar.gz"
     local comp_filename="btm_completion.tar.gz"
     local comp_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
+    local tmp_comp_extract="/tmp/btm_comp_extract"
     
     mkdir -p "$comp_dir"
+    mkdir -p "$tmp_comp_extract"
     curl -fsSL -L "$comp_url" -o "/tmp/$comp_filename"
-    tar -xzf "/tmp/$comp_filename" -C "/tmp"
-    if [ -f "/tmp/btm.bash" ]; then
-        cp "/tmp/btm.bash" "$comp_dir/btm"
+    
+    # Extract into the dedicated subdirectory
+    tar -xzf "/tmp/$comp_filename" -C "$tmp_comp_extract"
+    
+    if [ -f "$tmp_comp_extract/btm.bash" ]; then
+        cp "$tmp_comp_extract/btm.bash" "$comp_dir/btm"
         log "Installed bottom completion"
     fi
     
-    rm -f "/tmp/$filename" "/tmp/$comp_filename" "/tmp/btm.bash" "/tmp/_btm" "/tmp/btm.fish" "/tmp/btm.elv" "/tmp/btm.nu" 2>/dev/null || true
+    rm -rf "$tmp_comp_extract" "/tmp/$filename" "/tmp/$comp_filename" 2>/dev/null || true
 }
 
 install_lazygit() {
