@@ -15,16 +15,33 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: macOS Latest
-            os: macos-latest
-          - name: Ubuntu Latest
-            os: ubuntu-latest
+          # --- macOS ---
+          - name: macOS 15 (Latest)
+            os: macos-15
+          - name: macOS 14 (Stable)
+            os: macos-14
+          
+          # --- Ubuntu ---
+          - name: Ubuntu 24.04 (LTS)
+            os: ubuntu-24.04
+          - name: Ubuntu 22.04 (LTS)
+            os: ubuntu-22.04
+          
+          # --- Rocky Linux (via Docker) ---
           - name: Rocky Linux 9
             os: ubuntu-latest
             container: rockylinux:9
-          - name: Debian 12
+          - name: Rocky Linux 8
+            os: ubuntu-latest
+            container: rockylinux:8
+          
+          # --- Debian (via Docker) ---
+          - name: Debian 12 (Bookworm)
             os: ubuntu-latest
             container: debian:12-slim
+          - name: Debian 11 (Bullseye)
+            os: ubuntu-latest
+            container: debian:11-slim
 
     container: ${{ matrix.container }}
 
@@ -32,55 +49,47 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v5
 
-      - name: Install CI Dependencies (Linux)
+      - name: Install CI Dependencies (Linux Check)
         if: runner.os == 'Linux'
         run: |
           echo "::group::Installing dependencies for ${{ matrix.name }}"
-          if command -v apt-get >/dev/null; then
-            apt-get update && apt-get install -y curl git tar procps
-          elif command -v dnf >/dev/null; then
+          # Check for dnf first (Rocky/RHEL), then apt-get (Ubuntu/Debian)
+          if command -v dnf >/dev/null; then
             dnf install -y --allowerasing curl git tar procps-ng
+          elif command -v apt-get >/dev/null; then
+            apt-get update && apt-get install -y curl git tar procps
           fi
           echo "::endgroup::"
 
-      - name: Run Bootstrap (First Time)
+      - name: Run Bootstrap (Initial)
         run: |
           echo "::group::Bootstrapping (Initial Run)"
-          # Run the script. It should detect we are in the repo and link accordingly
           ./bootstrap.sh
           echo "::endgroup::"
 
-      - name: Run Bootstrap (Idempotency Check)
+      - name: Run Bootstrap (Idempotency)
         run: |
-          echo "::group::Bootstrapping (Second Run - Idempotency)"
+          echo "::group::Bootstrapping (Second Run)"
           ./bootstrap.sh
           echo "::endgroup::"
 
-      - name: Verify Binaries
+      - name: Verify Tools
         run: |
           echo "::group::Verifying installed tools"
           export PATH="$HOME/.local/bin:$PATH"
           
-          echo "Verifying gh..."
-          gh --version
-          
-          echo "Verifying uv..."
-          uv --version
-          
-          echo "Verifying zellij..."
-          zellij --version
-          
-          echo "Verifying nvim..."
-          nvim --version
-          
-          echo "Verifying jq..."
-          jq --version
+          # Check each binary and print its version
+          tools=("gh" "op" "uv" "zellij" "nvim" "jq")
+          for tool in "${tools[@]}"; do
+            echo -n "Verifying $tool: "
+            $tool --version | head -n 1
+          done
           echo "::endgroup::"
 
-      - name: Verify Symlinks
+      - name: Verify Links
         run: |
-          echo "::group::Verifying symlinks"
-          [ -L "$HOME/.bashrc" ] || (echo "bashrc is not a symlink" && exit 1)
-          [ -L "$HOME/.gitconfig" ] || (echo "gitconfig is not a symlink" && exit 1)
-          echo "All critical symlinks verified."
+          echo "::group::Verifying critical symlinks"
+          [ -L "$HOME/.bashrc" ] || (echo "bashrc missing" && exit 1)
+          [ -L "$HOME/.gitconfig" ] || (echo "gitconfig missing" && exit 1)
+          echo "All links verified."
           echo "::endgroup::"
