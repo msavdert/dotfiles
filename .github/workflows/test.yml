@@ -87,8 +87,12 @@ jobs:
             if command -v "$tool" >/dev/null; then
               "$tool" --version | head -n 1
             else
-              echo "FAILED (command not found)"
-              exit 1
+              if [ "$tool" == "nvim" ]; then
+                echo "SKIPPED (intentional)"
+              else
+                echo "FAILED (command not found)"
+                exit 1
+              fi
             fi
           done
           echo "::endgroup::"

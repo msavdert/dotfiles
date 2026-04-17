@@ -222,6 +222,16 @@ install_nvim() {
 
     log_step "Installing Neovim"
 
+    # Check for GLIBC version (min 2.32 required for latest nvim binaries)
+    if ! is_macos; then
+        local glibc_version=$(ldd --version | head -n 1 | grep -oE '[0-9]+\.[0-9]+' | head -n 1)
+        # Bash floating point comparison trick
+        if [ "$(echo "$glibc_version < 2.32" | bc -l 2>/dev/null || awk "BEGIN {print ($glibc_version < 2.32)}")" -eq 1 ]; then
+            log_warn "System GLIBC ($glibc_version) is too old for latest Neovim (min 2.32). Skipping Neovim installation."
+            return 0
+        fi
+    fi
+
     local version arch os_type filename url
     # Use Redirect method to avoid GitHub API rate limits
     version=$(curl -fsSL -I https://github.com/neovim/neovim/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
