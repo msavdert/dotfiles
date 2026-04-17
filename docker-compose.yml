@@ -1,18 +1,20 @@
 services:
-  dev-env:
+  code-server:
     image: ghcr.io/msavdert/dotfiles:latest
-    container_name: dev-env
+    container_name: code-server
     environment:
       - PASSWORD=${PASSWORD:-password}
       - TZ=${TZ:-America/New_York}
-      - DEFAULT_WORKSPACE=/home/coder/project
+      - DEFAULT_WORKSPACE=${DEFAULT_WORKSPACE:-/home/coder/project}
       - SHELL=/bin/bash
     volumes:
-      - dev-home:/home/coder
-      - ./project:/home/coder/project
-    ports:
-      - "8080:8080"
+      - config:/home/coder/project
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
-  dev-home:
+  config:
