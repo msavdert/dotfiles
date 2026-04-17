@@ -325,6 +325,340 @@ install_uv() {
     rm -rf "/tmp/$filename" "/tmp/uv_install"
 }
 
+install_rg() {
+    if command_exists rg; then
+        log_skip "ripgrep already installed: $(rg --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing ripgrep (rg)"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/BurntSushi/ripgrep/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="14.1.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        filename="ripgrep-${version}-x86_64-apple-darwin.tar.gz" # Universal binary usually
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "ripgrep pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="ripgrep-${version}-${os_type}.tar.gz"
+    fi
+
+    url="https://github.com/BurntSushi/ripgrep/releases/download/${version}/${filename}"
+    log "Downloading ripgrep $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "/tmp"
+    local extracted_dir=$(find "/tmp" -maxdepth 1 -name "ripgrep-*" -type d | head -1)
+    cp "$extracted_dir/rg" "$BIN_DIR/"
+    chmod +x "$BIN_DIR/rg"
+    rm -rf "/tmp/$filename" "$extracted_dir"
+}
+
+install_fd() {
+    if command_exists fd; then
+        log_skip "fd already installed: $(fd --version)"
+        return 0
+    fi
+
+    log_step "Installing fd"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/sharkdp/fd/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="10.1.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        filename="fd-v${version}-x86_64-apple-darwin.tar.gz"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "fd pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="fd-v${version}-${os_type}.tar.gz"
+    fi
+
+    url="https://github.com/sharkdp/fd/releases/download/v${version}/${filename}"
+    log "Downloading fd $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "/tmp"
+    local extracted_dir=$(find "/tmp" -maxdepth 1 -name "fd-v*" -type d | head -1)
+    cp "$extracted_dir/fd" "$BIN_DIR/"
+    chmod +x "$BIN_DIR/fd"
+    rm -rf "/tmp/$filename" "$extracted_dir"
+}
+
+install_bat() {
+    if command_exists bat; then
+        log_skip "bat already installed: $(bat --version)"
+        return 0
+    fi
+
+    log_step "Installing bat"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/sharkdp/bat/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.24.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        filename="bat-v${version}-x86_64-apple-darwin.tar.gz"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "bat pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="bat-v${version}-${os_type}.tar.gz"
+    fi
+
+    url="https://github.com/sharkdp/bat/releases/download/v${version}/${filename}"
+    log "Downloading bat $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "/tmp"
+    local extracted_dir=$(find "/tmp" -maxdepth 1 -name "bat-v*" -type d | head -1)
+    cp "$extracted_dir/bat" "$BIN_DIR/"
+    chmod +x "$BIN_DIR/bat"
+    rm -rf "/tmp/$filename" "$extracted_dir"
+}
+
+install_eza() {
+    if command_exists eza; then
+        log_skip "eza already installed: $(eza --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing eza"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/eza-community/eza/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.18.15"
+
+    arch=$(uname -m)
+    if is_macos; then
+        filename="eza_x86_64-apple-darwin.zip"
+        url="https://github.com/eza-community/eza/releases/download/v${version}/${filename}"
+        curl -fsSL -L "$url" -o "/tmp/$filename"
+        extract_zip "/tmp/$filename" "$BIN_DIR" "eza"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "eza pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="eza_${os_type}.tar.gz"
+        url="https://github.com/eza-community/eza/releases/download/v${version}/${filename}"
+        curl -fsSL -L "$url" -o "/tmp/$filename"
+        tar -xzf "/tmp/$filename" -C "$BIN_DIR"
+    fi
+    chmod +x "$BIN_DIR/eza"
+    rm -f "/tmp/$filename"
+}
+
+install_fzf() {
+    if command_exists fzf; then
+        log_skip "fzf already installed: $(fzf --version)"
+        return 0
+    fi
+
+    log_step "Installing fzf"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/junegunn/fzf/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$version" ] && version="0.52.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="darwin_arm64" || os_type="darwin_amd64"
+    else
+        [ "$arch" = "x86_64" ] && os_type="linux_amd64" || os_type="linux_arm64"
+    fi
+
+    filename="fzf-${version}-${os_type}.tar.gz"
+    url="https://github.com/junegunn/fzf/releases/download/${version}/${filename}"
+    
+    log "Downloading fzf $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "$BIN_DIR"
+    chmod +x "$BIN_DIR/fzf"
+    rm -f "/tmp/$filename"
+}
+
+install_zoxide() {
+    if command_exists zoxide; then
+        log_skip "zoxide already installed: $(zoxide --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing zoxide"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/ajeetdsouza/zoxide/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.9.4"
+
+    arch=$(uname -m)
+    if is_macos; then
+        os_type="apple-darwin" # Single binary for mac
+        filename="zoxide-${version}-x86_64-apple-darwin.tar.gz" 
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "zoxide pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="zoxide-${version}-${os_type}.tar.gz"
+    fi
+
+    url="https://github.com/ajeetdsouza/zoxide/releases/download/v${version}/${filename}"
+    log "Downloading zoxide $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "$BIN_DIR"
+    chmod +x "$BIN_DIR/zoxide"
+    rm -f "/tmp/$filename"
+}
+
+install_delta() {
+    if command_exists delta; then
+        log_skip "delta already installed: $(delta --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing delta"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/dandavison/delta/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.17.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        filename="delta-${version}-x86_64-apple-darwin.tar.gz"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "delta pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="delta-${version}-${os_type}.tar.gz"
+    fi
+
+    url="https://github.com/dandavison/delta/releases/download/${version}/${filename}"
+    log "Downloading delta $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "/tmp"
+    local extracted_dir=$(find "/tmp" -maxdepth 1 -name "delta-${version}-*" -type d | head -1)
+    cp "$extracted_dir/delta" "$BIN_DIR/"
+    chmod +x "$BIN_DIR/delta"
+    rm -rf "/tmp/$filename" "$extracted_dir"
+}
+
+install_starship() {
+    if command_exists starship; then
+        log_skip "starship already installed: $(starship --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing starship"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/starship/starship/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="1.19.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="aarch64-apple-darwin" || os_type="x86_64-apple-darwin"
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "starship pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+    fi
+
+    filename="starship-${os_type}.tar.gz"
+    url="https://github.com/starship/starship/releases/download/v${version}/${filename}"
+    
+    log "Downloading starship $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "$BIN_DIR"
+    chmod +x "$BIN_DIR/starship"
+    rm -f "/tmp/$filename"
+}
+
+install_bottom() {
+    if command_exists btm; then
+        log_skip "bottom (btm) already installed: $(btm --version)"
+        return 0
+    fi
+
+    log_step "Installing bottom (btm)"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/ClementTsang/bottom/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$version" ] && version="0.10.2"
+
+    arch=$(uname -m)
+    if is_macos; then
+        filename="bottom_x86_64-apple-darwin.tar.gz" # Universal/compat
+    else
+        case "$arch" in
+            x86_64) os_type="x86_64-unknown-linux-musl" ;;
+            aarch64|arm64) os_type="aarch64-unknown-linux-musl" ;;
+            *) log_warn "bottom pre-built binaries not found for $arch Linux. Skipping."; return 0 ;;
+        esac
+        filename="bottom_${os_type}.tar.gz"
+    fi
+
+    url="https://github.com/ClementTsang/bottom/releases/download/${version}/${filename}"
+    log "Downloading bottom $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "$BIN_DIR"
+    chmod +x "$BIN_DIR/btm"
+    rm -f "/tmp/$filename"
+}
+
+install_lazygit() {
+    if command_exists lazygit; then
+        log_skip "lazygit already installed: $(lazygit --version | head -1)"
+        return 0
+    fi
+
+    log_step "Installing lazygit"
+
+    local version arch os_type filename url
+    version=$(curl -fsSL -I https://github.com/jesseduffield/lazygit/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r' | sed 's/^v//')
+    [ -z "$version" ] && version="0.41.0"
+
+    arch=$(uname -m)
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="Darwin_arm64" || os_type="Darwin_x86_64"
+    else
+        [ "$arch" = "x86_64" ] && os_type="Linux_x86_64" || os_type="Linux_arm64"
+    fi
+
+    filename="lazygit_${version}_${os_type}.tar.gz"
+    url="https://github.com/jesseduffield/lazygit/releases/download/v${version}/${filename}"
+    
+    log "Downloading lazygit $version..."
+    curl -fsSL -L "$url" -o "/tmp/$filename"
+    
+    tar -xzf "/tmp/$filename" -C "$BIN_DIR" lazygit
+    chmod +x "$BIN_DIR/lazygit"
+    rm -f "/tmp/$filename"
+}
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -337,7 +671,10 @@ main() {
 
     if is_macos && command_exists brew; then
         log_step "Homebrew detected, using it for tools"
-        brew install gh 1password-cli zellij jq neovim uv 2>/dev/null || true
+        brew install \
+            gh 1password-cli zellij jq neovim uv \
+            ripgrep fd bat eza fzf zoxide git-delta starship bottom lazygit \
+            2>/dev/null || true
     else
         install_uv
         install_gh
@@ -345,6 +682,16 @@ main() {
         install_zellij
         install_jq
         install_nvim
+        install_rg
+        install_fd
+        install_bat
+        install_eza
+        install_fzf
+        install_zoxide
+        install_delta
+        install_starship
+        install_bottom
+        install_lazygit
     fi
 
     generate_completions
@@ -373,6 +720,11 @@ generate_completions() {
     if command_exists uv; then
         uv generate-shell-completion bash > "$comp_dir/uv"
         log "Generated uv completion"
+    fi
+
+    if command_exists starship; then
+        starship completions bash > "$comp_dir/starship"
+        log "Generated starship completion"
     fi
 }
 

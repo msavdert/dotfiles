@@ -27,6 +27,11 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
   - **Neovim** (Editor)
   - **1Password CLI** (Secrets)
   - **uv** (Python & Tooling Manager)
+  - **ripgrep (rg)** (Fast Search)
+  - **fd & fzf** (Fast Find & Fuzzy Finder)
+  - **bat & eza** (Modern cat & ls)
+  - **zoxide** (Smarter cd)
+  - **starship** (Cross-shell Prompt)
 - **Portable:** Same experience on Oracle Linux, Ubuntu, macOS, and Debian.
 - **Secure:** Integrated with 1Password Service Accounts for secret management.
 
