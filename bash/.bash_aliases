@@ -96,22 +96,8 @@ alias zl='zellij list-sessions'
 alias za='zellij attach'
 alias zk='zellij kill-session'
 
-# =============================================================================
 # 1Password (via op CLI)
-# =============================================================================
-
-# Sign in to 1Password (conditional)
-op-signin() {
-    if ! op account list &>/dev/null || ! op whoami &>/dev/null; then
-        eval "$(op signin)"
-    fi
-}
-
-# Run a command with 1Password secrets
-ops() {
-    op-signin
-    op run -- "$@"
-}
+# Use 'op run -- <command>' to inject secrets from references (op://...)
 
 # Neovim
 alias v='nvim'
