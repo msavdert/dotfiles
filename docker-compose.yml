@@ -3,10 +3,13 @@ services:
     image: ghcr.io/msavdert/dotfiles:latest
     container_name: dev-env
     environment:
-      - PASSWORD=password # Change this!
+      - PASSWORD=${PASSWORD:-password}
+      - TZ=${TZ:-America/New_York}
+      - DEFAULT_WORKSPACE=/home/coder/project
       - SHELL=/bin/bash
     volumes:
-      - dev-home:/home/melih
+      - dev-home:/home/coder
+      - ./project:/home/coder/project
     ports:
       - "8080:8080"
     restart: unless-stopped

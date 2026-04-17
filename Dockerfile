@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     locales \
     ca-certificates \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Set locale
@@ -44,7 +45,9 @@ WORKDIR /home/$USERNAME
 # Expose code-server port
 EXPOSE 8080
 
-# The shell will be corrected via bootstrap.sh inside the container
+# Environment variables
 ENV SHELL=/bin/bash
+ENV TZ=UTC
+ENV DEFAULT_WORKSPACE=/home/coder/project
 
-CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "password"]
+CMD ["sh", "-c", "code-server --bind-addr 0.0.0.0:8080 --auth password ${DEFAULT_WORKSPACE}"]
