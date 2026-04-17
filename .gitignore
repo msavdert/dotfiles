@@ -17,6 +17,9 @@ Thumbs.db
 *.secret
 .bash_local
 .bash_local.*
+config.local
+ssh/config.local
+oci_key
 
 # Backup files
 *.backup.*
