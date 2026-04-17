@@ -474,6 +474,23 @@ install_eza() {
         log "Downloading eza $version..."
         curl -fsSL -L "$url" -o "/tmp/$filename"
         tar -xzf "/tmp/$filename" -C "$BIN_DIR"
+        
+        # Install completions
+        log "Downloading eza completions..."
+        local comp_url="https://github.com/eza-community/eza/releases/download/v${version}/completions-${version}.tar.gz"
+        local comp_filename="eza_completion.tar.gz"
+        local comp_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
+        
+        mkdir -p "$comp_dir"
+        curl -fsSL -L "$comp_url" -o "/tmp/$comp_filename"
+        tar -xzf "/tmp/$comp_filename" -C "/tmp"
+        # completions tarball contains a target/ directory or files directly
+        local eza_comp_file=$(find "/tmp" -name "eza.bash" | head -1)
+        if [ -n "$eza_comp_file" ]; then
+            cp "$eza_comp_file" "$comp_dir/eza"
+            log "Installed eza completion"
+        fi
+        rm -rf "/tmp/$comp_filename" "/tmp/target" "/tmp/completions" 2>/dev/null || true
     fi
     chmod +x "$BIN_DIR/eza"
     rm -f "/tmp/$filename"
@@ -654,7 +671,22 @@ install_bottom() {
     
     tar -xzf "/tmp/$filename" -C "$BIN_DIR"
     chmod +x "$BIN_DIR/btm"
-    rm -f "/tmp/$filename"
+    
+    # Install completions
+    log "Downloading bottom completions..."
+    local comp_url="https://github.com/ClementTsang/bottom/releases/download/${version}/completion.tar.gz"
+    local comp_filename="btm_completion.tar.gz"
+    local comp_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
+    
+    mkdir -p "$comp_dir"
+    curl -fsSL -L "$comp_url" -o "/tmp/$comp_filename"
+    tar -xzf "/tmp/$comp_filename" -C "/tmp"
+    if [ -f "/tmp/btm.bash" ]; then
+        cp "/tmp/btm.bash" "$comp_dir/btm"
+        log "Installed bottom completion"
+    fi
+    
+    rm -f "/tmp/$filename" "/tmp/$comp_filename" "/tmp/btm.bash" "/tmp/_btm" "/tmp/btm.fish" "/tmp/btm.elv" "/tmp/btm.nu" 2>/dev/null || true
 }
 
 install_lazygit() {
@@ -761,6 +793,14 @@ generate_completions() {
     if command_exists starship; then
         starship completions bash > "$comp_dir/starship"
         log "Generated starship completion"
+    fi
+
+    if command_exists rg; then
+        rg --generate complete-bash > "$comp_dir/rg" 2>/dev/null && log "Generated rg completion"
+    fi
+
+    if command_exists fd; then
+        fd --gen-completions bash > "$comp_dir/fd" 2>/dev/null && log "Generated fd completion"
     fi
 }
 
