@@ -1,0 +1,15 @@
+services:
+  dev-env:
+    image: ghcr.io/msavdert/dotfiles:latest
+    container_name: dev-env
+    environment:
+      - PASSWORD=password # Change this!
+      - SHELL=/bin/bash
+    volumes:
+      - dev-home:/home/melih
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  dev-home:
