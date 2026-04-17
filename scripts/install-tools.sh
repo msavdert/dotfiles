@@ -487,9 +487,10 @@ install_fzf() {
 
     log_step "Installing fzf"
 
-    local version arch os_type filename url
-    version=$(curl -fsSL -I https://github.com/junegunn/fzf/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
-    [ -z "$version" ] && version="0.52.0"
+    local version arch os_type filename url tag
+    tag=$(curl -fsSL -I https://github.com/junegunn/fzf/releases/latest | grep -i "location:" | awk -F/ '{print $NF}' | tr -d '\r')
+    [ -z "$tag" ] && tag="v0.71.0"
+    version=$(echo "$tag" | sed 's/^v//')
 
     arch=$(uname -m)
     if is_macos; then
@@ -499,7 +500,7 @@ install_fzf() {
     fi
 
     filename="fzf-${version}-${os_type}.tar.gz"
-    url="https://github.com/junegunn/fzf/releases/download/${version}/${filename}"
+    url="https://github.com/junegunn/fzf/releases/download/${tag}/${filename}"
     
     log "Downloading fzf $version..."
     curl -fsSL -L "$url" -o "/tmp/$filename"
