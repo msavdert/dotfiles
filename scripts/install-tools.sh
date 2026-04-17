@@ -83,16 +83,16 @@ extract_tar_bz2() {
         tar -xjf "$archive" -C "$dest_dir"
     elif command_exists python3; then
         log "bzip2 missing, using python3 to extract .tbz..."
-        python3 -c "import tarfile,sys; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2])" "$archive" "$dest_dir"
+        python3 -c "import tarfile,sys; t=tarfile.open(sys.argv[1], 'r:bz2'); t.extractall(sys.argv[2], filter='data') if hasattr(tarfile, 'data_filter') else t.extractall(sys.argv[2])" "$archive" "$dest_dir"
     elif command_exists python; then
         log "bzip2 missing, using python to extract .tbz..."
-        python -c "import tarfile,sys; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2])" "$archive" "$dest_dir"
+        python -c "import tarfile,sys; t=tarfile.open(sys.argv[1], 'r:bz2'); t.extractall(sys.argv[2], filter='data') if hasattr(tarfile, 'data_filter') else t.extractall(sys.argv[2])" "$archive" "$dest_dir"
     elif command_exists uv; then
         log "bzip2 and python missing, attempting to use uv for .tbz extraction..."
         if ! uv python find 3.12 &>/dev/null; then
             uv python install 3.12 >/dev/null 2>&1
         fi
-        uv run --python 3.12 python -c "import tarfile,sys; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2])" "$archive" "$dest_dir"
+        uv run --python 3.12 python -c "import tarfile,sys; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2], filter='data')" "$archive" "$dest_dir"
     else
         log_error "bzip2, python, and uv missing. Cannot extract $archive"
         return 1
