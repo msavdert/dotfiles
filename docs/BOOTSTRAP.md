@@ -75,6 +75,24 @@ chmod 600 ~/.ssh/oci_key
 - **Separate Items:** Create a separate 1Password item for each service (e.g., one item for `github`, one for `openai`, one for `aws`). 
 - **Why?** This makes your references cleaner (`op://dotfiles/github/token`), allows for better item history, and follows the principle of least privilege if you ever need to share specific secrets.
 
+### Step D: SSH Private Environments
+Since keeping VPS IP addresses in a public repository is a security risk, we use a local, git-ignored file for sensitive hosts.
+
+1. Create a `config.local` item in 1Password (as a Document or in Notes) with your private host definitions:
+   ```ssh
+   Host devenv
+       HostName 129.153.230.150
+       User opc
+       IdentityFile ~/.ssh/oci_key
+   ```
+
+2. Hydrate it during bootstrap:
+   ```bash
+   # Fetch private hosts from 1Password
+   op read "op://dotfiles/config.local/notes plain" > ~/.ssh/config.local
+   chmod 600 ~/.ssh/config.local
+   ```
+
 ---
 
 ## 4. Verification

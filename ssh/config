@@ -1,6 +1,34 @@
-Host devenv
-    HostName 129.153.230.150
-    User opc
-    IdentityFile ~/.ssh/oci_key
+# =============================================================================
+# SSH Client Configuration - Managed in msavdert/dotfiles
+# =============================================================================
+
+# Include local/private configurations (git-ignored)
+# This is where sensitive IPs like 'devenv' should live
+Include config.local
+
+# -----------------------------------------------------------------------------
+# Global Settings
+# -----------------------------------------------------------------------------
+Host *
+    # Character encoding
+    SendEnv LANG LC_*
+
+    # Connection resilience
     ServerAliveInterval 60
-    ForwardAgent yes
+    ServerAliveCountMax 3
+
+    # Security: Use only specified identities
+    IdentitiesOnly yes
+
+    # Security: Automatically add keys to agent
+    AddKeysToAgent yes
+
+    # Default Identity Files
+    IdentityFile ~/.ssh/id_ed25519
+    IdentityFile ~/.ssh/id_rsa
+    IdentityFile ~/.ssh/oci_key
+
+# -----------------------------------------------------------------------------
+# Common Shortcuts (Non-sensitive)
+# -----------------------------------------------------------------------------
+# (Buraya genel, IP içermeyen aliaslar eklenebilir)
