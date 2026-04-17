@@ -16,9 +16,9 @@ jobs:
       matrix:
         include:
           # --- macOS ---
-          - name: macOS 15 (Latest)
+          - name: macOS 15
             os: macos-15
-          - name: macOS 14 (Stable)
+          - name: macOS 14
             os: macos-14
           
           # --- Ubuntu ---
@@ -27,13 +27,13 @@ jobs:
           - name: Ubuntu 22.04 (LTS)
             os: ubuntu-22.04
           
-          # --- Rocky Linux (via Docker) ---
-          - name: Rocky Linux 9
+          # --- Oracle Linux (via Docker) ---
+          - name: Oracle Linux 10
             os: ubuntu-latest
-            container: rockylinux:9
-          - name: Rocky Linux 8
+            container: oraclelinux:10
+          - name: Oracle Linux 9
             os: ubuntu-latest
-            container: rockylinux:8
+            container: oraclelinux:9
           
           # --- Debian (via Docker) ---
           - name: Debian 12 (Bookworm)
@@ -44,6 +44,9 @@ jobs:
             container: debian:11-slim
 
     container: ${{ matrix.container }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout Code
@@ -53,7 +56,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           echo "::group::Installing dependencies for ${{ matrix.name }}"
-          # Check for dnf first (Rocky/RHEL), then apt-get (Ubuntu/Debian)
+          # Check for dnf first (Oracle/RHEL), then apt-get (Ubuntu/Debian)
           if command -v dnf >/dev/null; then
             dnf install -y --allowerasing curl git tar procps-ng
           elif command -v apt-get >/dev/null; then
@@ -78,11 +81,15 @@ jobs:
           echo "::group::Verifying installed tools"
           export PATH="$HOME/.local/bin:$PATH"
           
-          # Check each binary and print its version
-          tools=("gh" "op" "uv" "zellij" "nvim" "jq")
-          for tool in "${tools[@]}"; do
+          # List of tools to verify
+          for tool in gh op uv zellij nvim jq; do
             echo -n "Verifying $tool: "
-            $tool --version | head -n 1
+            if command -v "$tool" >/dev/null; then
+              "$tool" --version | head -n 1
+            else
+              echo "FAILED (command not found)"
+              exit 1
+            fi
           done
           echo "::endgroup::"
 
