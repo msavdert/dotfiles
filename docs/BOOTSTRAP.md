@@ -44,36 +44,42 @@ Add your identity to the **private** `~/.bash_local` file so it is never pushed 
 
 ```bash
 cat >> ~/.bash_local << 'EOF'
-export GIT_AUTHOR_NAME="Your Name"
-export GIT_AUTHOR_EMAIL="you@example.com"
+export GIT_AUTHOR_NAME="msavdert"
+export GIT_AUTHOR_EMAIL="github@savdert.com"
 EOF
 source ~/.bashrc
 ```
 
 ### Step 3 — Secure 1Password Setup (Recommended)
 
-Instead of a full login, use a **Service Account** to limit access to a single vault:
+Instead of a full login, use a **Service Account** and **Secret References** for stable, scoped access:
 
-1.  Log in to **1Password.com** in your browser.
-2.  Create a new vault named **"dotfiles"** (or similar).
-3.  Go to **Developer > Service Accounts**.
-4.  Create a new Service Account and grant it access **only** to the "dotfiles" vault.
-5.  Copy the token and save it to your local config:
+1.  Log in to **1Password.com**.
+2.  Create a new vault named **"dotfiles"**.
+3.  Go to **Developer > Directory > Service Accounts** and create a token scoped **only** to the "dotfiles" vault.
+4.  Save the token to your local config:
     ```bash
-    echo 'export OP_SERVICE_ACCOUNT_TOKEN="your-token-here"' >> ~/.bash_local
+    echo 'export OP_SERVICE_ACCOUNT_TOKEN="ov_your_token"' >> ~/.bash_local
+    source ~/.bashrc
+    ```
+5.  Create a secret item via CLI (or in the browser):
+    ```bash
+    # This creates an item named 'github' with a 'token' field
+    op item create --vault dotfiles --category login --title github "token[password]=ghp_your_pat_here"
+    ```
+6.  Reference the secret in your `~/.bash_local`:
+    ```bash
+    echo 'export GITHUB_TOKEN="op://dotfiles/github/token"' >> ~/.bash_local
     source ~/.bashrc
     ```
 
-Now `op` will work instantly without `op signin` and can only see the secrets you explicitly put in that vault.
+Now `ops` will automatically inject `GITHUB_TOKEN` from 1Password!
 
 ### Step 4 — Authenticate GitHub CLI
 
 ```bash
-# Interactive login
-gh auth login
-
-# Or with token from 1Password
-ops --secret GITHUB_TOKEN -- gh auth login --with-token
+# Using the secret from 1Password
+ops -- bash -c 'echo "$GITHUB_TOKEN" | gh auth login --with-token'
 ```
 
 ### Step 5 — Verify

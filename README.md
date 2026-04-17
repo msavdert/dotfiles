@@ -117,26 +117,24 @@ The project supports a private configuration file at `~/.bash_local`. Use this f
    ```bash
    export GIT_AUTHOR_NAME="Your Name"
    export GIT_AUTHOR_EMAIL="you@example.com"
-   export OP_SERVICE_ACCOUNT_TOKEN="your-token-here"
+   # Reference to a secret in 1Password
+   export GITHUB_TOKEN="op://dotfiles/github/token"
    ```
 
 ## Security & Secrets
 
-For maximum security, this project recommends using **1Password Service Accounts**. This allows the CLI to access **only specific vaults** (e.g., a "dotfiles" vault) rather than your entire 1Password account.
+For maximum security, this project recommends using **1Password Service Accounts** and **Secret References**. This allows the CLI to access **only specific vaults** and inject secrets into the environment ONLY at runtime.
 
-- **Vault Scoping:** Create a dedicated vault in 1Password for your dotfiles.
-- **Service Account:** Generate a token scoped only to that vault.
-- **Persistence:** Store the token in `~/.bash_local`.
+- **Vault Scoping:** Create a dedicated vault (e.g., "dotfiles") in 1Password.
+- **Service Account:** Generate a token scoped only to that vault and save it as `OP_SERVICE_ACCOUNT_TOKEN` in `~/.bash_local`.
+- **Secret References:** Use the format `op://vault/item/field` to reference secrets in your environment variables.
+- **Execution:** Use the `ops -- <command>` helper to run commands with resolved secrets.
 
 ## Supported Systems
 
 - **macOS** (Ventura and later)
-- **Ubuntu** 20.04+ (including minimal Docker images)
-- **Debian** 11+
-- **Rocky Linux / Oracle Linux** 8+
-
-- **macOS** (Ventura and later)
-- **Ubuntu** 20.04+ (including minimal Docker images)
+- **Linux** (Ubuntu, Rocky, Oracle, etc.)
+- **Architectures:** x86_64, ARM64 (Apple Silicon)
 - **Debian** 11+
 - **Rocky Linux / Oracle Linux** 8+
 
