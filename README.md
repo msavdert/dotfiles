@@ -1,5 +1,13 @@
 # Dotfiles
 
+<p align="left">
+  <img src="https://github.com/msavdert/dotfiles/actions/workflows/test.yml/badge.svg" alt="Test Status" />
+  <img src="https://img.shields.io/github/license/msavdert/dotfiles?style=flat-square&color=blue" alt="License" />
+  <img src="https://img.shields.io/badge/shell-bash-4E9A06?style=flat-square&logo=gnu-bash&logoColor=white" alt="Shell" />
+  <img src="https://img.shields.io/badge/secrets-1password-00aeec?style=flat-square&logo=1password&logoColor=white" alt="1Password" />
+  <img src="https://img.shields.io/badge/feature-idempotent-brightgreen?style=flat-square" alt="Idempotent" />
+</p>
+
 Minimal, modern, and **No-Sudo** dotfiles setup for macOS and Linux. No framework dependencies — just binaries and symlinks.
 
 ## 🚀 Quick Start
@@ -13,26 +21,19 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
 ## ✨ Highlights
 
 - **User-Space First:** Installs everything to `~/.local/bin`. No root/sudo required.
+- **Idempotent:** Safe to run multiple times; it only installs or updates what's missing.
 - **Modern Stack:** Replaces legacy tools with high-performance alternatives:
   - **Zellij** (Multiplexer)
   - **Neovim** (Editor)
   - **1Password CLI** (Secrets)
-- **Portable:** Same experience on Rocky Linux, Ubuntu, macOS, and minimal Docker containers.
+  - **uv** (Python & Tooling Manager)
+- **Portable:** Same experience on Oracle Linux, Ubuntu, macOS, and Debian.
 - **Secure:** Integrated with 1Password Service Accounts for secret management.
 
 ## 📖 Documentation
 
-To avoid confusion and redundancy, documentation is split logically:
-
-1. **[Installation Guide (Bootstrap)](docs/BOOTSTRAP.md)**
-   - Step-by-step setup instructions.
-   - Managing secrets with 1Password.
-   - Verifying your installation.
-
-2. **[Development & Customization](DEVELOPMENT.md)**
-   - Adding new tools or aliases.
-   - Modifying symlinks.
-   - Generating shell completions.
+1. **[Installation Guide (Bootstrap)](docs/BOOTSTRAP.md)** - Setup and secrets hydration.
+2. **[Development & Customization](DEVELOPMENT.md)** - Adding tools, aliases, and completions.
 
 ---
 
@@ -42,7 +43,7 @@ To avoid confusion and redundancy, documentation is split logically:
 dotfiles/
 ├── bootstrap.sh           # Main entry point (curled)
 ├── scripts/
-│   ├── install-tools.sh  # No-sudo binary installer
+│   ├── install-tools.sh  # No-sudo binary installer (uv, gh, op, zellij, nvim)
 │   └── link.sh           # Configuration symlinker
 ├── bash/                 # ~/.bashrc, aliases, profile
 ├── zellij/               # ~/.config/zellij/
