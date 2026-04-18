@@ -15,7 +15,7 @@ This script will:
 2. Install `uv` (Tool Manager) and ensure a portable Python environment.
 3. Install `gh` (GitHub CLI) as a binary.
 4. Clone dotfiles to `~/.dotfiles`.
-5. Install core binaries: `op`, `zellij`, `jq`, `nvim`, `rg`, `fd`, `bat`, `eza`, `fzf`, `zoxide`, `delta`, `starship`, `btop`, `yazi`, `direnv`, `tldr`, `dust`, `httpie`.
+5. Install core binaries: `op`, `zellij`, `jq`, `nvim`, `rg`, `fd`, `bat`, `eza`, `fzf`, `zoxide`, `delta`, `starship`, `btop`, `yazi`, `dust`, `httpie`, `bun`.
 6. Create symlinks for all configurations (including the new `config/` directory).
 7. Generate shell completions for the installed tools.
 
@@ -84,7 +84,7 @@ v --version       # Neovim
 rg --version      # ripgrep
 y --version       # yazi
 btop --version    # btop
-tldr --version    # tealdeer
+bun --version     # bun
 uv --version      # uv
 python --version  # uv-managed python
 

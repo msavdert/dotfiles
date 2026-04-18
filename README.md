@@ -35,8 +35,8 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
   - **btop** (System monitor)
   - **yazi** (Blazing Fast File Manager)
   - **yq & jq** (YAML/JSON Processors)
-  - **direnv** (Automatic Env Loading)
-  - **tldr, dust, httpie** (Modern CLI Utils)
+  - **Bun** (Fast JavaScript Runtime & Package Manager)
+  - **dust, httpie** (Modern CLI Utils)
 - **Portable:** Same experience on Oracle Linux, Ubuntu, macOS, and Debian.
 - **Secure:** Integrated with 1Password Service Accounts for secret management.
 

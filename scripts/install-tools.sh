@@ -532,29 +532,7 @@ install_yazi() {
     github_tool_install "sxyazi/yazi" "yazi" "yazi --version" yazi_filename yazi_extract
 }
 
-# direnv
-direnv_filename() {
-    local arch=$(uname -m) os_type
-    if is_macos; then [ "$arch" = "arm64" ] && os_type="darwin-arm64" || os_type="darwin-amd64"
-    else [ "$arch" = "x86_64" ] && os_type="linux-amd64" || os_type="linux-arm64"; fi
-    echo "direnv.${os_type}"
-}
-direnv_extract() { cp "$1" "$BIN_DIR/direnv"; }
-install_direnv() {
-    github_tool_install "direnv/direnv" "direnv" "direnv version" direnv_filename direnv_extract
-}
 
-# tealdeer (tldr)
-tldr_filename() {
-    local arch=$(uname -m) os_type
-    if is_macos; then [ "$arch" = "arm64" ] && os_type="macos-aarch64" || os_type="macos-x86_64"
-    else [ "$arch" = "x86_64" ] && os_type="linux-x86_64-musl" || os_type="linux-armv7-musleabihf"; fi
-    echo "tealdeer-${os_type}"
-}
-tldr_extract() { cp "$1" "$BIN_DIR/tldr"; $BIN_DIR/tldr --update 2>/dev/null || true; }
-install_tldr() {
-    github_tool_install "dbrgn/tealdeer" "tldr" "tldr --version" tldr_filename tldr_extract
-}
 
 # dust
 dust_filename() {
@@ -622,11 +600,11 @@ main() {
         brew install \
             gh 1password-cli zellij jq neovim uv \
             ripgrep fd bat eza fzf zoxide git-delta starship lazygit \
-            yq btop yazi direnv tealdeer dust httpie \
+            yq btop yazi dust httpie \
             2>/dev/null || true
     else
         # Preferred installation order
-        local tools=(uv gh op zellij jq nvim rg fd bat eza fzf zoxide delta starship lazygit yq btop yazi direnv tldr dust httpie bun)
+        local tools=(uv gh op zellij jq nvim rg fd bat eza fzf zoxide delta starship lazygit yq btop yazi dust httpie bun)
         for tool in "${tools[@]}"; do
             "install_$tool"
         done
