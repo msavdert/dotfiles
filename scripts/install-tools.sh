@@ -573,6 +573,7 @@ bun_extract() {
     local bin_source=$(find "/tmp/bun_install" -name "bun" -type f | head -1)
     cp "$bin_source" "$BIN_DIR/bun"
     ln -sf "$BIN_DIR/bun" "$BIN_DIR/bunx"
+    ln -sf "$BIN_DIR/bun" "$BIN_DIR/node"
     rm -rf "/tmp/bun_install"
 }
 
