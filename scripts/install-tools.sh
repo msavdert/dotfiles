@@ -80,6 +80,7 @@ install_completion() {
         fzf) fzf --bash > "$comp_dir/fzf" 2>/dev/null || true ;;
         starship) starship completions bash > "$comp_dir/starship" 2>/dev/null || true ;;
         yq) yq shell-completion bash > "$comp_dir/yq" 2>/dev/null || true ;;
+        bun) bun completions bash > "$comp_dir/bun" 2>/dev/null || true ;;
     esac
 }
 
@@ -576,6 +577,31 @@ install_dust() {
     github_tool_install "bootandy/dust" "dust" "dust --version" dust_filename dust_extract
 }
 
+# Bun (All-in-one JavaScript runtime & manager)
+bun_filename() {
+    local version="$1" arch=$(uname -m) os_type
+    if is_macos; then
+        [ "$arch" = "arm64" ] && os_type="darwin-aarch64" || os_type="darwin-x64"
+    else
+        [ "$arch" = "x86_64" ] && os_type="linux-x64" || os_type="linux-aarch64"
+    fi
+    echo "bun-$os_type.zip"
+}
+
+bun_extract() {
+    local file="$1"
+    mkdir -p "/tmp/bun_install"
+    extract_zip "$file" "/tmp/bun_install"
+    local bin_source=$(find "/tmp/bun_install" -name "bun" -type f | head -1)
+    cp "$bin_source" "$BIN_DIR/bun"
+    ln -sf "$BIN_DIR/bun" "$BIN_DIR/bunx"
+    rm -rf "/tmp/bun_install"
+}
+
+install_bun() {
+    github_tool_install "oven-sh/bun" "bun" "bun --version" bun_filename bun_extract
+}
+
 # httpie (uv-based)
 install_httpie() {
     if command_exists http; then return 0; fi
@@ -600,7 +626,7 @@ main() {
             2>/dev/null || true
     else
         # Preferred installation order
-        local tools=(uv gh op zellij jq nvim rg fd bat eza fzf zoxide delta starship lazygit yq btop yazi direnv tldr dust httpie)
+        local tools=(uv gh op zellij jq nvim rg fd bat eza fzf zoxide delta starship lazygit yq btop yazi direnv tldr dust httpie bun)
         for tool in "${tools[@]}"; do
             "install_$tool"
         done
