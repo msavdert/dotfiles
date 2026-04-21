@@ -1,7 +1,11 @@
 -- LSP & Completion Config
 
 local mason = require("mason")
-local mason_lspconfig = require("mason-lspconfig")
+local status, mason_lspconfig = pcall(require, "mason-lspconfig")
+if not status then 
+  print("Waiting for mason-lspconfig...")
+  return 
+end
 local lspconfig = require("lspconfig")
 local cmp = require("cmp")
 
