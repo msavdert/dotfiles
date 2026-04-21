@@ -43,6 +43,11 @@ setup_symlinks() {
         "$DOTFILES_DIR/mise.toml|$CONFIG_DIR/mise/config.toml"
     )
 
+    # Only link macOS specific SSH config on Darwin
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        links+=("$DOTFILES_DIR/configs/ssh/config.macos|$HOME/.ssh/config.macos")
+    fi
+
     for link in "${links[@]}"; do
         local src="${link%%|*}"
         local dst="${link##*|}"

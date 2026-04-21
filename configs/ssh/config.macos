@@ -1,0 +1,5 @@
+# macOS Specific SSH Settings
+Host *
+    UseKeychain yes
+    # 1Password SSH Agent socket
+    #IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
