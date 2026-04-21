@@ -58,7 +58,3 @@ bindkey '^[[A' up-line-or-search
 bindkey '^[[B' down-line-or-search
 bindkey -e
 
-# --- 1Password Helper ---
-if [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
-    export OP_SESSION_my="$(op signin --raw)"
-fi

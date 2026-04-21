@@ -71,8 +71,8 @@ services:
         touch /home/devuser/.zshrc
 
         # Infrastructure: Launch ttyd with ZSH
-        # Use -E to preserve environment variables (e.g. 1Password Token)
-        exec sudo -E -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
+        # Use -E to preserve env vars, -H to set HOME to /home/devuser
+        exec sudo -E -H -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
 ```
 
 ---
