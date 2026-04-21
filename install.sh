@@ -171,7 +171,6 @@ print_summary() {
     echo ""
     echo "Quick Start Guide:"
     echo "  - To refresh your current session:  exec zsh"
-    echo "  - To make ZSH your permanent shell: chsh -s \$(which zsh)"
     echo ""
     echo "Enjoy your new workspace!"
     echo "======================================================================"
