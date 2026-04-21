@@ -9,6 +9,7 @@ usage = "latest"
 eza = "latest"
 bat = "latest"
 lazygit = "latest"
+bun = "latest"
 "1password-cli" = "latest"
 
 [tasks.bootstrap]
