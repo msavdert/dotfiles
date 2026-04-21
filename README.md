@@ -31,7 +31,8 @@ curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh
   - **Bun**: Fast JavaScript runtime & package manager
   - **dust & duf**: Modern CLI disk usage tools
 - **Portable**: Consistent experience across Oracle Linux, Ubuntu, macOS, and Debian.
-- **Secure**: Integrated with 1Password Service Accounts for automated secret management.
+- **Secure**: Integrated with 1Password Service Accounts for secret management.
+- **SSH Ready**: Interactive SSH host selector via `fzf` and 1Password SSH Agent integration.
 
 ---
 

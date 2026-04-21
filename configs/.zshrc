@@ -135,6 +135,27 @@ bindkey '^[[A' up-line-or-search
 bindkey '^[[B' down-line-or-search
 bindkey -e
 
+# --- SSH Management ---
+# 1Password SSH Agent integration (macOS)
+if [ -S "$HOME/Library/Group Containers/2BU85C4SDR.com.1password/t/agent.sock" ]; then
+    export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BU85C4SDR.com.1password/t/agent.sock"
+fi
+
+# Fuzzy SSH host selector
+# Typing 'ssh' without arguments will open fzf with hosts from ~/.ssh/config
+ssh() {
+  if [ $# -eq 0 ]; then
+    # Get hosts from ~/.ssh/config (ignoring wildcards)
+    local host=$(grep -iE "^host " ~/.ssh/config 2>/dev/null | awk '{print $2}' | grep -v '*' | fzf --height 40% --reverse --border --prompt="🚀 SSH Host > " --preview 'dig {}')
+    if [ -n "$host" ]; then
+      echo "Connecting to $host..."
+      command ssh "$host"
+    fi
+  else
+    command ssh "$@"
+  fi
+}
+
 # --- GitHub Integration ---
 # Load GitHub API Token from 1Password
 if command -v op >/dev/null; then
