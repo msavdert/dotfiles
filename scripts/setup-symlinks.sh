@@ -19,6 +19,9 @@ log() { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_step() { echo -e "${BLUE}==>${NC} $*"; }
 
+# Timestamp for unique backups
+readonly TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
 setup_symlinks() {
     log_step "Setting up configuration symlinks"
     
@@ -40,12 +43,22 @@ setup_symlinks() {
         local src="${link%%|*}"
         local dst="${link##*|}"
         
-        if [ -e "$src" ]; then
-            log "Linking $src -> $dst"
-            # Remove destination if it exists (but isn't a symlink to source)
+        if [ -e "$src" ] || [ -L "$src" ]; then
+            # If destination exists
             if [ -e "$dst" ] || [ -L "$dst" ]; then
-                rm -rf "$dst"
+                # If it's already a symlink pointing to the right place, skip
+                if [ -L "$dst" ] && [ "$(readlink "$dst")" == "$src" ]; then
+                    log "Skipping $dst (already linked to $src)"
+                    continue
+                fi
+
+                # If it's a real file/dir or a wrong symlink, back it up
+                local backup="${dst}.${TIMESTAMP}.bak"
+                log_warn "Destination $dst exists. Backing up to $backup"
+                mv "$dst" "$backup"
             fi
+
+            log "Linking $src -> $dst"
             ln -sf "$src" "$dst"
         else
             log_warn "Source file $src not found, skipping..."

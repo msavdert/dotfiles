@@ -22,6 +22,17 @@ if command -v zoxide &>/dev/null; then
 fi
 
 # --- Aliases ---
+# Editor
+alias v='nvim'
+alias vi='nvim'
+alias vim='nvim'
+
+# Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias mkdir='mkdir -p'
+
+# Tools
 alias ls='eza --icons'
 alias ll='eza -l --icons'
 alias la='eza -la --icons'
@@ -29,17 +40,25 @@ alias cat='bat --style=plain'
 alias g='git'
 alias lg='lazygit'
 
-# --- 1Password Helper ---
-if [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
-    export OP_SESSION_my="$(op signin --raw)"
-fi
-
-# --- History ---
+# --- History & Navigation ---
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt APPEND_HISTORY
 setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_FIND_NO_DUPS
 
-# --- Keybindings ---
+# Keybindings for history search
+# Use Up/Down arrows to search history based on current input
+# Note: These sequences might vary by terminal, but these are standard
+bindkey '^[[A' up-line-or-search
+bindkey '^[[B' down-line-or-search
 bindkey -e
+
+# --- 1Password Helper ---
+if [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+    export OP_SESSION_my="$(op signin --raw)"
+fi

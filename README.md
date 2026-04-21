@@ -56,6 +56,9 @@ services:
           useradd -m -s /usr/bin/zsh devuser
           echo "devuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
         fi
+        
+        # System: Suppress Zsh first-run wizard
+        touch /home/devuser/.zshrc
 
         # Infrastructure: Launch ttyd with ZSH
         exec sudo -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
