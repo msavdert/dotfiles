@@ -110,39 +110,15 @@ clone_dotfiles() {
 }
 
 setup_symlinks() {
-    log_step "Setting up configuration symlinks"
+    log_step "Calling setup-symlinks.sh"
     
-    # Ensure config directories exist
-    mkdir -p "$CONFIG_DIR/mise"
-    mkdir -p "$CONFIG_DIR/nvim"
-    mkdir -p "$CONFIG_DIR/zellij"
-
-    # Define mappings: source -> target
-    # Using an array of strings since associative arrays require Bash 4.0+
-    # format: "source|target"
-    local links=(
-        "$DOTFILES_DIR/configs/.zshrc|$HOME/.zshrc"
-        "$DOTFILES_DIR/configs/starship.toml|$CONFIG_DIR/starship.toml"
-        "$DOTFILES_DIR/configs/nvim|$CONFIG_DIR/nvim"
-        "$DOTFILES_DIR/configs/zellij|$CONFIG_DIR/zellij"
-        "$DOTFILES_DIR/mise.toml|$CONFIG_DIR/mise/config.toml"
-    )
-
-    for link in "${links[@]}"; do
-        local src="${link%%|*}"
-        local dst="${link##*|}"
-        
-        if [ -e "$src" ]; then
-            log "Linking $src -> $dst"
-            # Remove destination if it exists (but isn't a symlink to source)
-            if [ -e "$dst" ] || [ -L "$dst" ]; then
-                rm -rf "$dst"
-            fi
-            ln -sf "$src" "$dst"
-        else
-            log_warn "Source file $src not found, skipping..."
-        fi
-    done
+    if [ -f "$DOTFILES_DIR/scripts/setup-symlinks.sh" ]; then
+        chmod +x "$DOTFILES_DIR/scripts/setup-symlinks.sh"
+        "$DOTFILES_DIR/scripts/setup-symlinks.sh"
+    else
+        log_error "Setup script not found at $DOTFILES_DIR/scripts/setup-symlinks.sh"
+        exit 1
+    fi
 }
 
 install_mise() {
@@ -192,8 +168,8 @@ print_summary() {
     "$MISE_BIN" list
     echo ""
     echo "Quick Start Guide:"
-    echo "  1. Activate ZSH:  exec zsh"
-    echo "  2. Default Shell: chsh -s \$(which zsh)  (optional)"
+    echo "  - To refresh your current session:  exec zsh"
+    echo "  - To make ZSH your permanent shell: chsh -s \$(which zsh)"
     echo ""
     echo "Enjoy your new workspace!"
     echo "======================================================================"
