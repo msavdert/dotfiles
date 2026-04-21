@@ -18,3 +18,6 @@ opt.signcolumn = "yes"
 -- Split behavior
 opt.splitright = true
 opt.splitbelow = true
+
+-- Clipboard integration
+opt.clipboard = "unnamedplus"
