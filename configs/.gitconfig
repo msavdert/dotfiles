@@ -2,7 +2,7 @@
     email = github@savdert.com
     name = msavdert
 [init]
-    defaultBranch = master
+    defaultBranch = main
 [github]
     user = msavdert
 [protocol]
