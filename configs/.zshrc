@@ -40,6 +40,7 @@ alias cat='bat --style=plain'
 alias grep='rg'
 alias find='fd'
 alias ping='gping'
+alias tldr='tealdeer'
 alias g='git'
 alias lg='lazygit'
 
