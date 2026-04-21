@@ -167,6 +167,13 @@ install_mise() {
 install_tools() {
     log_step "Installing tools from mise configuration"
     
+    # Trust the dotfiles directory to avoid security prompts
+    if command_exists mise; then
+        log "Trusting $DOTFILES_DIR and global config"
+        "$MISE_BIN" trust "$DOTFILES_DIR"
+        "$MISE_BIN" trust "$CONFIG_DIR/mise/config.toml"
+    fi
+
     # We linked mise.toml to ~/.config/mise/config.toml, so mise install will use it
     if "$MISE_BIN" install; then
         log "All tools installed successfully"
@@ -181,12 +188,12 @@ print_summary() {
     echo -e "${GREEN}Installation completed successfully!${NC}"
     echo "======================================================================"
     echo ""
-    echo "Quick Start Guide:"
-    echo "  1. Switch to zsh: chsh -s \$(which zsh)"
-    echo "  2. Start a new session or run: exec zsh"
-    echo ""
     echo "Installed tools:"
     "$MISE_BIN" list
+    echo ""
+    echo "Quick Start Guide:"
+    echo "  1. Activate ZSH:  exec zsh"
+    echo "  2. Default Shell: chsh -s \$(which zsh)  (optional)"
     echo ""
     echo "Enjoy your new workspace!"
     echo "======================================================================"
