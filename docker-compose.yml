@@ -9,7 +9,7 @@ services:
     ports:
       - "7681:7681"
     volumes:
-      - .:/workspace
+      - .:/home/${DEV_USER:-savdert}/.dotfiles
       - dev_home:/home/${DEV_USER:-savdert}
     environment:
       - OP_SERVICE_ACCOUNT_TOKEN=${OP_SERVICE_ACCOUNT_TOKEN:-}

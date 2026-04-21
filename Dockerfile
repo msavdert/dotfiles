@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SHELL=/usr/bin/zsh \
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
-    PATH="/home/${DEV_USER}/.local/bin:/opt/mise/bin:/opt/mise/shims:${PATH}"
+    PATH="/home/${DEV_USER}/.local/bin:/home/${DEV_USER}/.dotfiles/bin:${PATH}"
 
 # Install core system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -45,22 +45,23 @@ RUN if getent passwd ${DEV_UID} > /dev/null; then \
     fi && \
     echo "${DEV_USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Setup project directory
-WORKDIR /workspace
-COPY . /workspace
-RUN chown -R ${DEV_USER}:${DEV_USER} /workspace
+# Setup dotfiles in user home
+WORKDIR /home/${DEV_USER}/.dotfiles
+COPY . .
+RUN chown -R ${DEV_USER}:${DEV_USER} /home/${DEV_USER}
 
 USER ${DEV_USER}
+WORKDIR /home/${DEV_USER}
 
 # Install mise for the local user
 RUN curl https://mise.run | sh
 
 # Symlink configurations to the user's home directory
 RUN mkdir -p ${HOME}/.config/zellij ${HOME}/.config/nvim ${HOME}/.config/mise && \
-    ln -sf /workspace/configs/.zshrc ${HOME}/.zshrc && \
-    ln -sf /workspace/configs/starship.toml ${HOME}/.config/starship.toml && \
-    ln -sf /workspace/configs/zellij/config.kdl ${HOME}/.config/zellij/config.kdl && \
-    ln -sf /workspace/mise.toml ${HOME}/.config/mise/config.toml
+    ln -sf ${HOME}/.dotfiles/configs/.zshrc ${HOME}/.zshrc && \
+    ln -sf ${HOME}/.dotfiles/configs/starship.toml ${HOME}/.config/starship.toml && \
+    ln -sf ${HOME}/.dotfiles/configs/zellij/config.kdl ${HOME}/.config/zellij/config.kdl && \
+    ln -sf ${HOME}/.dotfiles/mise.toml ${HOME}/.config/mise/config.toml
 
 # Expose the ttyd port
 EXPOSE 7681

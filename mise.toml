@@ -17,7 +17,7 @@ run = "mise trust && mise install"
 
 [tasks.sync]
 description = "Sync dotfiles and update tools"
-run = "git pull && mise install"
+run = "git -C ~/.dotfiles pull && mise install"
 
 [settings]
 task.source_freshness_hash_contents = true
