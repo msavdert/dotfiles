@@ -141,8 +141,8 @@ zstyle ':completion:*:*:(ssh|scp|sftp):*' user-hosts ''
 zstyle ':completion:*:*:(ssh|scp|sftp):*' hosts ''
 zstyle ':completion:*:*:(ssh|scp|sftp):*:users' ignored-patterns '*'
 
-# 2. Extract clean host list from config files
-_my_hosts=($(grep -ihE '^Host ' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '\*'))
+# 2. Extract clean host list from config files (strictly matching 'Host' keyword)
+_my_hosts=($(grep -ihw '^Host' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '\*' | sort -u))
 
 # 3. Use only our extracted hosts
 zstyle ':completion:*:*:(ssh|scp|sftp):*' hosts $_my_hosts
