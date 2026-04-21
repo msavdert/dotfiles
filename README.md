@@ -87,6 +87,7 @@ This task will:
 1. `git pull` the latest changes from your repository.
 2. Re-create all symbolic links via `scripts/setup-symlinks.sh`.
 3. Install any new tools added to `mise.toml`.
+4. **Prune** any unused tool versions (automated).
 
 ---
 
