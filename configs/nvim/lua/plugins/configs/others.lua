@@ -1,51 +1,52 @@
 -- Themes & UI Config
-require("catppuccin").setup({
-  flavour = "mocha", -- latte, frappe, macchiato, mocha
-})
-vim.cmd.colorscheme("catppuccin")
+local status_cat, catppuccin = pcall(require, "catppuccin")
+if status_cat then
+  catppuccin.setup({
+    flavour = "mocha",
+  })
+  vim.cmd.colorscheme("catppuccin")
+end
 
 -- Lualine
-require("lualine").setup({
-  options = {
-    theme = "catppuccin",
-    section_separators = { left = "", right = "" },
-    component_separators = { left = "", right = "" },
-  },
-})
+local status_lua, lualine = pcall(require, "lualine")
+if status_lua then
+  lualine.setup({
+    options = {
+      theme = "catppuccin",
+      section_separators = { left = "", right = "" },
+      component_separators = { left = "", right = "" },
+    },
+  })
+end
 
 -- Nvim-Tree
-require("nvim-tree").setup({
-  view = {
-    width = 30,
-  },
-  renderer = {
-    group_empty = true,
-  },
-})
+local status_tree, nvimtree = pcall(require, "nvim-tree")
+if status_tree then
+  nvimtree.setup({
+    view = { width = 30 },
+    renderer = { group_empty = true },
+  })
+end
 
 -- Alpha (Dashboard)
-local alpha = require("alpha")
-local dashboard = require("alpha.themes.dashboard")
-dashboard.section.header.val = {
-  [[          ▀████▀▄▄              ▄█ ]],
-  [[            █▀    ▀▀▄▄▄▄▄    ▄▄▀▀█ ]],
-  [[    ▄        █          ▀▀▀▀▀  ▄▀  ]],
-  [[   ▄▀ ▀▄      ▀▄              █    ]],
-  [[  Local  ▀▄▄    █          ▄▀▀      ]],
-  [[   Workspace ▀▀▄▄█        ▄▀       ]],
-  [[            ▄▀▀█▀▀▀▄    ▄▀         ]],
-  [[           █    █   ▀▀▀▀           ]],
-}
-alpha.setup(dashboard.config)
+local status_alpha, alpha = pcall(require, "alpha")
+if status_alpha then
+  local dashboard = require("alpha.themes.dashboard")
+  dashboard.section.header.val = {
+    [[          ▀████▀▄▄              ▄█ ]],
+    [[            █▀    ▀▀▄▄▄▄▄    ▄▄▀▀█ ]],
+    [[    ▄        █          ▀▀▀▀▀  ▄▀  ]],
+    [[   ▄▀ ▀▄      ▀▄              █    ]],
+    [[  Local  ▀▄▄    █          ▄▀▀      ]],
+    [[   Workspace ▀▀▄▄█        ▄▀       ]],
+    [[            ▄▀▀█▀▀▀▄    ▄▀         ]],
+    [[           █    █   ▀▀▀▀           ]],
+  }
+  alpha.setup(dashboard.config)
+end
 
--- Which-key
-require("which-key").setup()
-
--- Comment
-require("Comment").setup()
-
--- Gitsigns
-require("gitsigns").setup()
-
--- Indent lines
-require("ibl").setup()
+-- Misc UI
+pcall(function() require("which-key").setup() end)
+pcall(function() require("Comment").setup() end)
+pcall(function() require("gitsigns").setup() end)
+pcall(function() require("ibl").setup() end)

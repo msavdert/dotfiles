@@ -22,7 +22,11 @@ require("lazy").setup({
     lazy = false,
     config = function() require("plugins.configs.others") end 
   },
-  { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
+  { 
+    "nvim-lualine/lualine.nvim", 
+    lazy = false,
+    dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin" } 
+  },
   { "nvim-tree/nvim-tree.lua", dependencies = { "nvim-tree/nvim-web-devicons" } },
   { "goolord/alpha-nvim" },
   { "lukas-reineke/indent-blankline.nvim", main = "ibl" },
