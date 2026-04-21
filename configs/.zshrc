@@ -139,8 +139,11 @@ bindkey -e
 # SSH Agent configuration
 if [ -z "$SSH_AUTH_SOCK" ]; then
     export SSH_AUTH_SOCK="$HOME/.ssh/ssh-agent.sock"
-    if [ ! -S "$SSH_AUTH_SOCK" ]; then
-        # Start the agent with the specified socket
+    # Check if the socket is alive (ssh-add -l returns 2 if it cannot connect)
+    ssh-add -l >/dev/null 2>&1
+    if [ $? -ge 2 ]; then
+        # Socket is stale or missing, clean up and restart
+        rm -f "$SSH_AUTH_SOCK"
         eval $(ssh-agent -s -a "$SSH_AUTH_SOCK") > /dev/null
     fi
 fi
