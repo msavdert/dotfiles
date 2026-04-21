@@ -21,6 +21,7 @@ jq = "latest"
 duf = "latest"
 dust = "latest"
 gping = "latest"
+gh = "latest"
 
 [tasks.sync]
 description = "Sync dotfiles, update tools, and prune unused versions"
