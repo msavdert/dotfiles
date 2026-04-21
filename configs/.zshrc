@@ -136,17 +136,17 @@ bindkey '^[[B' down-line-or-search
 bindkey -e
 
 # --- Completion Settings ---
-# 1. Disable host completion from /etc/hosts and known_hosts
-# 2. Disable system user completion
-zstyle ':completion:*:*:(ssh|scp|sftp):*:hosts' hosts ' '
-zstyle ':completion:*:*:(ssh|scp|sftp):*:users' users ' '
+# 1. Disable all default sources for SSH/SCP/SFTP
+zstyle ':completion:*:*:(ssh|scp|sftp):*' user-hosts ''
+zstyle ':completion:*:*:(ssh|scp|sftp):*' hosts ''
+zstyle ':completion:*:*:(ssh|scp|sftp):*:users' ignored-patterns '*'
 
-# 3. Force SSH to only use hosts found in ~/.ssh/config (and its Includes)
+# 2. Extract clean host list from config files
+_my_hosts=($(grep -ihE '^Host ' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '\*'))
+
+# 3. Use only our extracted hosts
+zstyle ':completion:*:*:(ssh|scp|sftp):*' hosts $_my_hosts
 zstyle ':completion:*:*:(ssh|scp|sftp):*' tag-order 'hosts'
-zstyle ':completion:*:*:(ssh|scp|sftp):*:hosts' ignored-patterns 'loopback' 'localhost'
-
-# Ensure the completion system knows where to look for hosts if the default is disabled
-[[ -r ~/.ssh/config ]] && zstyle ':completion:*:*:ssh:*' hosts $(grep -iE '^Host ' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '\*')
 
 # --- SSH Management ---
 # SSH Agent configuration
