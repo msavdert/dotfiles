@@ -91,6 +91,14 @@ check_requirements() {
             exit 1
         fi
     fi
+
+    # Fix locale warning if possible (common in minimal containers)
+    if is_linux && command_exists locale-gen; then
+        if ! locale -a 2>/dev/null | grep -qi "en_US.utf8"; then
+            log_warn "en_US.UTF-8 locale not found. Attempting to generate..."
+            sudo locale-gen en_US.UTF-8 >/dev/null 2>&1 || true
+        fi
+    fi
 }
 
 # =============================================================================
@@ -98,10 +106,11 @@ check_requirements() {
 # =============================================================================
 
 clone_dotfiles() {
-    log_step "Cloning dotfiles repository"
+    log_step "Cloning or updating dotfiles repository"
     
     if [ -d "$DOTFILES_DIR" ]; then
-        log "Repository already exists at $DOTFILES_DIR"
+        log "Repository already exists at $DOTFILES_DIR, pulling updates"
+        git -C "$DOTFILES_DIR" pull
         return 0
     fi
     
@@ -143,13 +152,6 @@ install_mise() {
 install_tools() {
     log_step "Installing tools from mise configuration"
     
-    # Trust the dotfiles directory to avoid security prompts
-    if command_exists mise; then
-        log "Trusting $DOTFILES_DIR and global config"
-        "$MISE_BIN" trust "$DOTFILES_DIR"
-        "$MISE_BIN" trust "$CONFIG_DIR/mise/config.toml"
-    fi
-
     # We linked mise.toml to ~/.config/mise/config.toml, so mise install will use it
     if "$MISE_BIN" install; then
         log "All tools installed successfully"
@@ -189,8 +191,15 @@ main() {
     
     check_requirements
     clone_dotfiles
-    setup_symlinks
     install_mise
+    
+    # Trust the dotfiles and config before linking
+    if command_exists mise; then
+        log "Trusting $DOTFILES_DIR"
+        "$MISE_BIN" trust "$DOTFILES_DIR"
+    fi
+
+    setup_symlinks
     install_tools
     print_summary
 }
