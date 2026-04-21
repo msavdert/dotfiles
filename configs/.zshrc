@@ -167,9 +167,16 @@ ssh() {
 }
 
 # --- GitHub Integration ---
-# Load GitHub API Token from 1Password
-if command -v op >/dev/null; then
-    export GH_TOKEN=$(op read "op://dotfiles/GitHub/admintoken" 2>/dev/null)
-    export GITHUB_TOKEN="$GH_TOKEN"
-fi
+# Lazy-load GitHub API Token from 1Password to speed up shell startup
+_load_gh_token() {
+    if [ -z "$GH_TOKEN" ] && command -v op >/dev/null; then
+        echo "🔐 Fetching GitHub token from 1Password..."
+        export GH_TOKEN=$(op read "op://dotfiles/GitHub/admintoken" 2>/dev/null)
+        export GITHUB_TOKEN="$GH_TOKEN"
+    fi
+}
+
+# Wrap gh and git commands to load token on first use
+gh() { _load_gh_token; unset -f gh; command gh "$@"; }
+git() { _load_gh_token; unset -f git; command git "$@"; }
 
