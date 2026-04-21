@@ -21,3 +21,18 @@ opt.splitbelow = true
 
 -- Clipboard integration
 opt.clipboard = "unnamedplus"
+
+-- Force OSC 52 for remote/container clipboard support (Neovim 0.10+)
+if vim.fn.has("nvim-0.10") == 1 then
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+end
