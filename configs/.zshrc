@@ -41,6 +41,7 @@ alias grep='rg'
 alias find='fd'
 alias ping='gping'
 alias tldr='bunx tldr'
+alias msync='mise run sync && exec zsh'
 alias g='git'
 alias lg='lazygit'
 
