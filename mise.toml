@@ -13,11 +13,11 @@ lazygit = "latest"
 
 [tasks.bootstrap]
 description = "Initial environment setup and tool installation"
-run = "mise trust && scripts/setup-symlinks.sh && mise install"
+run = "mise trust && ~/.dotfiles/scripts/setup-symlinks.sh && mise install"
 
 [tasks.sync]
 description = "Sync dotfiles and update tools"
-run = "git -C ~/.dotfiles pull && scripts/setup-symlinks.sh && mise install"
+run = "git -C ~/.dotfiles pull && ~/.dotfiles/scripts/setup-symlinks.sh && mise install"
 
 [settings]
 task.source_freshness_hash_contents = true

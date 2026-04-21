@@ -69,7 +69,8 @@ check_requirements() {
         exit 1
     fi
     
-    local required_commands=("curl" "git")
+    # Core requirements plus tools we expect from the infrastructure
+    local required_commands=("curl" "git" "zsh" "starship" "ttyd")
     local missing=()
     for cmd in "${required_commands[@]}"; do
         if ! command_exists "$cmd"; then
@@ -78,27 +79,11 @@ check_requirements() {
     done
 
     if [ ${#missing[@]} -gt 0 ]; then
-        if is_linux; then
-            log_warn "Missing commands: ${missing[*]}. Installing..."
-            if command_exists apt-get; then
-                sudo apt-get update -qq && sudo apt-get install -y -qq "${missing[@]}"
-            else
-                log_error "Cannot auto-install ${missing[*]}. Please install manually."
-                exit 1
-            fi
-        else
-            log_error "Missing commands: ${missing[*]}. Please install them first (e.g. via brew)."
-            exit 1
-        fi
+        log_error "Missing required commands: ${missing[*]}"
+        log "Please ensure these are installed via your infrastructure (e.g., docker-compose or apt)."
+        exit 1
     fi
-
-    # Fix locale warning if possible (common in minimal containers)
-    if is_linux && command_exists locale-gen; then
-        if ! locale -a 2>/dev/null | grep -qi "en_US.utf8"; then
-            log_warn "en_US.UTF-8 locale not found. Attempting to generate..."
-            sudo locale-gen en_US.UTF-8 >/dev/null 2>&1 || true
-        fi
-    fi
+    log "All system requirements met."
 }
 
 # =============================================================================
