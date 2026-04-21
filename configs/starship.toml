@@ -1,4 +1,4 @@
-# Starship configuration
+# Starship configuration (Browser/ttyd Compatible)
 format = """
 $username\
 $hostname\
@@ -12,15 +12,21 @@ $character"""
 
 [directory]
 style = "blue"
-read_only = " 󰌾"
+read_only = " (read-only)"
 
 [character]
-success_symbol = "[➜](bold green)"
-error_symbol = "[➜](bold red)"
+# Using standard characters that work in every browser font
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"
 
 [git_branch]
-symbol = " "
+symbol = "git: "
 style = "bold purple"
 
 [git_status]
 style = "red"
+format = "([\\[$all_status$ahead_behind\\]]($style) )"
+
+[cmd_duration]
+min_time = 500
+format = "took [$duration]($style) "

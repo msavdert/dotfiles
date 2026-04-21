@@ -8,6 +8,10 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  # Flexible build arguments
+  DEV_USER: ${{ vars.DEV_USER || 'savdert' }}
+  DEV_UID: ${{ vars.DEV_UID || '1000' }}
+  DEV_GID: ${{ vars.DEV_GID || '1000' }}
 
 jobs:
   build-and-push:
@@ -45,6 +49,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            DEV_USER=savdert
-            DEV_UID=1000
-            DEV_GID=1000
+            DEV_USER=${{ env.DEV_USER }}
+            DEV_UID=${{ env.DEV_UID }}
+            DEV_GID=${{ env.DEV_GID }}

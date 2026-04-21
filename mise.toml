@@ -11,5 +11,12 @@ bat = "latest"
 lazygit = "latest"
 "1password-cli" = "latest"
 
+[tasks.sync]
+description = "Sync dotfiles from GitHub and update tools"
+run = """
+git pull
+mise install
+"""
+
 [settings]
 task.source_freshness_hash_contents = true

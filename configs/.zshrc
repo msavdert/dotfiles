@@ -1,17 +1,22 @@
-# --- Mise-en-place ---
-if [ -f "$HOME/.local/bin/mise" ]; then
-    export PATH="$HOME/.local/bin:$PATH"
-    eval "$($HOME/.local/bin/mise activate zsh)"
-elif command -v mise &>/dev/null; then
+# --- Language & Locale ---
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# --- PATH Setup ---
+# Ensure mise binaries and shims are always in PATH
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
+# --- Mise Activation ---
+if command -v mise &>/dev/null; then
     eval "$(mise activate zsh)"
 fi
 
-# --- Starship Prompt ---
+# --- Tools Initialization ---
+# Initialize tools after mise shims are in PATH
 if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
 
-# --- Zoxide (Smart cd) ---
 if command -v zoxide &>/dev/null; then
     eval "$(zoxide init zsh)"
 fi
