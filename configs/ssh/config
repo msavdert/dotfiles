@@ -31,11 +31,11 @@ Host *
     ControlPath ~/.ssh/sockets/%r@%h:%p
     ControlPersist 10m
 
-    # macOS specific keychain integration
-    UseKeychain yes
-
-    # 1Password SSH Agent socket (macOS default path)
-    #IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    # macOS specific settings (only applied on Darwin)
+    Match exec "uname -s | grep -q Darwin"
+        UseKeychain yes
+        # 1Password SSH Agent socket (macOS default path)
+        # IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
 # --- Specialized Defaults ---
 # GitHub specific settings
