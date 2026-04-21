@@ -136,16 +136,20 @@ bindkey '^[[B' down-line-or-search
 bindkey -e
 
 # --- SSH Management ---
-# 1Password SSH Agent integration (macOS)
-if [ -S "$HOME/Library/Group Containers/2BU85C4SDR.com.1password/t/agent.sock" ]; then
-    export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BU85C4SDR.com.1password/t/agent.sock"
+# SSH Agent configuration
+if [ -z "$SSH_AUTH_SOCK" ]; then
+    export SSH_AUTH_SOCK="$HOME/.ssh/ssh-agent.sock"
+    if [ ! -S "$SSH_AUTH_SOCK" ]; then
+        # Start the agent with the specified socket
+        eval $(ssh-agent -s -a "$SSH_AUTH_SOCK") > /dev/null
+    fi
 fi
 
-# Fuzzy SSH host selector
-# Typing 'ssh' without arguments will open fzf with hosts from ~/.ssh/config
+# Interactive SSH host selector
+# Typing 'ssh' without arguments triggers fzf with hosts from ~/.ssh/config
 ssh() {
   if [ $# -eq 0 ]; then
-    # Get hosts from ~/.ssh/config (ignoring wildcards)
+    # Filter hosts from ~/.ssh/config (ignoring wildcards)
     local host=$(grep -iE "^host " ~/.ssh/config 2>/dev/null | awk '{print $2}' | grep -v '*' | fzf --height 40% --reverse --border --prompt="🚀 SSH Host > " --preview 'dig {}')
     if [ -n "$host" ]; then
       echo "Connecting to $host..."

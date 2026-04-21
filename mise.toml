@@ -36,5 +36,19 @@ run = """
   mise prune --yes
 """
 
+[tasks."secrets:pull"]
+description = "Pull sensitive configurations from 1Password"
+run = """
+  if command -v op >/dev/null; then
+    echo "Pulling ~/.ssh/config.local from 1Password..."
+    op read "op://dotfiles/ssh/config.local/notesPlain" > ~/.ssh/config.local
+    chmod 600 ~/.ssh/config.local
+    echo "Done!"
+  else
+    echo "Error: 1Password CLI (op) not found."
+    exit 1
+  fi
+"""
+
 [settings]
 task.source_freshness_hash_contents = true

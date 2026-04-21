@@ -1,0 +1,44 @@
+# --- Global SSH Configuration ---
+# Managed by dotfiles - Do not edit manually
+
+# --- Includes ---
+# Machine-specific or sensitive configuration (Managed via 1Password pull)
+Include ~/.ssh/config.local
+
+# 1Password-generated bookmarks (macOS specific)
+Include ~/.ssh/1Password/config
+
+# OrbStack integration
+Include ~/.orbstack/ssh/config
+
+# --- Global Defaults ---
+Host *
+    # Keepalive settings to prevent timeouts
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    TCPKeepAlive yes
+
+    # Security & Agent Forwarding
+    ForwardAgent yes
+    StrictHostKeyChecking accept-new
+    
+    # Convenience
+    AddKeysToAgent yes
+    Compression yes
+    
+    # Connection Multiplexing (Speeds up multiple sessions to same host)
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h:%p
+    ControlPersist 10m
+
+    # macOS specific keychain integration
+    UseKeychain yes
+
+    # 1Password SSH Agent socket (macOS default path)
+    #IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+# --- Specialized Defaults ---
+# GitHub specific settings
+Host github.com
+    User git
+    ControlMaster no

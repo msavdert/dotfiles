@@ -6,7 +6,8 @@
 set -euo pipefail
 
 # Configuration
-readonly DOTFILES_DIR="${DOTFILES_DIR:-$HOME/.dotfiles}"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly DOTFILES_DIR="${DOTFILES_DIR:-$(dirname "$SCRIPT_DIR")}"
 readonly CONFIG_DIR="${CONFIG_DIR:-$HOME/.config}"
 
 # Colors for output
@@ -29,6 +30,7 @@ setup_symlinks() {
     mkdir -p "$CONFIG_DIR/mise"
     mkdir -p "$CONFIG_DIR/nvim"
     mkdir -p "$CONFIG_DIR/zellij"
+    mkdir -p "$HOME/.ssh/sockets"
 
     # Define mappings: source|target
     local links=(
@@ -37,6 +39,7 @@ setup_symlinks() {
         "$DOTFILES_DIR/configs/starship.toml|$CONFIG_DIR/starship.toml"
         "$DOTFILES_DIR/configs/nvim|$CONFIG_DIR/nvim"
         "$DOTFILES_DIR/configs/zellij|$CONFIG_DIR/zellij"
+        "$DOTFILES_DIR/configs/ssh/config|$HOME/.ssh/config"
         "$DOTFILES_DIR/mise.toml|$CONFIG_DIR/mise/config.toml"
     )
 
