@@ -137,12 +137,15 @@ bindkey -e
 
 # --- SSH Management ---
 # SSH Agent configuration
-if [ -z "$SSH_AUTH_SOCK" ]; then
-    export SSH_AUTH_SOCK="$HOME/.ssh/ssh-agent.sock"
-    # Check if the socket is alive (ssh-add -l returns 2 if it cannot connect)
-    ssh-add -l >/dev/null 2>&1
-    if [ $? -ge 2 ]; then
-        # Socket is stale or missing, clean up and restart
+# 1. Set default socket path if not already set
+: ${SSH_AUTH_SOCK:=$HOME/.ssh/ssh-agent.sock}
+export SSH_AUTH_SOCK
+
+# 2. Check if the agent is responsive
+ssh-add -l >/dev/null 2>&1
+if [ $? -ge 2 ]; then
+    # 3. Only force restart if it's our managed socket path
+    if [[ "$SSH_AUTH_SOCK" == "$HOME/.ssh/ssh-agent.sock" ]]; then
         rm -f "$SSH_AUTH_SOCK"
         eval $(ssh-agent -s -a "$SSH_AUTH_SOCK") > /dev/null
     fi
