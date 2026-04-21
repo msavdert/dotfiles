@@ -37,6 +37,9 @@ alias ls='eza --icons'
 alias ll='eza -l --icons'
 alias la='eza -la --icons'
 alias cat='bat --style=plain'
+alias grep='rg'
+alias find='fd'
+alias ping='gping'
 alias g='git'
 alias lg='lazygit'
 
@@ -50,6 +53,27 @@ setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_FIND_NO_DUPS
+
+# --- Completion ---
+autoload -Uz compinit
+compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colored completion
+
+# FZF integration
+if command -v fzf >/dev/null; then
+    source <(fzf --zsh)
+fi
+
+# Zoxide integration
+if command -v zoxide >/dev/null; then
+    eval "$(zoxide init zsh)"
+fi
+
+# Starship integration
+if command -v starship >/dev/null; then
+    eval "$(starship init zsh)"
+fi
 
 # Keybindings for history search
 # Use Up/Down arrows to search history based on current input
