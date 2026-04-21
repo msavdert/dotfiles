@@ -65,24 +65,28 @@ local on_attach = function(client, bufnr)
 end
 
 -- 4. Setup Servers
-mason_lspconfig.setup_handlers({
-  function(server_name)
-    lspconfig[server_name].setup({
-      on_attach = on_attach,
-      capabilities = capabilities,
-    })
-  end,
-  -- Custom settings for specific servers
-  ["lua_ls"] = function()
-    lspconfig.lua_ls.setup({
-      on_attach = on_attach,
-      capabilities = capabilities,
-      settings = {
-        Lua = {
-          diagnostics = { globals = { "vim" } },
-          workspace = { library = vim.api.nvim_get_runtime_file("", true) },
+if status and mason_lspconfig.setup_handlers then
+  mason_lspconfig.setup_handlers({
+    function(server_name)
+      lspconfig[server_name].setup({
+        on_attach = on_attach,
+        capabilities = capabilities,
+      })
+    end,
+    -- Custom settings for specific servers
+    ["lua_ls"] = function()
+      lspconfig.lua_ls.setup({
+        on_attach = on_attach,
+        capabilities = capabilities,
+        settings = {
+          Lua = {
+            diagnostics = { globals = { "vim" } },
+            workspace = { library = vim.api.nvim_get_runtime_file("", true) },
+          },
         },
-      },
-    })
-  end,
-})
+      })
+    end,
+  })
+else
+  print("mason-lspconfig: setup_handlers not ready yet.")
+end

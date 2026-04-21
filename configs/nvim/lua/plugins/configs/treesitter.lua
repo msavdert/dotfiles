@@ -1,5 +1,11 @@
 -- Treesitter Syntax Config
-require("nvim-treesitter.configs").setup({
+local status, treesitter = pcall(require, "nvim-treesitter.configs")
+if not status then 
+  print("Waiting for nvim-treesitter...")
+  return 
+end
+
+treesitter.setup({
   ensure_installed = {
     "lua",
     "python",
