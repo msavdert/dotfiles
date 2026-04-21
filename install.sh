@@ -70,7 +70,7 @@ check_requirements() {
     fi
     
     # Core requirements plus tools we expect from the infrastructure
-    local required_commands=("curl" "git" "zsh" "starship" "ttyd")
+    local required_commands=("curl" "git" "zsh" "ttyd")
     local missing=()
     for cmd in "${required_commands[@]}"; do
         if ! command_exists "$cmd"; then

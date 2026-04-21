@@ -1,8 +1,16 @@
 # 🚀 Modern Dev Space (dotfiles)
 
-A lightweight, high-performance, and **mise-native** development environment designed for cloud workspaces (Dokploy, Docker, etc.). 
+A lightweight, high-performance, and **mise-native** development environment designed for cloud workspaces (Dokploy, Docker, etc.).
 
-This repository uses a **"Rootless Architecture"**, separating system-level infrastructure from user-level configuration.
+---
+
+## ⚡ Quick One-Liner Setup
+
+If you already have the infrastructure (Docker/Ubuntu) ready, just run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
+```
 
 ---
 
@@ -26,9 +34,8 @@ This repository uses a **"Rootless Architecture"**, separating system-level infr
 
 ---
 
-## 🏁 Quick Start
+## 🏁 Infrastructure Setup (Dokploy/Docker)
 
-### 1. Configure the Infrastructure (Dokploy/Docker)
 The environment expects certain system dependencies to be present. Use this `docker-compose.yml` snippet for your Dokploy workspace for optimal results:
 
 ```yaml
@@ -36,6 +43,9 @@ services:
   workspace:
     image: ubuntu:latest
     environment:
+      - TZ=${TZ:-America/New_York}
+      - USER_NAME=${USER_NAME:-devuser}
+      - OP_SERVICE_ACCOUNT_TOKEN=${OP_SERVICE_ACCOUNT_TOKEN:-}
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
     volumes:
@@ -61,20 +71,8 @@ services:
         touch /home/devuser/.zshrc
 
         # Infrastructure: Launch ttyd with ZSH
-        exec sudo -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
-```
-
-### 2. Bootstrap the Configuration
-Once inside your terminal (ttyd), run the following command to provision your personalized workspace:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
-```
-
-### 3. Activate the Environment
-Refresh your current session to see the changes:
-```bash
-exec zsh
+        # Use -E to preserve environment variables (e.g. 1Password Token)
+        exec sudo -E -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
 ```
 
 ---
