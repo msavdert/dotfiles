@@ -15,7 +15,13 @@ vim.opt.rtp:prepend(lazypath)
 -- Define Plugins
 require("lazy").setup({
   -- UI & Essentials
-  { "catppuccin/nvim", name = "catppuccin", priority = 1000, config = function() require("plugins.configs.others") end },
+  { 
+    "catppuccin/nvim", 
+    name = "catppuccin", 
+    priority = 1000, 
+    lazy = false,
+    config = function() require("plugins.configs.others") end 
+  },
   { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
   { "nvim-tree/nvim-tree.lua", dependencies = { "nvim-tree/nvim-web-devicons" } },
   { "goolord/alpha-nvim" },
@@ -25,6 +31,7 @@ require("lazy").setup({
   { 
     "nvim-telescope/telescope.nvim", 
     branch = "0.1.x", 
+    lazy = false,
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function() require("plugins.configs.telescope") end
   },
@@ -33,12 +40,14 @@ require("lazy").setup({
   { 
     "nvim-treesitter/nvim-treesitter", 
     build = ":TSUpdate",
+    lazy = false,
     config = function() require("plugins.configs.treesitter") end
   },
 
   -- LSP & Completion
   {
     "neovim/nvim-lspconfig",
+    lazy = false,
     dependencies = {
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",

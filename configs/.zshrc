@@ -56,30 +56,81 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_FIND_NO_DUPS
 
-# --- Completion ---
+# --- Completion & Style ---
+# Add completions to fpath
+fpath=(~/.zsh/completions $fpath)
 autoload -Uz compinit
 compinit
+
+# Zstyle completion styling
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colored completion
+zstyle ':completion:*' menu select # Visual selection menu
+zstyle ':completion:*:descriptions' format '[%d]'
 
-# FZF integration
-if command -v fzf >/dev/null; then
-    source <(fzf --zsh)
+# --- Tools Integration ---
+
+# Mise
+if command -v mise >/dev/null; then
+    eval "$(mise activate zsh)"
 fi
 
-# Zoxide integration
+# Zoxide
 if command -v zoxide >/dev/null; then
     eval "$(zoxide init zsh)"
 fi
 
-# Starship integration
+# Starship
 if command -v starship >/dev/null; then
     eval "$(starship init zsh)"
+    source <(starship completions zsh)
 fi
 
-# Keybindings for history search
-# Use Up/Down arrows to search history based on current input
-# Note: These sequences might vary by terminal, but these are standard
+# UV
+if command -v uv >/dev/null; then
+    source <(uv generate-shell-completion zsh)
+fi
+
+# --- FZF "Ultimate" Experience (Josean Style) ---
+# https://www.josean.com/posts/7-amazing-cli-tools
+if command -v fzf >/dev/null; then
+    source <(fzf --zsh)
+
+    # Use fd instead of find
+    export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+
+    # Preview logic
+    # If dir: show eza tree; if file: show bat
+    show_file_or_dir_preview="if [ -d {} ]; then eza --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi"
+
+    export FZF_CTRL_T_OPTS="--preview '$show_file_or_dir_preview'"
+    export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
+
+    # Advanced completion integration
+    _fzf_comprun() {
+      local command=$1
+      shift
+      case "$command" in
+        cd)           fzf --preview 'eza --tree --color=always {} | head -200' "$@" ;;
+        export|unset) fzf --preview "eval 'echo $'{}"         "$@" ;;
+        ssh)          fzf --preview 'dig {}'                   "$@" ;;
+        *)            fzf --preview "$show_file_or_dir_preview" "$@" ;;
+      esac
+    }
+
+    _fzf_compgen_path() {
+      fd --hidden --exclude .git . "$1"
+    }
+
+    _fzf_compgen_dir() {
+      fd --type=d --hidden --exclude .git . "$1"
+    }
+fi
+
+# --- Navigation & Keybindings ---
+# History Search
 bindkey '^[[A' up-line-or-search
 bindkey '^[[B' down-line-or-search
 bindkey -e
