@@ -37,13 +37,18 @@ run = """
 """
 
 [tasks."secrets:pull"]
-description = "Pull sensitive configurations from 1Password"
+description = "Pull sensitive configurations and SSH keys from 1Password"
 run = """
   if command -v op >/dev/null; then
     echo "Pulling ~/.ssh/config.local from 1Password..."
     op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
     chmod 600 ~/.ssh/config.local
-    echo "Done!"
+
+    echo "Pulling SSH private key from 1Password..."
+    op read "op://dotfiles/oci_key/private key" > ~/.ssh/id_rsa/oci_key
+    chmod 600 ~/.ssh/id_rsa/oci_key
+    
+    echo "Secrets synchronization complete!"
   else
     echo "Error: 1Password CLI (op) not found."
     exit 1

@@ -135,6 +135,19 @@ bindkey '^[[A' up-line-or-search
 bindkey '^[[B' down-line-or-search
 bindkey -e
 
+# --- Completion Settings ---
+# 1. Disable host completion from /etc/hosts and known_hosts
+# 2. Disable system user completion
+zstyle ':completion:*:*:(ssh|scp|sftp):*:hosts' hosts ' '
+zstyle ':completion:*:*:(ssh|scp|sftp):*:users' users ' '
+
+# 3. Force SSH to only use hosts found in ~/.ssh/config (and its Includes)
+zstyle ':completion:*:*:(ssh|scp|sftp):*' tag-order 'hosts'
+zstyle ':completion:*:*:(ssh|scp|sftp):*:hosts' ignored-patterns 'loopback' 'localhost'
+
+# Ensure the completion system knows where to look for hosts if the default is disabled
+[[ -r ~/.ssh/config ]] && zstyle ':completion:*:*:ssh:*' hosts $(grep -iE '^Host ' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '*')
+
 # --- SSH Management ---
 # SSH Agent configuration
 # 1. Set default socket path if not already set
