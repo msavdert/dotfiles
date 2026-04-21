@@ -4,7 +4,7 @@
 # Author: msavdert
 #
 # This script bootstraps a new machine with mise + manual symlinks
-# Usage: curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 
 set -euo pipefail
 

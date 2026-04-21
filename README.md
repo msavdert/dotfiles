@@ -1,42 +1,43 @@
 # 🚀 Modern Dev Space (dotfiles)
 
-A lightweight, high-performance, and **mise-native** development environment designed for cloud workspaces (Dokploy, Docker, etc.).
+A lightweight, high-performance, and **mise-native** development environment designed for cloud workspaces (Dokploy, Docker, etc.) and local development.
 
 ---
 
-## ⚡ Quick One-Liner Setup
-
-If you already have the infrastructure (Docker/Ubuntu) ready, just run:
+## 🚀 Quick Start
+One command to rule them all:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
 ```
 
+## ✨ Highlights
+
+- **User-Space First**: Installs everything to `~/.local/bin`. No root/sudo required.
+- **Idempotent**: Safe to run multiple times; it only installs or updates what's missing.
+- **Modern Stack**: Replaces legacy tools with high-performance alternatives:
+  - **Zellij**: Modern terminal multiplexer
+  - **Neovim**: Hyper-extensible text editor
+  - **1Password CLI**: Secure secret management
+  - **uv**: Blazing fast Python & tool manager
+  - **ripgrep (rg)**: Fast recursive search
+  - **fd & fzf**: Fast find & fuzzy finder
+  - **bat & eza**: Modern `cat` and `ls` replacements
+  - **zoxide**: Smarter `cd` command
+  - **starship**: Minimal, blazing-fast, and infinitely customizable prompt
+  - **btop**: Interactive system monitor
+  - **yazi**: Blazing fast terminal file manager
+  - **yq & jq**: YAML/JSON processors
+  - **Bun**: Fast JavaScript runtime & package manager
+  - **dust & duf**: Modern CLI disk usage tools
+- **Portable**: Consistent experience across Oracle Linux, Ubuntu, macOS, and Debian.
+- **Secure**: Integrated with 1Password Service Accounts for automated secret management.
+
 ---
 
-## 🏗️ Architecture Philosophy
+## 🏗️ Infrastructure Setup (Dokploy/Docker)
 
-1. **Infrastructure Layer (`docker-compose.yml`)**: Handles system packages, locales, timezone, and the default shell. This layer requires root/sudo privileges and sets up the foundation.
-2. **Configuration Layer (`install.sh`)**: Handles dotfiles symlinking, `mise` tool management, and personalized environment settings. This layer is strictly **user-level** and does not require `sudo`.
-
----
-
-## 🛠️ Tooling Stack
-
-- **[Mise](https://mise.jdx.dev/)**: The next-generation tool manager (replaces asdf/direnv).
-- **[Starship](https://starship.rs/)**: Cross-shell lightning-fast prompt.
-- **[Zsh](https://www.zsh.org/)**: The powerful interactive shell.
-- **[Zellij](https://zellij.dev/)**: A modern terminal multiplexer.
-- **[Neovim](https://neovim.io/)**: Modern text editor.
-- **[UV](https://github.com/astral-sh/uv)**: Extremely fast Python package manager.
-- **[Bun](https://bun.sh/)**: All-in-one JavaScript runtime & toolkit.
-- **[Eza](https://github.com/eza-community/eza)** / **[Bat](https://github.com/sharkdp/bat)** / **[Lazygit](https://github.com/jesseduffield/lazygit)**: Modern CLI utilities.
-
----
-
-## 🏁 Infrastructure Setup (Dokploy/Docker)
-
-The environment expects certain system dependencies to be present. Use this `docker-compose.yml` snippet for your Dokploy workspace for optimal results:
+For optimal results in cloud environments, use this `docker-compose.yml` snippet. It sets up the system-level foundations (locales, base packages) before the dotfiles take over the user-level configuration.
 
 ```yaml
 services:
@@ -71,7 +72,6 @@ services:
         touch /home/devuser/.zshrc
 
         # Infrastructure: Launch ttyd with ZSH
-        # Use -E to preserve env vars, -H to set HOME to /home/devuser
         exec sudo -E -H -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
 ```
 
@@ -79,34 +79,20 @@ services:
 
 ## 🔄 Maintenance & Sync
 
-When you push new configurations to your GitHub repository, you can synchronize your workspace without re-running the full installer:
+Keep your environment up to date with a single command:
 
 ```bash
 mise run sync
 ```
-This task will:
-1. `git pull` the latest changes from your repository.
-2. Re-create all symbolic links via `scripts/setup-symlinks.sh`.
-3. Install any new tools added to `mise.toml`.
-4. **Prune** any unused tool versions (automated).
 
----
-
-## 🗄️ File Structure
-
-- `install.sh`: The rootless bootstrap script.
-- `mise.toml`: Tool definitions and custom tasks (e.g., `sync`).
-- `configs/`: Raw configuration files (symlinked to `~/.config/`).
-- `scripts/`: Internal helper scripts for maintaining the system.
-  - `setup-symlinks.sh`: Logic for creating and maintaining config links.
-
----
-
-## 🔐 Security (Mise Trust)
-The installer automatically handles `mise trust` for the dotfiles directory to ensure a seamless experience without security prompts every 
-time you enter a folder or load a task.
+This task automates:
+1.  **Git Pull**: Fetches the latest dotfiles.
+2.  **Symlink Refresh**: Updates all configuration links.
+3.  **Tool Updates**: Installs any new tools defined in `mise.toml`.
+4.  **Pruning**: Removes old tool versions to save space.
 
 ---
 
 ## 📄 License
+
 MIT
