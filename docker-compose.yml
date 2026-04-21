@@ -1,0 +1,20 @@
+services:
+  workspace:
+    build:
+      context: .
+      args:
+        DEV_USER: ${DEV_USER:-savdert}
+    image: ghcr.io/msavdert/dotfiles:latest
+    container_name: dev-workspace
+    ports:
+      - "7681:7681"
+    volumes:
+      - .:/workspace
+      - dev_home:/home/${DEV_USER:-savdert}
+    environment:
+      - OP_SERVICE_ACCOUNT_TOKEN=${OP_SERVICE_ACCOUNT_TOKEN:-}
+    restart: always
+
+volumes:
+  dev_home:
+

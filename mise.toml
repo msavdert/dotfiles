@@ -1,0 +1,15 @@
+[tools]
+neovim = "latest"
+zellij = "latest"
+uv = "latest"
+zoxide = "latest"
+fzf = "latest"
+starship = "latest"
+usage = "latest"
+eza = "latest"
+bat = "latest"
+lazygit = "latest"
+"1password-cli" = "latest"
+
+[settings]
+task.source_freshness_hash_contents = true
