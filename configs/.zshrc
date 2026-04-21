@@ -145,9 +145,16 @@ zstyle ':completion:*:*:(ssh|scp|sftp):*:users' ignored-patterns '*'
 # Use 'command grep' to bypass any aliases (like rg) that might interpret -h as --help
 _my_hosts=($(command grep -ihw '^Host' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '\*' | sort -u))
 
-# 3. Use only our extracted hosts
+# 3. Use only our extracted hosts for Zsh native completion
 zstyle ':completion:*:*:(ssh|scp|sftp):*' hosts $_my_hosts
 zstyle ':completion:*:*:(ssh|scp|sftp):*' tag-order 'hosts'
+
+# 4. Use the same clean list for fzf's fuzzy completion (ssh **)
+_fzf_complete_ssh() {
+  _fzf_complete --height 40% --reverse --border --prompt="🚀 SSH Host > " --preview 'dig {}' -- "$@" < <(
+    printf '%s\n' "${_my_hosts[@]}"
+  )
+}
 
 # --- SSH Management ---
 # SSH Agent configuration
