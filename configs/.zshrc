@@ -146,7 +146,7 @@ zstyle ':completion:*:*:(ssh|scp|sftp):*' tag-order 'hosts'
 zstyle ':completion:*:*:(ssh|scp|sftp):*:hosts' ignored-patterns 'loopback' 'localhost'
 
 # Ensure the completion system knows where to look for hosts if the default is disabled
-[[ -r ~/.ssh/config ]] && zstyle ':completion:*:*:ssh:*' hosts $(grep -iE '^Host ' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '*')
+[[ -r ~/.ssh/config ]] && zstyle ':completion:*:*:ssh:*' hosts $(grep -iE '^Host ' ~/.ssh/config ~/.ssh/config.local 2>/dev/null | awk '{print $2}' | grep -v '\*')
 
 # --- SSH Management ---
 # SSH Agent configuration
