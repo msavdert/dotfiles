@@ -1,0 +1,9 @@
+[user]
+    email = github@savdert.com
+    name = msavdert
+[init]
+    defaultBranch = master
+[github]
+    user = msavdert
+[protocol]
+    allow = always

@@ -33,6 +33,7 @@ setup_symlinks() {
     # Define mappings: source|target
     local links=(
         "$DOTFILES_DIR/configs/.zshrc|$HOME/.zshrc"
+        "$DOTFILES_DIR/configs/.gitconfig|$HOME/.gitconfig"
         "$DOTFILES_DIR/configs/starship.toml|$CONFIG_DIR/starship.toml"
         "$DOTFILES_DIR/configs/nvim|$CONFIG_DIR/nvim"
         "$DOTFILES_DIR/configs/zellij|$CONFIG_DIR/zellij"

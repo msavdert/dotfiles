@@ -135,3 +135,10 @@ bindkey '^[[A' up-line-or-search
 bindkey '^[[B' down-line-or-search
 bindkey -e
 
+# --- GitHub Integration ---
+# Load GitHub API Token from 1Password
+if command -v op >/dev/null; then
+    export GH_TOKEN=$(op read "op://dotfiles/GitHub/admintoken" 2>/dev/null)
+    export GITHUB_TOKEN="$GH_TOKEN"
+fi
+
