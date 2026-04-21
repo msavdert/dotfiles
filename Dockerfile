@@ -55,10 +55,6 @@ USER ${DEV_USER}
 # Install mise for the local user
 RUN curl https://mise.run | sh
 
-# Install tools via mise during the build (caching tools in the image)
-RUN mise trust --quiet && \
-    mise install --yes
-
 # Symlink configurations to the user's home directory
 RUN mkdir -p ${HOME}/.config/zellij ${HOME}/.config/nvim ${HOME}/.config/mise && \
     ln -sf /workspace/configs/.zshrc ${HOME}/.zshrc && \

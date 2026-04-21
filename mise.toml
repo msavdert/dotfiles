@@ -11,12 +11,13 @@ bat = "latest"
 lazygit = "latest"
 "1password-cli" = "latest"
 
+[tasks.bootstrap]
+description = "Initial environment setup and tool installation"
+run = "mise trust && mise install"
+
 [tasks.sync]
-description = "Sync dotfiles from GitHub and update tools"
-run = """
-git pull
-mise install
-"""
+description = "Sync dotfiles and update tools"
+run = "git pull && mise install"
 
 [settings]
 task.source_freshness_hash_contents = true

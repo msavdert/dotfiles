@@ -13,7 +13,14 @@ This image is automatically published to `ghcr.io/msavdert/dotfiles` via GitHub 
 
 ## Local Development
 ```bash
-docker-compose up -d
+docker-compose up -d --build
+docker exec -it dev-workspace zsh -l
 ```
-Access the terminal at `http://localhost:7681`.
+
+### Initial Setup
+Inside the container terminal, run:
+```bash
+mise run bootstrap
+```
+This will install all tools (neovim, node, etc.) defined in `mise.toml`.
 
