@@ -41,7 +41,7 @@ description = "Pull sensitive configurations from 1Password"
 run = """
   if command -v op >/dev/null; then
     echo "Pulling ~/.ssh/config.local from 1Password..."
-    op read "op://dotfiles/ssh/config.local/notesPlain" > ~/.ssh/config.local
+    op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
     chmod 600 ~/.ssh/config.local
     echo "Done!"
   else
