@@ -6,21 +6,6 @@ export LC_ALL=en_US.UTF-8
 # Ensure mise binaries and shims are always in PATH
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
-# --- Mise Activation ---
-if command -v mise &>/dev/null; then
-    eval "$(mise activate zsh)"
-fi
-
-# --- Tools Initialization ---
-# Initialize tools after mise shims are in PATH
-if command -v starship &>/dev/null; then
-    eval "$(starship init zsh)"
-fi
-
-if command -v zoxide &>/dev/null; then
-    eval "$(zoxide init zsh)"
-fi
-
 # --- Aliases ---
 # Editor
 alias v='nvim'
