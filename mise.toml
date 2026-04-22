@@ -28,13 +28,19 @@ claude-code = "latest"
 
 [tasks.sync]
 description = "Sync dotfiles, update tools, and prune unused versions"
+# Sadece bu dosyalar değişirse çalış:
+sources = ["mise.toml", "scripts/setup-symlinks.sh", "configs/.zshrc"]
+# Durumu takip etmek için bir dosya (Mise bunu otomatik yönetir)
+outputs = ["~/.local/state/mise/last_sync"]
 run = """
+  echo "🔄 Syncing dotfiles and updating tools..."
   git -C ~/.dotfiles fetch origin && \
   git -C ~/.dotfiles reset --hard origin/main && \
   chmod +x ~/.dotfiles/scripts/setup-symlinks.sh && \
   ~/.dotfiles/scripts/setup-symlinks.sh && \
   mise install && \
-  mise prune --yes
+  mise prune --yes && \
+  touch ~/.local/state/mise/last_sync
 """
 
 [tasks."secrets:pull"]
