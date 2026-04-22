@@ -24,6 +24,7 @@ gping = "latest"
 gh = "latest"
 yazi = "latest"
 yq = "latest"
+claude-code = "latest"
 
 [tasks.sync]
 description = "Sync dotfiles, update tools, and prune unused versions"
