@@ -28,13 +28,13 @@ claude-code = "latest"
 
 [env]
 # --- GitHub Integration ---
-GH_TOKEN = { run = "op read op://dotfiles/GitHub/admintoken --raw" }
-GITHUB_TOKEN = { run = "op read op://dotfiles/GitHub/admintoken --raw" }
+GH_TOKEN = "{{ exec(command='op read op://dotfiles/GitHub/admintoken --raw') }}"
+GITHUB_TOKEN = "{{ exec(command='op read op://dotfiles/GitHub/admintoken --raw') }}"
 
 # --- Claude Code (OpenRouter) ---
-OPENROUTER_API_KEY = { run = "op read 'op://dotfiles/OpenRouter/general token' --raw" }
+OPENROUTER_API_KEY = "{{ exec(command=\"op read 'op://dotfiles/OpenRouter/general token' --raw\") }}"
 ANTHROPIC_BASE_URL = "https://openrouter.ai/api"
-ANTHROPIC_AUTH_TOKEN = { run = "op read 'op://dotfiles/OpenRouter/general token' --raw" }
+ANTHROPIC_AUTH_TOKEN = "{{ exec(command=\"op read 'op://dotfiles/OpenRouter/general token' --raw\") }}"
 ANTHROPIC_API_KEY = ""
 ANTHROPIC_MODEL = "moonshotai/kimi-k2.6"
 
