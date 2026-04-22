@@ -26,6 +26,18 @@ yazi = "latest"
 yq = "latest"
 claude-code = "latest"
 
+[env]
+# --- GitHub Integration ---
+GH_TOKEN = "{{ exec(command='op read op://dotfiles/GitHub/admintoken --no-newline') }}"
+GITHUB_TOKEN = "{{ exec(command='op read op://dotfiles/GitHub/admintoken --no-newline') }}"
+
+# --- Claude Code (OpenRouter) ---
+OPENROUTER_API_KEY = "{{ exec(command=\"op read 'op://dotfiles/OpenRouter/general token' --no-newline\") }}"
+ANTHROPIC_BASE_URL = "https://openrouter.ai/api"
+ANTHROPIC_AUTH_TOKEN = "{{ exec(command=\"op read 'op://dotfiles/OpenRouter/general token' --no-newline\") }}"
+ANTHROPIC_API_KEY = ""
+ANTHROPIC_MODEL = "moonshotai/kimi-k2.6"
+
 [tasks.sync]
 description = "Sync dotfiles, update tools, and prune unused versions"
 run = """
