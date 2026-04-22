@@ -25,9 +25,7 @@ gh = "latest"
 yazi = "latest"
 yq = "latest"
 claude-code = "latest"
-fnox = "latest"
-
-
+usage = "latest" # for mise completion
 
 [tasks.sync]
 description = "Sync dotfiles, update tools, and prune unused versions"
