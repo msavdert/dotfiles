@@ -78,8 +78,10 @@ alias find='fd'
 alias ping='gping'
 alias tldr='bunx tldr'
 alias msync='mise run sync && exec zsh'
-alias g='git'
-alias lg='lazygit'
+alias g='run_with_secrets git'
+alias lg='run_with_secrets lazygit'
+alias gh='run_with_secrets gh'
+alias claude='run_with_secrets claude'
 
 # --- 8. Tool Integrations & Completions ---
 
@@ -116,7 +118,20 @@ if command -v uv >/dev/null; then
     source <(uv generate-shell-completion zsh)
 fi
 
-# --- 9. Custom Functions ---
+# --- 9. Custom Functions & Secret Wrappers ---
+
+# 1Password Environment Map Path
+export OP_ENV_FILE="$HOME/.config/op/personal.env"
+
+# Secure Secret Wrapper
+# Runs a command with 1Password secrets injected if the env file exists
+run_with_secrets() {
+    if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
+        op run --env-file="$OP_ENV_FILE" -- "$@"
+    else
+        "$@"
+    fi
+}
 
 # Interactive SSH host selector
 ssh() {
@@ -130,18 +145,6 @@ ssh() {
     command ssh "$@"
   fi
 }
-
-# GitHub Lazy Loader
-_load_gh_token() {
-    if [ -z "$GH_TOKEN" ] && command -v op >/dev/null; then
-        echo "🔐 Fetching GitHub token from 1Password..."
-        export GH_TOKEN=$(op read "op://dotfiles/GitHub/admintoken" 2>/dev/null)
-        export GITHUB_TOKEN="$GH_TOKEN"
-    fi
-}
-# Wrappers
-gh() { _load_gh_token; unset -f gh; command gh "$@"; }
-git() { _load_gh_token; unset -f git; command git "$@"; }
 
 # --- 10. Late Load Plugins (Must be last) ---
 zsh_add_plugin "https://github.com/zsh-users/zsh-autosuggestions"

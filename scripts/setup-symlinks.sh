@@ -40,6 +40,7 @@ setup_symlinks() {
         "$DOTFILES_DIR/configs/nvim|$CONFIG_DIR/nvim"
         "$DOTFILES_DIR/configs/zellij|$CONFIG_DIR/zellij"
         "$DOTFILES_DIR/configs/ssh/config|$HOME/.ssh/config"
+        "$DOTFILES_DIR/configs/personal.env|$CONFIG_DIR/op/personal.env"
         "$DOTFILES_DIR/mise.toml|$CONFIG_DIR/mise/config.toml"
     )
 
