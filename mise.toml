@@ -6,7 +6,7 @@ bun = "latest"
 go = "latest"
 uv = "latest"
 rust = "latest"
-cargo-binstall = "latest"  #
+cargo-binstall = "latest"
 java = "latest"
 
 # --- Editors & Multiplexers ---
