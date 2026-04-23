@@ -93,10 +93,8 @@ alias find='fd'
 alias ping='gping'
 alias tldr='bunx tldr'
 alias msync='mise run sync && exec zsh'
-alias g='run_with_secrets git'
-alias lg='run_with_secrets lazygit'
-alias gh='run_with_secrets gh'
-alias claude='run_with_secrets claude'
+alias g='git'
+alias lg='lazygit'
 
 # --- 8. Tool Integrations & Completions ---
 
@@ -133,7 +131,26 @@ if command -v uv >/dev/null; then
     source <(uv generate-shell-completion zsh)
 fi
 
-# --- 9. Custom Functions ---
+# --- 9. Custom Functions & Secret Wrappers ---
+
+# 1Password Environment Map Path
+export OP_ENV_FILE="$HOME/.config/op/personal.env"
+
+# Smart Secret Loader (Lazy-loads all secrets from 1Password once per session)
+_load_all_secrets() {
+    if [ -z "$SECRETS_LOADED" ] && [ -f "$OP_ENV_FILE" ] && command -v op >/dev/null; then
+        echo "🔐 Loading secrets from 1Password..."
+        # Fetch all variables from the env file in one go
+        eval $(op run --env-file="$OP_ENV_FILE" -- env | grep -E "GH_|ANTHROPIC|OPENROUTER" | sed 's/^/export /')
+        export SECRETS_LOADED=1
+    fi
+}
+
+# Wrappers to trigger secret loading on first use
+git() { _load_all_secrets; unset -f git; command git "$@"; }
+gh() { _load_all_secrets; unset -f gh; command gh "$@"; }
+claude() { _load_all_secrets; unset -f claude; command claude "$@"; }
+lazygit() { _load_all_secrets; unset -f lazygit; command lazygit "$@"; }
 
 # Interactive SSH host selector
 ssh() {
