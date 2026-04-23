@@ -32,6 +32,10 @@ compinit
 # Basic completion settings
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colored completion
+zstyle ':completion:*' menu select # Enable arrow key selection
+zstyle ':completion:*:descriptions' format '[%d]' # Beautiful group descriptions
+zstyle ':completion:*:options' description 'yes' # Show options description
+zstyle ':completion:*:options' auto-description '%d'
 
 # --- 6. History & Options ---
 HISTFILE=~/.zsh_history
@@ -92,7 +96,12 @@ fi
 # GitHub CLI Completion
 if command -v gh >/dev/null; then
     eval "$(gh completion -s zsh)"
+    compdef _gh gh
 fi
+
+# Fix completions for other aliased commands
+compdef _git g
+compdef _op op
 
 # FZF (Standard Integration for Ctrl+R)
 if command -v fzf >/dev/null; then
