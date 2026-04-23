@@ -222,6 +222,9 @@ fi
 zsh_add_plugin "https://github.com/zsh-users/zsh-autosuggestions"
 zsh_add_plugin "https://github.com/zsh-users/zsh-syntax-highlighting"
 
+# Autosuggestions color (dim gray)
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=244"
+
 # FZF Tab configuration
 zstyle ':fzf-tab:*' fzf-command fzf
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
