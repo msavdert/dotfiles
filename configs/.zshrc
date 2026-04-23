@@ -26,6 +26,17 @@ run_with_secrets() {
 }
 
 # --- 5. Completion Engine (Standard) ---
+# Create local completions directory
+mkdir -p "$HOME/.zsh/completions"
+
+# Auto-generate gh completion if missing
+if command -v gh >/dev/null && [ ! -f "$HOME/.zsh/completions/_gh" ]; then
+    gh completion -s zsh > "$HOME/.zsh/completions/_gh"
+fi
+
+# Add local completions to fpath (MUST be before compinit)
+fpath=($HOME/.zsh/completions $fpath)
+
 autoload -Uz compinit
 compinit
 
@@ -95,7 +106,6 @@ fi
 
 # GitHub CLI Completion
 if command -v gh >/dev/null; then
-    eval "$(gh completion -s zsh)"
     compdef _gh gh
 fi
 
