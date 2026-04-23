@@ -140,8 +140,22 @@ export OP_ENV_FILE="$HOME/.config/op/personal.env"
 _load_all_secrets() {
     if [ -z "$SECRETS_LOADED" ] && [ -f "$OP_ENV_FILE" ] && command -v op >/dev/null; then
         echo "🔐 Loading secrets from 1Password..."
-        # Fetch all variables from the env file in one go (using 'command grep' to bypass aliases)
-        eval $(op run --env-file="$OP_ENV_FILE" -- env | command grep -E "GH_|ANTHROPIC|OPENROUTER" | sed 's/^/export /')
+        # Read the file line by line and resolve op:// references
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+            
+            local key="${line%%=*}"
+            local value="${line#*=}"
+            
+            if [[ "$value" == op://* ]]; then
+                # Resolve 1Password reference
+                export "$key"=$(op read "$value" --no-newline 2>/dev/null)
+            else
+                # Regular environment variable
+                export "$key"="$value"
+            fi
+        done < "$OP_ENV_FILE"
         export SECRETS_LOADED=1
     fi
 }
