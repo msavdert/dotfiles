@@ -2,6 +2,12 @@
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
+# --- Terminal Compatibility ---
+# Fix 'unknown terminal type' errors for Ghostty users on remote servers
+if [[ "$TERM" == "xterm-ghostty" ]]; then
+  export TERM=xterm-256color
+fi
+
 # --- PATH Setup ---
 # Ensure mise binaries and shims are always in PATH
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
@@ -51,6 +57,20 @@ alias tldr='bunx tldr'
 alias msync='mise run sync && exec zsh'
 alias g='git'
 alias lg='lazygit'
+
+# --- GitHub Integration ---
+# Lazy-load GitHub API Token from 1Password to speed up shell startup
+_load_gh_token() {
+    if [ -z "$GH_TOKEN" ] && command -v op >/dev/null; then
+        echo "🔐 Fetching GitHub token from 1Password..."
+        export GH_TOKEN=$(op read "op://dotfiles/GitHub/admintoken" 2>/dev/null)
+        export GITHUB_TOKEN="$GH_TOKEN"
+    fi
+}
+
+# Wrap gh and git commands to load token on first use
+gh() { _load_gh_token; unset -f gh; command gh "$@"; }
+git() { _load_gh_token; unset -f git; command git "$@"; }
 
 # --- History & Navigation ---
 HISTFILE=~/.zsh_history
@@ -188,20 +208,6 @@ ssh() {
     command ssh "$@"
   fi
 }
-
-# --- GitHub Integration ---
-# Lazy-load GitHub API Token from 1Password to speed up shell startup
-_load_gh_token() {
-    if [ -z "$GH_TOKEN" ] && command -v op >/dev/null; then
-        echo "🔐 Fetching GitHub token from 1Password..."
-        export GH_TOKEN=$(op read "op://dotfiles/GitHub/admintoken" 2>/dev/null)
-        export GITHUB_TOKEN="$GH_TOKEN"
-    fi
-}
-
-# Wrap gh and git commands to load token on first use
-gh() { _load_gh_token; unset -f gh; command gh "$@"; }
-git() { _load_gh_token; unset -f git; command git "$@"; }
 
 # --- Final Configurations ---
 
