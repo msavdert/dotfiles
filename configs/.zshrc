@@ -40,7 +40,7 @@ export OP_ENV_FILE="$HOME/.config/op/personal.env"
 # Runs a command with 1Password secrets injected if the env file exists
 run_with_secrets() {
     if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
-        op run --env-file="$OP_ENV_FILE" -- "$@"
+        op run --no-masking --env-file="$OP_ENV_FILE" -- "$@"
     else
         "$@"
     fi
@@ -93,8 +93,10 @@ alias find='fd'
 alias ping='gping'
 alias tldr='bunx tldr'
 alias msync='mise run sync && exec zsh'
-alias g='git'
-alias lg='lazygit'
+alias g='run_with_secrets git'
+alias lg='run_with_secrets lazygit'
+alias gh='run_with_secrets gh'
+alias claude='run_with_secrets claude'
 
 # --- 8. Tool Integrations & Completions ---
 
@@ -131,40 +133,7 @@ if command -v uv >/dev/null; then
     source <(uv generate-shell-completion zsh)
 fi
 
-# --- 9. Custom Functions & Secret Wrappers ---
-
-# 1Password Environment Map Path
-export OP_ENV_FILE="$HOME/.config/op/personal.env"
-
-# Smart Secret Loader (Lazy-loads all secrets from 1Password once per session)
-_load_all_secrets() {
-    if [ -z "$SECRETS_LOADED" ] && [ -f "$OP_ENV_FILE" ] && command -v op >/dev/null; then
-        echo "🔐 Loading secrets from 1Password..."
-        # Read the file line by line and resolve op:// references
-        while IFS= read -r line || [ -n "$line" ]; do
-            # Skip comments and empty lines
-            [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
-            
-            local key="${line%%=*}"
-            local value="${line#*=}"
-            
-            if [[ "$value" == op://* ]]; then
-                # Resolve 1Password reference
-                export "$key"=$(op read "$value" --no-newline 2>/dev/null)
-            else
-                # Regular environment variable
-                export "$key"="$value"
-            fi
-        done < "$OP_ENV_FILE"
-        export SECRETS_LOADED=1
-    fi
-}
-
-# Wrappers to trigger secret loading on first use
-git() { _load_all_secrets; unset -f git; command git "$@"; }
-gh() { _load_all_secrets; unset -f gh; command gh "$@"; }
-claude() { _load_all_secrets; unset -f claude; command claude "$@"; }
-lazygit() { _load_all_secrets; unset -f lazygit; command lazygit "$@"; }
+# --- 9. Custom Functions ---
 
 # Interactive SSH host selector
 ssh() {
