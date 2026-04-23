@@ -7,9 +7,8 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # --- 2. Terminal & Compatibility ---
-if [[ "$TERM" == "xterm-ghostty" ]]; then
-  export TERM=xterm-256color
-fi
+export TERM="xterm-256color"
+export COLORTERM="truecolor"
 
 # --- 3. PATH Setup ---
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
