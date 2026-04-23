@@ -1,5 +1,5 @@
 # ==============================================================================
-# MSAVDERT ZSH CONFIGURATION
+# MSAVDERT ZSH CONFIGURATION (MINIMAL & FAST)
 # ==============================================================================
 
 # --- 1. Language & Locale ---
@@ -7,37 +7,16 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # --- 2. Terminal & Compatibility ---
-# Fix 'unknown terminal type' errors for Ghostty users on remote servers
 if [[ "$TERM" == "xterm-ghostty" ]]; then
   export TERM=xterm-256color
 fi
 
 # --- 3. PATH Setup ---
-# Ensure mise binaries and shims are always in PATH
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
-# --- 4. Zsh Plugin Manager (Minimal) ---
-zsh_add_plugin() {
-    local plugin_name=$(basename "$1")
-    local plugin_dir="$HOME/.zsh/plugins/$plugin_name"
-    if [ ! -d "$plugin_dir" ]; then
-        echo "📥 Downloading zsh plugin: $plugin_name..."
-        mkdir -p "$HOME/.zsh/plugins"
-        git clone --depth 1 "$1" "$plugin_dir" > /dev/null
-    fi
-    if [ -f "$plugin_dir/$plugin_name.plugin.zsh" ]; then
-        source "$plugin_dir/$plugin_name.plugin.zsh"
-    elif [ -f "$plugin_dir/$plugin_name.zsh" ]; then
-        source "$plugin_dir/$plugin_name.zsh"
-    fi
-}
-
-# --- 5. Secret Wrappers (Must be before Aliases) ---
-# 1Password Environment Map Path
+# --- 4. Secret Wrappers ---
 export OP_ENV_FILE="$HOME/.config/op/personal.env"
 
-# Secure Secret Wrapper
-# Runs a command with 1Password secrets injected if the env file exists
 run_with_secrets() {
     if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
         op run --no-masking --env-file="$OP_ENV_FILE" -- "$@"
@@ -46,22 +25,13 @@ run_with_secrets() {
     fi
 }
 
-# --- 6. Plugins (Early Load) ---
-# fzf-tab must be loaded BEFORE compinit
-zsh_add_plugin "https://github.com/Aloxaf/fzf-tab"
-
-# --- 7. Completion Engine & Styling ---
-fpath=(~/.zsh/completions $fpath)
+# --- 5. Completion Engine (Standard) ---
 autoload -Uz compinit
 compinit
 
-# Zstyle completion styling
+# Basic completion settings
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colored completion
-zstyle ':completion:*' menu select # Visual selection menu
-zstyle ':completion:*:descriptions' format '[%d]'
-zstyle ':fzf-tab:*' fzf-command fzf
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 
 # --- 6. History & Options ---
 HISTFILE=~/.zsh_history
@@ -70,12 +40,9 @@ SAVEHIST=10000
 setopt APPEND_HISTORY
 setopt SHARE_HISTORY
 setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
-setopt HIST_FIND_NO_DUPS
 
 # --- 7. Aliases ---
-# Core
 alias v='nvim'
 alias vi='nvim'
 alias vim='nvim'
@@ -83,7 +50,7 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias mkdir='mkdir -p'
 
-# Modern Replacements (Mise tools)
+# Modern Replacements
 alias ls='eza --icons'
 alias ll='eza -l --icons'
 alias la='eza -la --icons'
@@ -98,7 +65,7 @@ alias lg='run_with_secrets lazygit'
 alias gh='run_with_secrets gh'
 alias claude='run_with_secrets claude'
 
-# --- 8. Tool Integrations & Completions ---
+# --- 8. Tool Integrations ---
 
 # Mise
 if command -v mise >/dev/null; then
@@ -114,23 +81,22 @@ fi
 # Starship (Prompt)
 if command -v starship >/dev/null; then
     eval "$(starship init zsh)"
-    source <(starship completions zsh)
 fi
 
-# 1Password CLI
+# 1Password CLI Completion
 if command -v op >/dev/null; then
     eval "$(op completion zsh)"
     compdef _op op
 fi
 
-# GitHub CLI
+# GitHub CLI Completion
 if command -v gh >/dev/null; then
     eval "$(gh completion -s zsh)"
 fi
 
-# UV
-if command -v uv >/dev/null; then
-    source <(uv generate-shell-completion zsh)
+# FZF (Standard Integration for Ctrl+R)
+if command -v fzf >/dev/null; then
+    source <(fzf --zsh)
 fi
 
 # --- 9. Custom Functions ---
@@ -147,10 +113,3 @@ ssh() {
     command ssh "$@"
   fi
 }
-
-# --- 10. Late Load Plugins (Must be last) ---
-zsh_add_plugin "https://github.com/zsh-users/zsh-autosuggestions"
-zsh_add_plugin "https://github.com/zsh-users/zsh-syntax-highlighting"
-
-# Suggestion style
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=244"
