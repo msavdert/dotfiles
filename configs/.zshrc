@@ -26,27 +26,12 @@ run_with_secrets() {
 }
 
 # --- 5. Completion Engine (Standard) ---
-# Create local completions directory
-mkdir -p "$HOME/.zsh/completions"
-
-# Auto-generate gh completion if missing
-if command -v gh >/dev/null && [ ! -f "$HOME/.zsh/completions/_gh" ]; then
-    gh completion -s zsh > "$HOME/.zsh/completions/_gh"
-fi
-
-# Add local completions to fpath (MUST be before compinit)
-fpath=($HOME/.zsh/completions $fpath)
-
 autoload -Uz compinit
 compinit
 
 # Basic completion settings
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colored completion
-zstyle ':completion:*' menu select # Enable arrow key selection
-zstyle ':completion:*:descriptions' format '[%d]' # Beautiful group descriptions
-zstyle ':completion:*:options' description 'yes' # Show options description
-zstyle ':completion:*:options' auto-description '%d'
 
 # --- 6. History & Options ---
 HISTFILE=~/.zsh_history
@@ -106,12 +91,8 @@ fi
 
 # GitHub CLI Completion
 if command -v gh >/dev/null; then
-    compdef _gh gh
+    eval "$(gh completion -s zsh)"
 fi
-
-# Fix completions for other aliased commands
-compdef _git g
-compdef _op op
 
 # FZF (Standard Integration for Ctrl+R)
 if command -v fzf >/dev/null; then
