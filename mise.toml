@@ -42,18 +42,14 @@ delta = "latest"
 
 # --- AI Tools ---
 claude-code = "latest"
-copilot-cli = "latest"
 gemini-cli = "latest"
 
 # --- Database Tools ---
 usql = "latest"
-#"cargo:rpg" = "latest"
 "http:sqlcl" = {
   version = "26.1.0.086.1709",
   url = 'https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-26.1.0.086.1709.zip',
 }
-
-
 
 # --- Security & Credentials ---
 "1password-cli" = "latest"
@@ -61,9 +57,10 @@ usql = "latest"
 # --- Custom Backend Examples (Reference) ---
 # "npm:prettier" = "latest"                     # Global NPM Package (uses bun if configured)
 # "pipx:black" = "latest"                       # Isolated Python CLI (uses uvx if installed)
-# "cargo:cargo-binstall" = "latest"             # Rust Cargo Package 
+# "cargo:rpg" = "latest"                        # Rust Cargo Package 
 # "go:github.com/DarthSim/hivemind" = "latest"  # Go Binary
 # "github:danielmiessler/fabric" = "latest"     # GitHub Releases
+# "github:github/copilot-cli" = "v1.0.35-6"     # GitHub Releases with tag
 
 [tasks.sync]
 description = "Sync dotfiles, update tools, and prune unused versions"
