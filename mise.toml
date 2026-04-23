@@ -21,6 +21,7 @@ bat = "latest"
 eza = "latest"
 yazi = "latest"
 usage = "latest"
+shellcheck = "latest"
 
 # --- Search & Text Tools ---
 ripgrep = "latest"
