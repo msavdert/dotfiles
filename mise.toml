@@ -46,7 +46,6 @@ gemini-cli = "latest"
 
 # --- Database Tools ---
 usql = "latest"
-"pipx:pgcli" = "latest"
 #"cargo:rpg" = "latest"
 "http:sqlcl" = {
   version = "26.1.0.086.1709",
