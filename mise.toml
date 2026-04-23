@@ -37,7 +37,7 @@ run = """
   mise prune --yes
 """
 
-[tasks."secrets:pull"]
+[tasks."ssh"]
 description = "Pull sensitive configurations and SSH keys from 1Password"
 run = """
   if command -v op >/dev/null; then
@@ -45,9 +45,8 @@ run = """
     op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
     chmod 600 ~/.ssh/config.local
 
-    echo "Pulling SSH private key from 1Password..."
-    op read "op://dotfiles/oci_key/private key" > ~/.ssh/oci_key
-    chmod 600 ~/.ssh/oci_key
+    echo "🔐 Adding OCI SSH key directly to agent..."
+    op read "op://dotfiles/oci_key/private key?ssh-format=openssh" | ssh-add -
     
     echo "Secrets synchronization complete!"
   else
