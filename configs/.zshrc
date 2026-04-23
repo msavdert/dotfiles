@@ -6,6 +6,28 @@ export LC_ALL=en_US.UTF-8
 # Ensure mise binaries and shims are always in PATH
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
+# --- Zsh Plugin Manager (Minimal) ---
+# Function to download and source plugins
+zsh_add_plugin() {
+    local plugin_name=$(basename "$1")
+    local plugin_dir="$HOME/.zsh/plugins/$plugin_name"
+    if [ ! -d "$plugin_dir" ]; then
+        echo "📥 Downloading zsh plugin: $plugin_name..."
+        mkdir -p "$HOME/.zsh/plugins"
+        git clone --depth 1 "$1" "$plugin_dir" > /dev/null
+    fi
+    # Source the plugin (handles different naming conventions)
+    if [ -f "$plugin_dir/$plugin_name.plugin.zsh" ]; then
+        source "$plugin_dir/$plugin_name.plugin.zsh"
+    elif [ -f "$plugin_dir/$plugin_name.zsh" ]; then
+        source "$plugin_dir/$plugin_name.zsh"
+    fi
+}
+
+# --- Plugins (Early Load) ---
+# fzf-tab must be loaded BEFORE compinit
+zsh_add_plugin "https://github.com/Aloxaf/fzf-tab"
+
 # --- Aliases ---
 # Editor
 alias v='nvim'
@@ -54,11 +76,6 @@ zstyle ':completion:*' menu select # Visual selection menu
 zstyle ':completion:*:descriptions' format '[%d]'
 
 # --- Tools Integration ---
-
-# Mise
-if command -v mise >/dev/null; then
-    eval "$(mise activate zsh)"
-fi
 
 # Zoxide
 if command -v zoxide >/dev/null; then
@@ -199,3 +216,12 @@ if command -v op >/dev/null; then
   eval "$(op completion zsh)"
   compdef _op op
 fi
+
+# --- Plugins (Late Load) ---
+# Syntax highlighting and suggestions must be loaded AFTER everything else
+zsh_add_plugin "https://github.com/zsh-users/zsh-autosuggestions"
+zsh_add_plugin "https://github.com/zsh-users/zsh-syntax-highlighting"
+
+# FZF Tab configuration
+zstyle ':fzf-tab:*' fzf-command fzf
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
