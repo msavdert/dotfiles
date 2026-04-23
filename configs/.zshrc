@@ -32,10 +32,25 @@ zsh_add_plugin() {
     fi
 }
 
-# Early load plugins (MUST be before compinit)
+# --- 5. Secret Wrappers (Must be before Aliases) ---
+# 1Password Environment Map Path
+export OP_ENV_FILE="$HOME/.config/op/personal.env"
+
+# Secure Secret Wrapper
+# Runs a command with 1Password secrets injected if the env file exists
+run_with_secrets() {
+    if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
+        op run --env-file="$OP_ENV_FILE" -- "$@"
+    else
+        "$@"
+    fi
+}
+
+# --- 6. Plugins (Early Load) ---
+# fzf-tab must be loaded BEFORE compinit
 zsh_add_plugin "https://github.com/Aloxaf/fzf-tab"
 
-# --- 5. Completion Engine & Styling ---
+# --- 7. Completion Engine & Styling ---
 fpath=(~/.zsh/completions $fpath)
 autoload -Uz compinit
 compinit
@@ -118,20 +133,7 @@ if command -v uv >/dev/null; then
     source <(uv generate-shell-completion zsh)
 fi
 
-# --- 9. Custom Functions & Secret Wrappers ---
-
-# 1Password Environment Map Path
-export OP_ENV_FILE="$HOME/.config/op/personal.env"
-
-# Secure Secret Wrapper
-# Runs a command with 1Password secrets injected if the env file exists
-run_with_secrets() {
-    if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
-        op run --env-file="$OP_ENV_FILE" -- "$@"
-    else
-        "$@"
-    fi
-}
+# --- 9. Custom Functions ---
 
 # Interactive SSH host selector
 ssh() {
