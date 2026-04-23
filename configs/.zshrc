@@ -31,7 +31,7 @@ else
 fi
 
 # --- 5. Secret Wrappers ---
-export OP_ENV_FILE="$HOME/.config/op/personal.env"
+export OP_ENV_FILE="$HOME/.config/personal.env"
 
 run_with_secrets() {
     if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
