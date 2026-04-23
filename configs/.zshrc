@@ -14,7 +14,23 @@ fi
 # --- 3. PATH Setup ---
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
-# --- 4. Secret Wrappers ---
+# --- 4. SSH Agent Management ---
+# Use a fixed socket to prevent multiple agents and stale connections
+export SSH_AUTH_SOCK="$HOME/.ssh/ssh-agent.sock"
+if [ ! -S "$SSH_AUTH_SOCK" ]; then
+    # Start a new agent if the socket doesn't exist
+    eval $(ssh-agent -s -a "$SSH_AUTH_SOCK") > /dev/null
+else
+    # Check if the existing agent is actually responding
+    ssh-add -l > /dev/null 2>&1
+    if [ $? -eq 2 ]; then
+        # Agent is dead, cleanup and restart
+        rm -f "$SSH_AUTH_SOCK"
+        eval $(ssh-agent -s -a "$SSH_AUTH_SOCK") > /dev/null
+    fi
+fi
+
+# --- 5. Secret Wrappers ---
 export OP_ENV_FILE="$HOME/.config/op/personal.env"
 
 run_with_secrets() {
