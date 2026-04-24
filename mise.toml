@@ -14,14 +14,15 @@ neovim = "latest"
 zellij = "latest"
 
 # --- Terminal & Shell Utilities ---
+shellcheck = "latest"
 starship = "latest"
 zoxide = "latest"
+usage = "latest"
 fzf = "latest"
 bat = "latest"
 eza = "latest"
 yazi = "latest"
-usage = "latest"
-shellcheck = "latest"
+"npm:tldr" = "latest"
 
 # --- Search & Text Tools ---
 ripgrep = "latest"
