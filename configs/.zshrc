@@ -29,20 +29,10 @@ else
     fi
 fi
 
-# --- 5. Secret Wrappers ---
-export OP_ENV_FILE="$HOME/.config/personal.env"
-
-run_with_secrets() {
-    if [[ -f "$OP_ENV_FILE" ]] && command -v op >/dev/null; then
-        op run --no-masking --env-file="$OP_ENV_FILE" -- "$@"
-    else
-        "$@"
-    fi
-}
-
 # --- 5. Completion Engine (Standard) ---
 autoload -Uz compinit
 compinit
+export OP_ENV_FILE="$HOME/.config/personal.env"
 
 # Basic completion settings
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
@@ -74,11 +64,6 @@ alias grep='rg'
 alias find='fd'
 alias ping='gping'
 alias msync='mise run sync && exec zsh'
-#alias g='run_with_secrets git'
-#alias lg='run_with_secrets lazygit'
-#alias gh='run_with_secrets gh'
-#alias claude='run_with_secrets claude'
-#alias gemini='run_with_secrets gemini'
 
 # --- 8. Tool Integrations ---
 
