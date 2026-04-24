@@ -32,7 +32,16 @@ fi
 # --- 5. Completion Engine (Standard) ---
 autoload -Uz compinit
 compinit
-export OP_ENV_FILE="$HOME/.config/personal.env"
+
+if [ -f "$HOME/.op_secret.env" ]; then
+    source "$HOME/.op_secret.env"
+fi
+
+if [ -f "$HOME/.config/personal.env" ]; then
+    set -a
+    source "$HOME/.config/personal.env"
+    set +a
+fi
 
 # Basic completion settings
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # Case insensitive
