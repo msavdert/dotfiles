@@ -84,8 +84,12 @@ run = """
     chmod 600 ~/.ssh/config.local
 
     echo "🔐 Adding OCI SSH key directly to agent..."
+    # Private key sadece agent'a gidiyor
     op read "op://dotfiles/oci_key/private key?ssh-format=openssh" | ssh-add -
     
+    # MUHTEŞEM HİLE: Agent'taki key'lerin Public versiyonlarını diske yaz (Tehlikesizdir)
+    ssh-add -L > ~/.ssh/oci_key.pub
+
     echo "Secrets synchronization complete!"
   else
     echo "Error: 1Password CLI (op) not found."
