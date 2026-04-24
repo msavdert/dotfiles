@@ -59,7 +59,7 @@ setopt HIST_IGNORE_SPACE
 
 # --- 7. Aliases ---
 alias v='nvim'
-alias vi='nvim'
+#alias vi='nvim'
 alias vim='nvim'
 alias ..='cd ..'
 alias ...='cd ../..'
