@@ -43,6 +43,7 @@ delta = "latest"
 # --- AI Tools ---
 claude-code = "latest"
 gemini-cli = "latest"
+"npm:@kilocode/cli" = "latest" 
 
 # --- Database Tools ---
 usql = "latest"
