@@ -76,26 +76,42 @@ run = """
 """
 
 [tasks."ssh"]
-description = "Pull sensitive configurations and SSH keys from 1Password"
+description = "Pull all SSH keys from 1Password and sync public keys"
 run = """
   if command -v op >/dev/null; then
-    echo "Pulling ~/.ssh/config.local from 1Password..."
+    # 1. SSH Config'i çek
+    echo "Pulling ~/.ssh/config.local..."
     op read "op://dotfiles/texts/ssh_config.local" > ~/.ssh/config.local
     chmod 600 ~/.ssh/config.local
 
-    echo "🔐 Adding OCI SSH key directly to agent..."
-    # Private key sadece agent'a gidiyor
-    op read "op://dotfiles/oci_key/private key?ssh-format=openssh" | ssh-add -
-    
-    # MUHTEŞEM HİLE: Agent'taki key'lerin Public versiyonlarını diske yaz (Tehlikesizdir)
-    ssh-add -L > ~/.ssh/oci_key.pub
+    # 2. Key listesini tanımla (SADECE BURASI DEĞİŞTİ: Array yerine tırnak içinde liste)
+    KEYS="oci hetzner github"
 
-    echo "Secrets synchronization complete!"
+    for KEY in $KEYS; do
+      echo "🔐 Handling $KEY..."
+
+      # 1Password'den private key'i oku
+      PRIV=$(op read "op://dotfiles/$KEY/private key?ssh-format=openssh" 2>/dev/null)
+
+      if [ -n "$PRIV" ]; then
+        # Agent'a ekle
+        echo "$PRIV" | ssh-add -
+        
+        # Public key üret ve diske yaz
+        echo "$PRIV" | ssh-keygen -y -f /dev/stdin > ~/.ssh/$KEY.pub
+        chmod 600 ~/.ssh/$KEY.pub
+        echo "✅ $KEY synchronized."
+      else
+        echo "⚠️  Warning: $KEY not found in 1Password (op://dotfiles/$KEY/...)"
+      fi
+    done
+    echo "🚀 All keys handled successfully!"
   else
-    echo "Error: 1Password CLI (op) not found."
+    echo "❌ Error: 1Password CLI (op) not found."
     exit 1
   fi
 """
+
 
 [settings]
 task.source_freshness_hash_contents = true
