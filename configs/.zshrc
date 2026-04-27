@@ -35,12 +35,13 @@ compinit
 
 if [ -f "$HOME/.op_secret.env" ]; then
     source "$HOME/.op_secret.env"
-fi
 
-if [ -f "$HOME/.config/personal.env" ]; then
-    set -a
-    source "$HOME/.config/personal.env"
-    set +a
+    if [ -f "$HOME/.config/personal.env" ]; then
+        set -a
+        source "$HOME/.config/personal.env"
+        set +a
+    fi
+
 fi
 
 # Basic completion settings
