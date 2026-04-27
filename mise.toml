@@ -56,6 +56,13 @@ usql = "latest"
 # --- Security & Credentials ---
 "1password-cli" = "latest"
 
+# --- Devops & Infra ---
+terraform = "latest"
+kubectl = "latest"
+helm = "latest"
+helmfile = "latest"
+talosctl = "latest"
+
 # --- Custom Backend Examples (Reference) ---
 # "npm:prettier" = "latest"                     # Global NPM Package (uses bun if configured)
 # "pipx:black" = "latest"                       # Isolated Python CLI (uses uvx if installed)
