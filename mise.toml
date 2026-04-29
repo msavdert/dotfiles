@@ -58,6 +58,7 @@ usql = "latest"
 
 # --- Devops & Infra ---
 opentofu = "latest"
+terraform = "latest"
 kubectl = "latest"
 helm = "latest"
 helmfile = "latest"
