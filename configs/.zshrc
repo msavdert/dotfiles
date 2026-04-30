@@ -76,7 +76,9 @@ alias ping='gping'
 alias msync='mise run sync && exec zsh'
 
 # Tunnels
-alias k8st='ssh -f -N -L 6443:10.0.0.2:6443 proxmox'
+alias ksync='mise run kubectl:homelab && ssh -f -N -L 6445:10.0.0.2:6443 proxmox
+export KUBECONFIG=~/.kubeconfig.homelab.yaml
+alias k8st='ssh -f -N -L 6445:10.0.0.2:6443 proxmox'
 
 # --- 8. Tool Integrations ---
 
