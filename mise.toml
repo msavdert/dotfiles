@@ -120,6 +120,11 @@ run = """
   fi
 """
 
+[tasks."kubectl:homelab"]
+description = "Pull kubeconfig from 1Password"
+run = """
+  op read "op://dotfiles/texts/homelab-kubeconfig" > ~/.kubeconfig.homelab.yaml
+"""
 
 [settings]
 task.source_freshness_hash_contents = true
