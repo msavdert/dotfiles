@@ -75,6 +75,9 @@ alias find='fd'
 alias ping='gping'
 alias msync='mise run sync && exec zsh'
 
+# Tunnels
+alias k8st='ssh -f -N -L 6443:10.0.0.2:6443 proxmox'
+
 # --- 8. Tool Integrations ---
 
 # Mise
