@@ -31,7 +31,7 @@ jq = "latest"
 yq = "latest"
 
 # --- System & Network Utilities ---
-btop = "latest"
+#btop = "latest"
 duf = "latest"
 dust = "latest"
 gping = "latest"
@@ -43,8 +43,8 @@ delta = "latest"
 
 # --- AI Tools ---
 claude-code = "latest"
-gemini-cli = "latest"
-"npm:@kilocode/cli" = "latest" 
+#gemini-cli = "latest"
+#"npm:@kilocode/cli" = "latest" 
 
 # --- Database Tools ---
 usql = "latest"
@@ -57,12 +57,15 @@ usql = "latest"
 "1password-cli" = "latest"
 
 # --- Devops & Infra ---
-opentofu = "latest"
+#opentofu = "latest"
 terraform = "latest"
 kubectl = "latest"
 helm = "latest"
 helmfile = "latest"
 talosctl = "latest"
+k9s = "latest"
+cilium-cli = "latest"
+argocd = "latest"
 
 # --- Custom Backend Examples (Reference) ---
 # "npm:prettier" = "latest"                     # Global NPM Package (uses bun if configured)
