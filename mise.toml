@@ -1,4 +1,6 @@
 [tools]
+gh = "latest"
+
 # --- Core Languages & Runtimes ---
 python = "latest"
 node = "latest"
@@ -38,7 +40,6 @@ gping = "latest"
 
 # --- Version Control & Dev Tools ---
 lazygit = "latest"
-gh = "latest"
 delta = "latest"
 
 # --- AI Tools ---
