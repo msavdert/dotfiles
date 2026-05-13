@@ -90,8 +90,9 @@ run = """
 [tasks."kubectl:homelab"]
 description = "Pull kubeconfig from 1Password"
 run = """
-  mkdir -p ~/.kube
+  mkdir -p ~/.kube ~/.talos
   op read "op://dotfiles/texts/homelab-kubeconfig" > ~/.kube/config
+  op read "op://dotfiles/texts/homelab-talosconfig" > ~/.talos/config
 """
 
 [settings]
