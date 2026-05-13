@@ -33,15 +33,16 @@ fi
 autoload -Uz compinit
 compinit
 
-if [ -f "$HOME/.op_secret.env" ]; then
-    source "$HOME/.op_secret.env"
+if [ -f "$HOME/.op_secret.env" ] || [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+    if [ -f "$HOME/.op_secret.env" ]; then
+        source "$HOME/.op_secret.env"
+    fi
 
     if [ -f "$HOME/.config/personal.env" ]; then
         set -a
         source "$HOME/.config/personal.env"
         set +a
     fi
-
 fi
 
 # Basic completion settings
@@ -75,10 +76,19 @@ alias find='fd'
 alias ping='gping'
 alias msync='mise run sync && exec zsh'
 
-# Tunnels
-alias ksync='mise run kubectl:homelab && ssh -f -N -L 6445:10.0.0.2:6443 proxmox'
-export KUBECONFIG=~/.kubeconfig.homelab.yaml
-alias k8st='ssh -f -N -L 6445:10.0.0.2:6443 proxmox'
+# --- 8. Kubernetes ---
+alias k='kubectl'
+alias kg='kubectl get'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get svc'
+alias kgd='kubectl get deploy'
+alias kgn='kubectl get nodes'
+alias kd='kubectl describe'
+alias kl='kubectl logs'
+alias klf='kubectl logs -f'
+alias kex='kubectl exec -it'
+alias kns='kubectl config set-context --current --namespace'
+alias kctx='kubectl config use-context'
 
 # --- 8. Tool Integrations ---
 
@@ -96,6 +106,32 @@ fi
 # Starship (Prompt)
 if command -v starship >/dev/null; then
     eval "$(starship init zsh)"
+fi
+
+# Kubernetes & Infra Tools Completion
+if command -v kubectl >/dev/null; then
+    source <(kubectl completion zsh)
+    compdef __start_kubectl k
+fi
+
+if command -v talosctl >/dev/null; then
+    source <(talosctl completion zsh)
+fi
+
+if command -v helm >/dev/null; then
+    source <(helm completion zsh)
+fi
+
+if command -v helmfile >/dev/null; then
+    source <(helmfile completion zsh)
+fi
+
+if command -v cilium >/dev/null; then
+    source <(cilium completion zsh)
+fi
+
+if command -v argocd >/dev/null; then
+    source <(argocd completion zsh)
 fi
 
 # 1Password CLI Completion
