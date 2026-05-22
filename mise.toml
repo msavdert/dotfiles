@@ -45,7 +45,7 @@ delta = "latest"
 # --- AI Tools ---
 claude-code = "latest"
 #gemini-cli = "latest"
-#"npm:@kilocode/cli" = "latest" 
+"npm:@kilocode/cli" = "latest" 
 # "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:@earendil-works/pi-coding-agent" = { version = "latest", npm_args = "--ignore-scripts" }
 
