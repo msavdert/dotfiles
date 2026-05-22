@@ -182,3 +182,11 @@ zs() {
     fi
 }
 
+# --- 11. Zsh Plugins ---
+# Zero-dependency syntax highlighting and auto-suggestions
+PLUGINS_DIR="$HOME/.local/share/zsh-plugins"
+if [ -d "$PLUGINS_DIR" ]; then
+    source "$PLUGINS_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" 2>/dev/null
+    source "$PLUGINS_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
+fi
+

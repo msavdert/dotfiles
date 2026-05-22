@@ -145,6 +145,31 @@ install_tools() {
     fi
 }
 
+install_zsh_plugins() {
+    log_step "Installing Zsh Plugins (syntax highlighting & autosuggestions)"
+    
+    local plugins_dir="$HOME/.local/share/zsh-plugins"
+    mkdir -p "$plugins_dir"
+    
+    local plugins=(
+        "zsh-users/zsh-syntax-highlighting"
+        "zsh-users/zsh-autosuggestions"
+    )
+    
+    for plugin in "${plugins[@]}"; do
+        local name="${plugin##*/}"
+        local target="$plugins_dir/$name"
+        
+        if [ -d "$target" ]; then
+            log "Plugin $name is already installed, pulling updates"
+            git -C "$target" pull
+        else
+            log "Cloning $plugin to $target"
+            git clone --depth 1 "https://github.com/$plugin.git" "$target"
+        fi
+    done
+}
+
 print_summary() {
     echo ""
     echo "======================================================================"
@@ -185,6 +210,7 @@ main() {
 
     setup_symlinks
     install_tools
+    install_zsh_plugins
     print_summary
 }
 

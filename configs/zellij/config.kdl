@@ -12,7 +12,7 @@ styled_underlines true
 scroll_buffer_size 30000
 
 // macOS terminal clipboard integration
-copy_command "pbcopy"
+// copy_command "pbcopy"
 
 keybinds {
     normal {

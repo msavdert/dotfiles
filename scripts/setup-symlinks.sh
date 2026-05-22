@@ -69,7 +69,7 @@ setup_symlinks() {
             fi
 
             log "Linking $src -> $dst"
-            ln -sf "$src" "$dst"
+            ln -sfn "$src" "$dst"
         else
             log_warn "Source file $src not found, skipping..."
         fi
