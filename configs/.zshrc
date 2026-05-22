@@ -164,3 +164,21 @@ ssh() {
     command ssh "$@"
   fi
 }
+
+# --- 10. Zellij Sessionizer ---
+# Interactive Zellij session manager using fzf and zoxide
+zs() {
+    if ! command -v zellij >/dev/null; then
+        echo "Error: zellij is not installed."
+        return 1
+    fi
+    local dir
+    dir=$(zoxide query -l | fzf --height 40% --reverse --border --prompt="📂 Zellij Session > ")
+    if [ -n "$dir" ]; then
+        local session_name
+        session_name=$(basename "$dir" | tr '.' '_')
+        # Attach to existing session or create a new one within selected directory
+        zellij attach "$session_name" options --default-cwd "$dir" || zellij --session "$session_name" options --default-cwd "$dir"
+    fi
+}
+
