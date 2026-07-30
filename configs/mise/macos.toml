@@ -1,0 +1,20 @@
+# =============================================================================
+# macOS tool manifest  ->  symlinked to ~/.config/mise/config.toml
+# =============================================================================
+# Deliberately tiny. macOS is a CLIENT, not a workshop: it opens a terminal,
+# unlocks secrets and connects to the devbox. Everything else lives in the
+# container image (configs/mise/devbox.toml).
+#
+# Before adding a tool here, ask: "do I need this on the laptop itself, or do I
+# need it where the code is?" The second answer belongs in devbox.toml.
+# See docs/01-macos-setup.md for the reasoning.
+# =============================================================================
+
+[tools]
+gh   = "latest"     # gh auth git-credential is used by ~/.gitconfig
+jq   = "latest"     # ad-hoc JSON on the host
+fzf  = "latest"     # host-side fuzzy pickers (ssh selector)
+ripgrep = "latest"  # searching this repo without opening the devbox
+
+[settings]
+npm.package_manager = "bun"

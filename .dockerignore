@@ -1,0 +1,5 @@
+*
+!configs/
+configs/mise/macos.toml
+**/.DS_Store
+**/*.bak

@@ -22,18 +22,24 @@ opt.splitbelow = true
 -- Clipboard integration
 opt.clipboard = "unnamedplus"
 
--- Use OSC 52 for clipboard (works over SSH, Docker, and Zellij)
-if vim.fn.has("nvim-0.10") == 1 then
+-- Clipboard over OSC 52.
+--
+-- Only when there is no local clipboard to talk to - i.e. inside the devbox
+-- container or over ssh. Forcing OSC 52 on a local machine hijacks yanks away
+-- from pbcopy/wl-copy and breaks paste, because most terminals refuse OSC 52
+-- *reads* for security reasons.
+local function is_remote()
+  return vim.env.SSH_TTY ~= nil
+    or vim.env.SSH_CONNECTION ~= nil
+    or vim.fn.filereadable("/.dockerenv") == 1
+end
+
+if is_remote() then
+  local osc52 = require("vim.ui.clipboard.osc52")
   vim.g.clipboard = {
     name = "OSC 52",
-    copy = {
-      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-    },
-    paste = {
-      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
-    },
+    copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+    paste = { ["+"] = osc52.paste("+"), ["*"] = osc52.paste("*") },
   }
 end
 

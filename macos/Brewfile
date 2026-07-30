@@ -1,0 +1,30 @@
+# =============================================================================
+# macOS package manifest - the complete list of what may exist on this Mac
+# =============================================================================
+# `macos/setup.sh` runs `brew bundle --cleanup`, which UNINSTALLS anything not
+# listed here. That is the point: the Mac cannot silently accumulate leftovers
+# from experiments any more. If you install something with `brew install` and
+# want to keep it, add it to this file - otherwise the next setup run removes it.
+#
+# Development tools do NOT belong here. They belong in configs/mise/devbox.toml
+# and live inside the container. See docs/01-macos-setup.md.
+# =============================================================================
+
+# --- Terminal ----------------------------------------------------------------
+cask "ghostty"                  # GPU terminal, native ssh + good terminfo
+
+# --- Secrets -----------------------------------------------------------------
+cask "1password"                # also provides the SSH agent used by ~/.ssh/config.macos
+cask "1password-cli"            # `op` - needed by the op run wrappers
+
+# --- Containers --------------------------------------------------------------
+cask "orbstack"                 # Docker runtime; lets you run the devbox image locally
+
+# --- Fonts -------------------------------------------------------------------
+cask "font-jetbrains-mono-nerd-font"   # icons used by eza/starship/nvim
+
+# --- CLI ---------------------------------------------------------------------
+# Only what the HOST needs. `mise` bootstraps everything else, and even that
+# list (configs/mise/macos.toml) is four tools long.
+brew "mise"
+brew "git"                      # newer than Apple's, and needed before mise exists

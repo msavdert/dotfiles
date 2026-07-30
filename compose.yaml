@@ -1,0 +1,68 @@
+# =============================================================================
+# devbox deployment (VPS, and locally on OrbStack/Docker Desktop)
+# =============================================================================
+#   VPS:    docker compose pull && docker compose up -d
+#   Local:  docker compose up -d --build
+#
+# Full explanation, including why the home directory is NOT a single volume:
+# docs/03-vps-deployment.md
+# =============================================================================
+
+services:
+  devbox:
+    image: ghcr.io/msavdert/devbox:latest
+    # Uncomment to build from this checkout instead of pulling the published
+    # image (useful while iterating on the Dockerfile).
+    # build: .
+    container_name: devbox
+    hostname: devbox
+    restart: unless-stopped
+
+    # Reap zombies. The container runs `sleep infinity` as PID 1 and every
+    # `docker exec` session parents processes under it.
+    init: true
+
+    # Long-running interactive sessions need these; without them `docker exec`
+    # works but the container itself has no stdin.
+    stdin_open: true
+    tty: true
+
+    environment:
+      TZ: ${TZ:-Europe/Istanbul}
+      # The ONLY secret handed to the container. Everything else is resolved
+      # on demand by `op run` - see docs/05-secrets.md.
+      OP_SERVICE_ACCOUNT_TOKEN: ${OP_SERVICE_ACCOUNT_TOKEN:?set it in .env next to this file}
+
+    volumes:
+      # Deliberately narrow. Mounting all of /home/dev would shadow the configs
+      # and toolchain baked into the image, so image upgrades would silently
+      # stop taking effect.
+      - work:/home/dev/work                  # your code
+      - state:/home/dev/.local/state         # shell history, zellij sessions
+      - kube:/home/dev/.kube                 # `mise run kube:homelab` output
+
+      # Optional: talk to the host's Docker daemon from inside the devbox.
+      # - /var/run/docker.sock:/var/run/docker.sock
+
+      # Optional: forward the SSH agent from the VPS host into the container so
+      # you can ssh onwards to other machines. Requires a fixed socket path on
+      # the host; see docs/05-secrets.md ("Outbound SSH from the devbox").
+      # - ${SSH_AUTH_SOCK}:/ssh-agent
+      # and add:  SSH_AUTH_SOCK: /ssh-agent   to `environment:` above.
+
+    # A runaway build or test run should not take the whole VPS down with it.
+    deploy:
+      resources:
+        limits:
+          memory: ${DEVBOX_MEMORY_LIMIT:-8g}
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  work:
+  state:
+  kube:

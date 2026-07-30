@@ -1,0 +1,100 @@
+# =============================================================================
+# devbox tool manifest  ->  baked into the container image at BUILD time
+# =============================================================================
+# This file is COPYed to /home/dev/.config/mise/config.toml inside the image and
+# `mise install` runs during `docker build`. Nothing here is downloaded at
+# container start-up. Changing this file means rebuilding the image.
+#
+# Version policy (see docs/06-maintenance.md):
+#   - Language runtimes are pinned to a MAJOR version. A silent major bump
+#     breaks virtualenvs, node_modules and compiled artifacts.
+#   - CLI tools track "latest". They are re-resolved only when the image is
+#     rebuilt, and the resulting image digest is what actually pins them.
+# =============================================================================
+
+[tools]
+
+# --- Language runtimes (pinned: major bumps are breaking changes) ---
+python = "3.14"
+node   = "24"
+go     = "1.26"
+java   = "temurin-24"
+rust   = "latest"
+bun    = "latest"
+uv     = "latest"
+cargo-binstall = "latest"
+
+# --- Editor & multiplexer ---
+neovim = "latest"
+zellij = "latest"
+
+# --- Shell & terminal utilities ---
+starship   = "latest"
+zoxide     = "latest"
+fzf        = "latest"
+bat        = "latest"
+eza        = "latest"
+yazi       = "latest"
+usage      = "latest"          # required by `mise completion zsh`
+shellcheck = "latest"
+"npm:tldr" = "latest"
+
+# --- Search & text processing ---
+ripgrep = "latest"
+fd      = "latest"
+jq      = "latest"
+yq      = "latest"
+
+# --- System & network ---
+duf   = "latest"
+dust  = "latest"
+gping = "latest"
+btop  = "latest"
+
+# --- Version control ---
+gh      = "latest"
+lazygit = "latest"
+delta   = "latest"
+
+# --- Secrets ---
+"1password-cli" = "latest"
+
+# --- AI tooling ---
+claude-code = "latest"
+"npm:@kilocode/cli" = "latest"
+"npm:@earendil-works/pi-coding-agent" = { version = "latest", npm_args = "--ignore-scripts" }
+
+# --- Kubernetes & infrastructure ---
+kubectl    = "latest"
+helm       = "latest"
+helmfile   = "latest"
+k9s        = "latest"
+talosctl   = "latest"
+cilium-cli = "latest"
+argocd     = "latest"
+terraform  = "latest"
+
+# --- Databases ---
+usql = "latest"
+"http:sqlcl" = { version = "26.1.0.086.1709", url = "https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-26.1.0.086.1709.zip" }
+
+# =============================================================================
+# Tasks
+# =============================================================================
+
+[tasks."completions:regen"]
+description = "Regenerate the shell completion cache in ~/.local/share/zsh/completions"
+run = "~/.config/zsh/regen-completions.zsh"
+
+[tasks."kube:homelab"]
+description = "Pull kubeconfig + talosconfig from 1Password into ~/.kube and ~/.talos"
+run = """
+mkdir -p ~/.kube ~/.talos
+op read "op://dotfiles/texts/homelab-kubeconfig"  > ~/.kube/config
+op read "op://dotfiles/texts/homelab-talosconfig" > ~/.talos/config
+chmod 600 ~/.kube/config ~/.talos/config
+"""
+
+[settings]
+npm.package_manager = "bun"
+task.source_freshness_hash_contents = true

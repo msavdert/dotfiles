@@ -1,36 +1,85 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
-## Common Commands
+## What this repo is
 
-- **Bootstrap a fresh machine:** `curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash`
-- **Sync everything (pull, symlinks, tools, prune):** `mise run sync`
-- **Refresh symlinks only:** `./scripts/setup-symlinks.sh`
-- **Install/update tools:** `mise install`
-- **Prune old tool versions:** `mise prune --yes`
-- **Pull secrets from 1Password:** `mise run secrets:pull`
-- **Update Neovim plugins:** Inside nvim, run `:Lazy sync`
+Two tiers, one repo:
 
-## Architecture
+- **Tier 0 — macOS thin client.** A terminal, 1Password, OrbStack and four CLI
+  tools. Declared in `macos/Brewfile` and `configs/mise/macos.toml`, applied by
+  `macos/setup.sh`.
+- **Tier 1 — devbox container.** Everything else: language runtimes, neovim,
+  zellij, kubernetes tooling, AI CLIs. Declared in `configs/mise/devbox.toml`,
+  baked into `Dockerfile`, published to `ghcr.io/msavdert/devbox`, deployed with
+  `compose.yaml`.
 
-### mise-Native Tool Management
-`mise.toml` is the single source of truth for all user-space tools (neovim, zellij, uv, fzf, starship, etc.). It is symlinked to `~/.config/mise/config.toml` by `setup-symlinks.sh`. The `[tasks.sync]` task is the primary maintenance workflow: it hard-resets the repo from `origin/main`, refreshes symlinks, installs tools, and prunes unused versions.
+Full rationale and decision records: `docs/00-architecture.md`.
 
-### Bootstrap & Symlinks
-- `bootstrap.sh` is designed to be piped from GitHub. It clones the repo, installs mise, runs `setup-symlinks.sh`, and installs tools.
-- `scripts/setup-symlinks.sh` is idempotent and creates timestamped backups (e.g., `.20250101120000.bak`) before overwriting any existing file or directory.
-- Symlinked targets include: `~/.zshrc`, `~/.gitconfig`, `~/.config/starship.toml`, `~/.config/nvim`, `~/.config/zellij`, `~/.ssh/config`, and `~/.config/mise/config.toml`.
+## Common commands
 
-### Neovim Configuration
-The config is built on LazyVim. The entrypoint is `configs/nvim/init.lua` which requires `config.lazy`. Custom plugins and overrides live in `configs/nvim/lua/plugins/` and `configs/nvim/lua/config/`. The `lazyvim.json` file tracks enabled LazyVim extras (e.g., copilot). Do not manually edit `lazy-lock.json`.
+| Task | Command |
+|---|---|
+| Provision macOS | `./macos/setup.sh` (`DRY_RUN=1`, `--links-only`, `CLEANUP=1`) |
+| Build image locally | `docker build -t devbox .` |
+| Run image locally | `docker run -it --rm ghcr.io/msavdert/devbox:latest zsh` |
+| Deploy / update VPS | `docker compose pull && docker compose up -d` |
+| Connect | `ssh dev` |
+| Regenerate completions | `mise run completions:regen` |
+| Pull kubeconfig | `mise run kube:homelab` |
+| Lint | `shellcheck macos/setup.sh` · `zsh -n configs/zsh/.zshrc` |
 
-### Secret Management
-1Password CLI (`op`) is required for secret management. The `secrets:pull` task fetches `~/.ssh/config.local` and an SSH private key from 1Password vault items. The `OP_SERVICE_ACCOUNT_TOKEN` environment variable must be set for non-interactive use. The `~/.zshrc` lazy-loads the GitHub token on first invocation of `gh` or `git`.
+## Invariants — do not break these
 
-### SSH Integration
-The `~/.zshrc` configures an auto-starting SSH agent on a fixed socket (`~/.ssh/ssh-agent.sock`) and provides an interactive `ssh()` wrapper that launches an `fzf` host selector when called without arguments. SSH hosts for completion are extracted from `~/.ssh/config` and `~/.ssh/config.local`.
+1. **No runtime bootstrapping.** Tools are installed during `docker build`.
+   Never add a step that downloads a toolchain when a container starts.
+2. **No secrets in the environment.** Never add `export SOME_TOKEN=...` or an
+   eager `op read` to `.zshrc`. Secrets are injected per-command via `op run`
+   using the `op://` references in `configs/op-env/*.env`. Those files must never
+   contain a value.
+3. **Shell start-up does no work.** No network calls, no
+   `source <(tool completion zsh)`, no subprocess-per-tool. Completions are
+   pre-generated into `~/.local/share/zsh/completions` by
+   `configs/zsh/regen-completions.zsh`.
+4. **Modern tools do not shadow POSIX names.** No `alias grep='rg'`. zsh expands
+   aliases inside function bodies at definition time, which silently rewrites
+   the functions in `.zshrc`. Use `command` prefixes inside functions.
+5. **Persist narrowly.** `compose.yaml` mounts only `~/work`,
+   `~/.local/state` and `~/.kube`. Mounting `/home/dev` would shadow the image's
+   configs and make upgrades ineffective.
+6. **Don't put dev tools on macOS.** If something is needed for coding, it goes
+   in `configs/mise/devbox.toml`, not `macos/Brewfile`.
+7. **Update docs in the same commit as the behaviour.** The previous version of
+   this file documented a task that didn't exist and a mechanism that had been
+   replaced.
 
-### Zellij & Starship
-- Zellij config (`configs/zellij/config.kdl`) uses the `catppuccin-mocha` theme with `simplified_ui true` and `default_layout "compact"`.
-- Starship config (`configs/starship.toml`) is a standalone TOML file symlinked to `~/.config/starship.toml`.
+## Layout
+
+```
+Dockerfile                        image definition (tier 1)
+compose.yaml                      VPS deployment
+macos/{Brewfile,setup.sh}         tier 0
+configs/
+  mise/{devbox,macos}.toml        toolchains, split by tier
+  zsh/{.zshenv,.zshrc,regen-completions.zsh}
+  op/*.env                        op:// references only
+  nvim/ zellij/                   tier 1 only (not linked on macOS)
+  git/config ssh/config* starship.toml
+.github/workflows/build.yml       native multi-arch build → ghcr.io
+docs/00..07                       architecture through troubleshooting
+docs/reference/                   zellij keybindings, mise backends
+```
+
+## Conventions
+
+- **zsh configs**: guard every tool with `(( $+commands[x] ))` — the same
+  `.zshrc` runs on macOS and in the container.
+- **Version policy**: language runtimes pinned to a major version, CLI tools on
+  `latest` (re-resolved only at image build; the digest is the real pin). See
+  `docs/06-maintenance.md`.
+- **Neovim**: LazyVim. `configs/nvim/lazy-lock.json` is committed and installed
+  with `Lazy! restore` at build time — update it deliberately, don't let builds
+  drift.
+- **Shell scripts**: bash with `set -euo pipefail`, shellcheck-clean.
+- **Dockerfile**: keep the expensive `mise install` in its own layer, below the
+  system layer and above the config layers.

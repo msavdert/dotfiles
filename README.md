@@ -1,99 +1,103 @@
-# 🚀 Modern Dev Space (dotfiles)
+# dotfiles
 
-A lightweight, high-performance, and **mise-native** development environment designed for cloud workspaces (Dokploy, Docker, etc.) and local development.
+A **thin macOS client** and a **containerised development environment**.
 
----
+The laptop stays clean — a terminal, 1Password, and four CLI tools, all
+declared in a manifest that removes anything not on it. The real work happens
+inside a container image with the whole toolchain baked in, running on a VPS,
+one `ssh dev` away.
 
-## 🚀 Quick Start
-One command to rule them all:
+```
+macOS (thin client)  ──ssh dev──▶  devbox container (VPS)
+ghostty · 1Password                languages · nvim · zellij
+orbstack · mise ×4                 kubernetes · AI CLIs
+macos/Brewfile                     ghcr.io/msavdert/devbox
+```
+
+## Quick start
+
+**macOS**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/msavdert/dotfiles/main/bootstrap.sh | bash
+git clone https://github.com/msavdert/dotfiles.git ~/dotfiles
+cd ~/dotfiles && ./macos/setup.sh
 ```
 
-## ✨ Highlights
-
-- **User-Space First**: Installs everything to `~/.local/bin`. No root/sudo required.
-- **Idempotent**: Safe to run multiple times; it only installs or updates what's missing.
-- **Modern Stack**: Replaces legacy tools with high-performance alternatives:
-  - **Zellij**: Modern terminal multiplexer
-  - **Neovim**: Hyper-extensible text editor
-  - **1Password CLI**: Secure secret management
-  - **uv**: Blazing fast Python & tool manager
-  - **ripgrep (rg)**: Fast recursive search
-  - **fd & fzf**: Fast find & fuzzy finder
-  - **bat & eza**: Modern `cat` and `ls` replacements
-  - **zoxide**: Smarter `cd` command
-  - **starship**: Minimal, blazing-fast, and infinitely customizable prompt
-  - **btop**: Interactive system monitor
-  - **yazi**: Blazing fast terminal file manager
-  - **yq & jq**: YAML/JSON processors
-  - **Bun**: Fast JavaScript runtime & package manager
-  - **dust & duf**: Modern CLI disk usage tools
-- **Portable**: Consistent experience across Oracle Linux, Ubuntu, macOS, and Debian.
-- **Secure**: Integrated with 1Password Service Accounts for secret management.
-- **SSH Ready**: Interactive SSH host selector via `fzf` and 1Password SSH Agent integration.
-
----
-
-## 🏗️ Infrastructure Setup (Dokploy/Docker)
-
-For optimal results in cloud environments, use this `docker-compose.yml` snippet. It sets up the system-level foundations (locales, base packages) before the dotfiles take over the user-level configuration.
-
-```yaml
-services:
-  workspace:
-    image: ubuntu:latest
-    environment:
-      - TZ=${TZ:-America/New_York}
-      - USER_NAME=${USER_NAME:-devuser}
-      - OP_SERVICE_ACCOUNT_TOKEN=${OP_SERVICE_ACCOUNT_TOKEN:-}
-      - LANG=en_US.UTF-8
-      - LC_ALL=en_US.UTF-8
-    volumes:
-      - dev_space:/home/devuser
-    entrypoint:
-      - /bin/bash
-      - -c
-      - |
-        apt-get update && apt-get install -y --no-install-recommends \
-        build-essential ca-certificates curl git locales sudo ttyd tzdata unzip zsh \
-        && rm -rf /var/lib/apt/lists/*
-        
-        # System: Generate locale
-        locale-gen en_US.UTF-8
-        
-        # System: Create user with ZSH as default
-        if ! id -u devuser >/dev/null 2>&1; then
-          useradd -m -s /usr/bin/zsh devuser
-          echo "devuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-        fi
-        
-        # System: Suppress Zsh first-run wizard
-        touch /home/devuser/.zshrc
-
-        # Infrastructure: Launch ttyd with ZSH
-        exec sudo -E -H -u devuser ttyd -W -p 7681 -w /home/devuser /usr/bin/zsh
-```
-
----
-
-## 🔄 Maintenance & Sync
-
-Keep your environment up to date with a single command:
+**VPS**
 
 ```bash
-mise run sync
+mkdir -p ~/devbox && cd ~/devbox
+curl -fsSLO https://raw.githubusercontent.com/msavdert/dotfiles/main/compose.yaml
+echo 'OP_SERVICE_ACCOUNT_TOKEN=ops_...' > .env && chmod 600 .env
+docker compose up -d
 ```
 
-This task automates:
-1.  **Git Pull**: Fetches the latest dotfiles.
-2.  **Symlink Refresh**: Updates all configuration links.
-3.  **Tool Updates**: Installs any new tools defined in `mise.toml`.
-4.  **Pruning**: Removes old tool versions to save space.
+**Connect** — add to `~/.ssh/config.local`:
 
----
+```
+Host dev
+    HostName vps.example.com
+    User melih
+    RequestTTY yes
+    RemoteCommand docker exec -it -u dev devbox zellij attach -c main
+    ForwardAgent yes
+```
 
-## 📄 License
+Then `ssh dev` lands you in a persistent zellij session inside the container.
+
+**Try it locally without a VPS**
+
+```bash
+docker run -it --rm ghcr.io/msavdert/devbox:latest zsh
+```
+
+## Layout
+
+```
+Dockerfile              devbox image — every tool installed at build time
+compose.yaml            VPS deployment
+macos/                  Brewfile + setup.sh (tier 0)
+configs/
+  mise/devbox.toml      container toolchain
+  mise/macos.toml       host toolchain (4 tools)
+  zsh/                  .zshenv, .zshrc, completion generator
+  op/*.env              op:// references — no secret values
+  nvim/ zellij/         devbox only
+  git/ ssh/ starship.toml
+.github/workflows/      multi-arch build → ghcr.io
+docs/                   ← read this
+```
+
+## Documentation
+
+Everything — what, why, and what was rejected — is in **[docs/](docs/README.md)**.
+
+| | |
+|---|---|
+| [00 Architecture](docs/00-architecture.md) | the two tiers, and ten decision records |
+| [01 macOS setup](docs/01-macos-setup.md) | keeping the laptop clean |
+| [02 devbox image](docs/02-devbox-image.md) | what's inside, how it's built |
+| [03 VPS deployment](docs/03-vps-deployment.md) | bare server → `ssh dev` |
+| [04 Daily usage](docs/04-daily-usage.md) | the actual workflow |
+| [05 Secrets](docs/05-secrets.md) | 1Password, plus Connect/Environments migrations |
+| [06 Maintenance](docs/06-maintenance.md) | adding tools, upgrading, rolling back |
+| [07 Troubleshooting](docs/07-troubleshooting.md) | symptom → cause → fix |
+
+## Design in one paragraph
+
+Tools are installed when the **image is built**, not when a container starts —
+so start-up is seconds and every machine gets a byte-identical environment,
+pinned by image digest. macOS packages are declared in a Brewfile applied with
+`--cleanup`, so nothing can accumulate untracked. Secrets are never exported
+into the shell; each command that needs one is wrapped in `op run`, which
+resolves the `op://` references in `configs/op-env/*.env` in a single request and
+injects them into that one process. Shell start-up does no work at all: no
+network calls, no completion generation, no secret loading.
+
+The reasoning behind each of those, and the alternatives that were considered
+and rejected, is recorded in
+[docs/00-architecture.md](docs/00-architecture.md#decision-records).
+
+## License
 
 MIT

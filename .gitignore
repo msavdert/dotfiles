@@ -1,5 +1,15 @@
+# macOS
 .DS_Store
+
+# Editors / build noise
+*.swp
 .venv
 node_modules
-*.swp
 
+# Never commit these
+*.bak
+*.local
+.env
+!configs/op-env/*.env          # these hold op:// references only, no secrets
+.op_secret.env
+configs/ssh/config.local

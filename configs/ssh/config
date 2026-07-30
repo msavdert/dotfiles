@@ -1,41 +1,46 @@
-# --- Global SSH Configuration ---
-# Managed by dotfiles - Do not edit manually
+# =============================================================================
+# SSH configuration - managed by dotfiles, do not edit in place
+# =============================================================================
+# Host-specific entries belong in ~/.ssh/config.local, which is NOT in this
+# repo. Includes come first because OpenSSH takes the FIRST value it sees for
+# any keyword - anything included here wins over the defaults further down.
+# =============================================================================
 
-# --- Includes ---
-# Machine-specific or sensitive configuration (Managed via 1Password pull)
 Include ~/.ssh/config.local
-
-# 1Password-generated bookmarks (macOS specific)
 Include ~/.ssh/1Password/config
-
-# OrbStack integration
 Include ~/.orbstack/ssh/config
-
-# --- Global Defaults ---
-Host *
-    # Keepalive settings to prevent timeouts
-    ServerAliveInterval 60
-    ServerAliveCountMax 3
-    TCPKeepAlive yes
-
-    # Security & Agent Forwarding
-    ForwardAgent yes
-    StrictHostKeyChecking accept-new
-    
-    # Convenience
-    AddKeysToAgent yes
-    Compression yes
-    
-    # Connection Multiplexing (Speeds up multiple sessions to same host)
-    ControlMaster auto
-    ControlPath ~/.ssh/sockets/%r@%h:%p
-    ControlPersist 10m
-
-# macOS specific settings (only included if file exists)
 Include ~/.ssh/config.macos
 
-# --- Specialized Defaults ---
-# GitHub specific settings
+# --- Defaults ----------------------------------------------------------------
+Host *
+    # Survive NAT timeouts and flaky wifi on long zellij sessions.
+    ServerAliveInterval 30
+    ServerAliveCountMax 6
+    TCPKeepAlive yes
+
+    # Trust on first use. Convenient for short-lived VMs and containers; the
+    # trade-off is that a first connection is not authenticated. Set
+    # `StrictHostKeyChecking yes` per-host in config.local for anything where
+    # that matters.
+    StrictHostKeyChecking accept-new
+    HashKnownHosts yes
+
+    AddKeysToAgent yes
+    Compression yes
+
+    # Agent forwarding is NOT enabled globally on purpose: root on any host you
+    # connect to can use a forwarded agent to authenticate as you, everywhere.
+    # Turn it on per-host in ~/.ssh/config.local where you actually need it.
+    ForwardAgent no
+
+    # Reuse one TCP connection for every session to the same host. This is what
+    # makes the second `ssh dev` open instantly.
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%C
+    ControlPersist 10m
+
+# --- GitHub ------------------------------------------------------------------
 Host github.com
     User git
+    # Multiplexing breaks git's parallel fetches.
     ControlMaster no
