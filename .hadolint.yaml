@@ -1,0 +1,31 @@
+# =============================================================================
+# hadolint configuration
+# =============================================================================
+# Single source of truth for Dockerfile linting, so `hadolint Dockerfile` on a
+# laptop and the `lint` job in CI agree. Do not add `ignore:` inputs to the
+# workflow - put them here, with the reason.
+#
+# Run locally:
+#   docker run --rm -i -v "$PWD:/w" -w /w hadolint/hadolint hadolint Dockerfile
+# =============================================================================
+
+failure-threshold: warning
+
+ignored:
+  # DL3008: pin apt package versions.
+  # Deliberately unpinned. Ubuntu security updates would make pinned versions
+  # rot within weeks, and what actually pins this image is the published
+  # digest, not the apt version string. See docs/06-maintenance.md.
+  - DL3008
+
+  # DL3064: "potentially sensitive data in ARG/ENV".
+  # False positive on `ARG USERNAME=dev` - it matches on the name containing
+  # "USER". There is no secret in this Dockerfile; the only one the container
+  # ever sees is OP_SERVICE_ACCOUNT_TOKEN, injected at runtime by compose.
+  - DL3064
+
+  # DL3066: "non-numeric user-id may not be resolvable by host system".
+  # `USER $USERNAME` is intentional: the account is created in this same file
+  # with UID/GID build args defaulting to 1000, so bind-mounted files from the
+  # host line up. Hardcoding a numeric USER would break the build args.
+  - DL3066

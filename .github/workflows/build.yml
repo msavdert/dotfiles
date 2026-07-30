@@ -50,13 +50,13 @@ jobs:
             zsh -n "$f" && echo "ok  $f"
           done
 
+      # Rules and threshold come from .hadolint.yaml so that a local run and
+      # this job cannot disagree. Do not add `ignore:` inputs here.
       - name: hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-          # DL3008: we intentionally do not pin apt versions; the base image tag
-          # and the published image digest are what pin this layer.
-          ignore: DL3008
+          config: .hadolint.yaml
 
   build:
     needs: lint

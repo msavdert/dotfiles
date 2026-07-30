@@ -15,6 +15,11 @@ FROM ubuntu:24.04
 # --- System layer ------------------------------------------------------------
 # Rarely changes, so it stays at the top and stays cached.
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Every RUN below is a pipeline-safe bash: without `-o pipefail`, a failing
+# `curl` piped into `sh` would still produce a successful layer (hadolint DL4006).
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
@@ -39,9 +44,12 @@ ENV LANG=en_US.UTF-8
 ARG USERNAME=dev
 ARG UID=1000
 ARG GID=1000
+# `useradd -l` skips the lastlog/faillog entries. Those files are sparse and
+# indexed BY uid, so a large UID build-arg would otherwise inflate the image by
+# gigabytes when the layer is packed (hadolint DL3046).
 RUN userdel -r ubuntu 2>/dev/null || true \
     && groupadd -g "$GID" "$USERNAME" \
-    && useradd -m -u "$UID" -g "$GID" -s /usr/bin/zsh "$USERNAME" \
+    && useradd -l -m -u "$UID" -g "$GID" -s /usr/bin/zsh "$USERNAME" \
     && printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$USERNAME" > /etc/sudoers.d/"$USERNAME" \
     && chmod 0440 /etc/sudoers.d/"$USERNAME"
 
