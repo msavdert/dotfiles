@@ -28,7 +28,8 @@ services:
     tty: true
 
     environment:
-      TZ: ${TZ:-Europe/Istanbul}
+      # TZ: ${TZ:-Europe/Istanbul}
+      TZ: ${TZ:-America/New_York}
       # The ONLY secret handed to the container. Everything else is resolved
       # on demand by `op run` - see docs/05-secrets.md.
       OP_SERVICE_ACCOUNT_TOKEN: ${OP_SERVICE_ACCOUNT_TOKEN:?set it in .env next to this file}

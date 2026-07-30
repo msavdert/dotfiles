@@ -2,7 +2,7 @@
 
 A **thin macOS client** and a **containerised development environment**.
 
-The laptop stays clean — a terminal, 1Password, and four CLI tools, all
+The laptop stays clean — a terminal, 1Password, and a short list of CLI tools, all
 declared in a manifest that removes anything not on it. The real work happens
 inside a container image with the whole toolchain baked in, running on a VPS,
 one `ssh dev` away.
@@ -10,7 +10,7 @@ one `ssh dev` away.
 ```
 macOS (thin client)  ──ssh dev──▶  devbox container (VPS)
 ghostty · 1Password                languages · nvim · zellij
-orbstack · mise ×4                 kubernetes · AI CLIs
+orbstack · 11 mise CLIs            kubernetes · AI CLIs
 macos/Brewfile                     ghcr.io/msavdert/devbox
 ```
 

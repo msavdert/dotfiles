@@ -1,20 +1,41 @@
 # =============================================================================
 # macOS tool manifest  ->  symlinked to ~/.config/mise/config.toml
 # =============================================================================
-# Deliberately tiny. macOS is a CLIENT, not a workshop: it opens a terminal,
-# unlocks secrets and connects to the devbox. Everything else lives in the
-# container image (configs/mise/devbox.toml).
+# Deliberately small. macOS is a CLIENT, not a workshop: it opens a terminal,
+# unlocks secrets and connects to the devbox. Language runtimes, editors,
+# kubernetes tooling and the AI CLIs all live in the container image
+# (configs/mise/devbox.toml).
 #
-# Before adding a tool here, ask: "do I need this on the laptop itself, or do I
-# need it where the code is?" The second answer belongs in devbox.toml.
-# See docs/01-macos-setup.md for the reasoning.
+# The test for adding something here is NOT "do I use it?" but:
+#   "does the HOST shell need it, or does the code need it?"
+# The second answer belongs in devbox.toml.
+#
+# Note that `mise prune` removes anything not listed, so deleting a line here
+# uninstalls the tool on the next `./macos/setup.sh`. That is intentional - it
+# is the same discipline `brew bundle cleanup` enforces for Homebrew.
 # =============================================================================
 
 [tools]
-gh   = "latest"     # gh auth git-credential is used by ~/.gitconfig
-jq   = "latest"     # ad-hoc JSON on the host
-fzf  = "latest"     # host-side fuzzy pickers (ssh selector)
-ripgrep = "latest"  # searching this repo without opening the devbox
+
+# --- Shell experience --------------------------------------------------------
+# configs/zsh/.zshrc is shared between the Mac and the devbox and references
+# these directly. Without them the host shell still works (every block is
+# guarded) but loses its prompt, its jump command and its ls colours.
+starship = "latest"     # prompt
+zoxide   = "latest"     # `z` / the zs session picker
+eza      = "latest"     # ls / ll / la / lt aliases
+bat      = "latest"     # bcat alias
+
+# --- Host-side utilities -----------------------------------------------------
+gh  = "latest"          # ~/.gitconfig uses `gh auth git-credential`
+jq  = "latest"          # ad-hoc JSON without opening the devbox
+fzf = "latest"          # the ssh host picker in .zshrc
+ripgrep = "latest"      # searching this repo from the host
+fd  = "latest"          # file lookups on the host
+uv  = "latest"          # one-off python scripts without a devbox round-trip
+
+# --- Repo maintenance --------------------------------------------------------
+shellcheck = "latest"   # linting macos/setup.sh before committing
 
 [settings]
 npm.package_manager = "bun"

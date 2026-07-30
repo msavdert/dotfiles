@@ -6,9 +6,10 @@ Guidance for Claude Code when working in this repository.
 
 Two tiers, one repo:
 
-- **Tier 0 — macOS thin client.** A terminal, 1Password, OrbStack and four CLI
-  tools. Declared in `macos/Brewfile` and `configs/mise/macos.toml`, applied by
-  `macos/setup.sh`.
+- **Tier 0 — macOS thin client.** GUI apps plus a short list of CLI tools.
+  Declared in `macos/Brewfile` (casks and host daemons) and
+  `configs/mise/macos.toml` (every CLI), applied by `macos/setup.sh`. The two
+  manifests must not overlap — see invariant 8.
 - **Tier 1 — devbox container.** Everything else: language runtimes, neovim,
   zellij, kubernetes tooling, AI CLIs. Declared in `configs/mise/devbox.toml`,
   baked into `Dockerfile`, published to `ghcr.io/msavdert/devbox`, deployed with
@@ -52,6 +53,13 @@ Full rationale and decision records: `docs/00-architecture.md`.
 7. **Update docs in the same commit as the behaviour.** The previous version of
    this file documented a task that didn't exist and a mechanism that had been
    replaced.
+8. **`macos/Brewfile` and `configs/mise/macos.toml` must not overlap.** A tool
+   in both lands twice on `$PATH` and the mise shim wins silently. Brewfile =
+   casks + host daemons only; every CLI belongs to mise.
+9. **Never write machine-specific values into tracked configs.** Real
+   hostnames, signing keys and installer-injected `PATH` lines go in
+   `~/.ssh/config.local`, `~/.gitconfig.local` and `~/.zshrc.local`, all of
+   which are read but never committed.
 
 ## Layout
 

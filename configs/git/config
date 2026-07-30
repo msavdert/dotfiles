@@ -1,15 +1,72 @@
+# =============================================================================
+# Git configuration - shared by macOS and the devbox container
+# =============================================================================
+# Machine-specific settings (commit signing keys, credential helpers that only
+# exist on one platform) go in ~/.gitconfig.local, which is included at the
+# BOTTOM of this file so it wins.
+# =============================================================================
+
 [user]
-    email = github@savdert.com
     name = msavdert
+    # Keeps the real address out of every public commit. Override in
+    # ~/.gitconfig.local if a particular machine needs something else.
+    email = msavdert@users.noreply.github.com
+
 [init]
     defaultBranch = main
+
 [github]
     user = msavdert
+
 [protocol]
     allow = always
+
+# --- Credentials -------------------------------------------------------------
+# HTTPS remotes authenticate through the gh CLI, so no token has to exist in the
+# environment and the devbox needs no SSH key for git at all.
+# The empty first `helper` resets any helper inherited from a system config.
 [credential "https://github.com"]
     helper =
     helper = !gh auth git-credential
 [credential "https://gist.github.com"]
     helper =
     helper = !gh auth git-credential
+
+# --- Transfer ----------------------------------------------------------------
+[http]
+    postBuffer = 52428800
+
+[core]
+    compression = 0
+
+# --- Quality of life ---------------------------------------------------------
+[pull]
+    rebase = true
+[push]
+    autoSetupRemote = true
+[fetch]
+    prune = true
+[diff]
+    algorithm = histogram
+[merge]
+    conflictstyle = zdiff3
+[rerere]
+    enabled = true
+[column]
+    ui = auto
+[branch]
+    sort = -committerdate
+
+# --- delta (present in the devbox image) -------------------------------------
+# If delta is not installed, git falls back to the default pager.
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+    line-numbers = true
+
+# --- Machine-specific overrides ----------------------------------------------
+# Last include wins. Holds commit signing (1Password op-ssh-sign on macOS) and
+# anything else that is not portable between the laptop and the container.
+[include]
+    path = ~/.gitconfig.local

@@ -17,7 +17,7 @@ What it does, in order:
 2. Applies `macos/Brewfile`, then **shows** what isn't in it. Re-run with
    `CLEANUP=1` to actually remove those.
 3. Links the config files (see the table below).
-4. Installs the four CLI tools from `configs/mise/macos.toml`.
+4. Installs the CLI tools from `configs/mise/macos.toml` (currently 11).
 5. Checks whether the 1Password SSH agent is enabled.
 
 Useful variations:
@@ -84,15 +84,36 @@ If the agent is off, comment out the `IdentityAgent` line and ssh falls back to
 
 ## Local overrides
 
-Two files are read but never committed:
+Three files are read but **never committed**. They exist so that nothing
+machine-specific — a real hostname, a signing key, a vendor's `PATH` line — ever
+has to be written into a tracked config.
 
-- `~/.zshrc.local` — machine-specific shell settings, sourced last.
-- `~/.ssh/config.local` — real hostnames, per-host `ForwardAgent yes`, jump
-  hosts. Included *first* by `configs/ssh/config`, and since OpenSSH takes the
-  first value it sees for any keyword, anything here overrides the defaults.
+| File | Loaded by | Holds |
+|---|---|---|
+| `~/.zshrc.local` | sourced last by `.zshrc` | installer-injected `PATH` entries (Windsurf, Antigravity, OrbStack), personal aliases and functions |
+| `~/.gitconfig.local` | `[include]` at the end of `.gitconfig` | commit signing (1Password `op-ssh-sign`), any per-machine identity |
+| `~/.ssh/config.local` | `Include` at the **top** of `.ssh/config` | real hostnames, per-host `ForwardAgent yes`, the `Host dev` block |
 
-This is where the `Host dev` block from
+Two ordering details that are easy to get backwards:
+
+- **git**: last value wins, so the include sits at the **bottom** of
+  `configs/git/config`.
+- **ssh**: *first* value wins, so the include sits at the **top** of
+  `configs/ssh/config`.
+
+`~/.gitconfig.local` is where commit signing lives because the path to
+`op-ssh-sign` is macOS-only — the devbox has no 1Password desktop app, and git
+silently ignores a missing include, so the same tracked `.gitconfig` works in
+both tiers.
+
+This is also where the `Host dev` block from
 [03-vps-deployment.md](03-vps-deployment.md) goes.
+
+> If you are migrating from a hand-written setup, move the machine-specific
+> parts of your old `~/.zshrc`, `~/.gitconfig` and `~/.ssh/config` into these
+> three files *before* running `./macos/setup.sh`. The originals are backed up
+> to `~/.dotfiles-backups/<timestamp>/`, so nothing is lost either way — but
+> commit signing and your ssh hosts stop working until they are migrated.
 
 ## Running the devbox locally
 
@@ -113,9 +134,9 @@ Same image, same digest, same tools as the VPS. That's the point of building
 A year from now, this should still be true:
 
 ```bash
-brew list --formula | wc -l     # single digits
+brew bundle check --file=macos/Brewfile   # "dependencies are satisfied"
 brew bundle cleanup --file=macos/Brewfile   # prints nothing
-mise ls                         # four tools
+mise ls                         # matches configs/mise/macos.toml exactly
 ```
 
 If any of those has grown, something was installed without being written down.

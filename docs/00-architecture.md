@@ -23,7 +23,8 @@ that comes up in seconds and is identical every time.**
 │  Tier 0 — macOS (thin client)       │
 │                                     │
 │  ghostty · 1Password · OrbStack     │
-│  mise: gh, jq, fzf, ripgrep         │
+│  mise: starship zoxide eza bat      │
+│        gh jq fzf rg fd uv shellcheck│
 │  configs: zsh, git, ssh, starship   │
 │                                     │
 │  Declared in: macos/Brewfile        │
@@ -122,17 +123,31 @@ the host Docker socket (commented out in `compose.yaml`) covers most of the gap.
 
 ## D3 — macOS keeps Homebrew *and* mise
 
-**Decision.** Homebrew for GUI applications (casks) and the two bootstrap
-binaries; mise for CLI tools.
+**Decision.** Homebrew owns GUI applications (casks) and daemons that need
+system integration. mise owns every CLI tool. Nothing is owned by both.
 
-**Why.** They aren't competitors. mise cannot install Ghostty or the 1Password
-desktop app. Homebrew can, and casks are the one thing it is unambiguously best
-at. Meanwhile mise handles CLI versioning better and is already the mechanism
-used inside the container, so the same mental model covers both tiers.
+**Why.** They aren't competitors. mise cannot install the 1Password desktop app
+or OrbStack; casks are the one thing Homebrew is unambiguously best at.
+Meanwhile mise handles CLI versioning better and is already the mechanism used
+inside the container, so one mental model covers both tiers.
+
+The rule that matters is **no overlap**. A tool available from both ends up
+twice on `$PATH`, with the mise shim silently winning — you then debug a version
+you aren't looking at. `macos/Brewfile` names the tools that moved to mise
+precisely so `brew bundle cleanup` proposes removing the brew copies.
+
+mise itself does *not* come from brew: the standalone installer
+(https://mise.run) puts it in `~/.local/bin`, exactly as the Dockerfile does.
+git is Apple's `/usr/bin/git`. Two fewer things to own.
 
 **The part that actually fixes drift** isn't the tool choice, it's
-`brew bundle --cleanup`: anything installed but not written down gets removed.
+`brew bundle cleanup`: anything installed but not written down gets removed.
 That turns Homebrew from an append-only pile into a declarative manifest.
+
+> Homebrew 6 deprecated the `--cleanup` *switch* on `brew bundle`. The
+> `brew bundle cleanup` **subcommand** is the supported form, and without
+> `--force` it only prints what it would uninstall. `macos/setup.sh` uses the
+> subcommand.
 
 **Rejected: mise for everything on macOS.** Would mean installing GUI apps by
 hand — the exact untracked state we're trying to eliminate.

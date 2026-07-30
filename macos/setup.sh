@@ -60,25 +60,24 @@ apply_brewfile() {
     step "Brewfile (declarative: --cleanup removes anything not listed)"
     command -v brew >/dev/null 2>&1 || { warn "brew missing, skipping"; return; }
 
-    # Show the diff before destroying anything.
-    if ! brew bundle check --file="$REPO_DIR/macos/Brewfile" >/dev/null 2>&1; then
-        brew bundle check --file="$REPO_DIR/macos/Brewfile" || true
-    fi
+    # NOTE: `brew bundle --cleanup` (the switch) is deprecated as of Homebrew 6.
+    # The `brew bundle cleanup` SUBCOMMAND is the supported form, and without
+    # --force it only prints what it would uninstall.
 
     if [[ -n "$DRY_RUN" ]]; then
-        brew bundle --file="$REPO_DIR/macos/Brewfile" --cleanup --force --no-upgrade --verbose --dry-run || true
+        brew bundle check --file="$REPO_DIR/macos/Brewfile" --verbose || true
+        brew bundle cleanup --file="$REPO_DIR/macos/Brewfile" || true
         return
     fi
 
-    brew bundle --file="$REPO_DIR/macos/Brewfile"
-    # --cleanup without --force only PRINTS what it would remove. That is the
-    # safe default here: read the list, then re-run with CLEANUP=1 to apply.
+    brew bundle install --file="$REPO_DIR/macos/Brewfile"
+
     if [[ "${CLEANUP:-}" == "1" ]]; then
         brew bundle cleanup --file="$REPO_DIR/macos/Brewfile" --force
         info "removed packages not present in the Brewfile"
     else
         brew bundle cleanup --file="$REPO_DIR/macos/Brewfile" || true
-        warn "the above would be REMOVED. Re-run with CLEANUP=1 to apply."
+        warn "anything listed above would be REMOVED. Re-run with CLEANUP=1 to apply."
     fi
 }
 
@@ -136,6 +135,19 @@ link_configs() {
     return 0
 }
 
+install_mise() {
+    step "mise"
+    # Standalone installer, not brew: the same mechanism the devbox image uses,
+    # and it avoids a second brew-managed copy shadowing ~/.local/bin/mise.
+    if command -v mise >/dev/null 2>&1; then
+        info "already installed ($(mise --version))"
+        return
+    fi
+    [[ -n "$DRY_RUN" ]] && { warn "would install mise from https://mise.run"; return; }
+    curl -fsSL https://mise.run | sh
+    export PATH="$HOME/.local/bin:$PATH"
+}
+
 install_mise_tools() {
     step "Host CLI tools (configs/mise/macos.toml)"
     if ! command -v mise >/dev/null 2>&1; then
@@ -190,6 +202,7 @@ main() {
 
     install_homebrew
     apply_brewfile
+    install_mise
     link_configs
     install_mise_tools
     check_1password_agent

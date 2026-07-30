@@ -130,9 +130,9 @@ Worth running every few months:
 
 ```bash
 # macOS: has anything crept in?
-brew list --formula | wc -l                      # single digits
+brew bundle check --file=macos/Brewfile           # "dependencies are satisfied"
 brew bundle cleanup --file=macos/Brewfile        # should print nothing
-mise ls                                          # four tools
+mise ls                                          # matches configs/mise/macos.toml
 
 # devbox
 ssh dev 'mise ls --outdated'
