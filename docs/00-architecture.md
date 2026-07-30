@@ -22,7 +22,7 @@ that comes up in seconds and is identical every time.**
 ┌─────────────────────────────────────┐
 │  Tier 0 — macOS (thin client)       │
 │                                     │
-│  ghostty · 1Password · OrbStack     │
+│  tabby · 1Password · OrbStack       │
 │  mise: starship zoxide eza bat      │
 │        gh jq fzf rg fd uv shellcheck│
 │  configs: zsh, git, ssh, starship   │
