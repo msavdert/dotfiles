@@ -125,9 +125,35 @@ image: ghcr.io/msavdert/devbox@sha256:abc123…
 Pull requests build but publish nothing — the `outputs` line switches to
 `type=cacheonly`. You get "does it still build?" without polluting the registry.
 
+## Verified behaviour
+
+Measured against the published `ghcr.io/msavdert/devbox:latest` on 2026-07-30,
+pulled fresh from the registry:
+
+| Check | Result |
+|---|---|
+| Multi-arch manifest | `linux/amd64` + `linux/arm64`, both native-built |
+| Identity | `dev`, uid 1000, `/usr/bin/zsh`, `en_US.UTF-8` |
+| Toolchain | 44 tools resolve on `$PATH` |
+| Runtime pins | python 3.14.6 · node 24.18.1 · go 1.26.5 · java 24.0.2 |
+| Shell start-up | **44 ms** steady state |
+| Secrets in env | 0 — `op run` wrappers (`claude`, `kilocode`, `opwith`) present |
+| POSIX names | `grep`/`find`/`cat` unshadowed; `ssh()` uses `command awk` |
+| Completions | 13 files on `$fpath`, none sourced at start-up |
+| Neovim | 32 plugins start with `--network none` (fully offline) |
+| `~/work` | survives `docker compose down` + `up` |
+| `~/.zshrc` | still served by the image, not shadowed by a volume |
+
+The last two together are the point of
+[D6](00-architecture.md#d6--the-home-directory-is-not-one-big-volume): your code
+persists, your configuration comes from the image.
+
+Note that `sqlcl`'s binary is named `sql`, and `rust` provides `rustc`/`cargo`/
+`rustup` — neither is a command called `sqlcl` or `rust`.
+
 ## Image size
 
-Expect roughly 4–6 GB. The language runtimes (java, rust, go, python, node) and
+Expect roughly 4–6 GB (the published arm64 image is 5.13 GB). The language runtimes (java, rust, go, python, node) and
 the AI CLIs dominate. Deliberately not optimised for size — pulls happen once
 per VPS, and layer caching means updates transfer only what changed.
 
