@@ -113,7 +113,7 @@ Verify resolution:
 
 ```bash
 op whoami
-opwith ai env | grep -c SYNTHETIC_API_KEY   # 1 inside the wrapped process
+opwith ai env | grep -c OPENROUTER_API_KEY   # 1 inside the wrapped process
 ```
 
 ## Auditing
