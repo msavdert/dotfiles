@@ -30,10 +30,9 @@ brew "sshpass"                  # no mise backend, and occasionally unavoidable
 # Add `brew "git"` here if you ever need a newer one.
 
 # --- Terminal ----------------------------------------------------------------
-cask "tabby"
-# cask "ghostty"                # recommended: better terminfo and OSC 52
-                                # handling than most alternatives. Uncomment
-                                # to try it.
+cask "ghostty"
+# cask "tabby"
+
 
 # --- Secrets -----------------------------------------------------------------
 cask "1password"                # also provides the SSH agent (configs/ssh/config.macos)
