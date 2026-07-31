@@ -103,8 +103,10 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
 
     # Autocompletion for opwith: 1st arg completes env files, remaining args use standard command completion
     _opwith() {
+        local -a envs
+        envs=(${OP_ENV_DIR}/*.env(N:t:r))
         _arguments -C \
-            "1:env file:(_files -W '$OP_ENV_DIR' -g '*.env(:r)')" \
+            "1:env file:($envs)" \
             "*::command:_normal"
     }
     compdef _opwith opwith
