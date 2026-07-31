@@ -25,6 +25,8 @@
 # deliberate choice for this box.
 # =============================================================================
 
+setupVersion: 1
+
 # --- Model roles -------------------------------------------------------------
 # The whole point of this setup: Claude Opus is the ARCHITECT and the QA gate,
 # and cheap/fast models do the bulk work, so Opus quota is only ever spent on
