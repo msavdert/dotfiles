@@ -505,6 +505,10 @@ providers:
   # matters here because opus-5 at `max` is by far the most expensive token
   # class in this configuration.
   autoThinkingMaxEffort: xhigh
+  webSearchGeminiModel: "gemini-3.6-flash"
+
+web_search:
+  enabled: true
 
 # thinkingBudgets.* (minimal 1024 / low 2048 / medium 8192 / high 16384 /
 # xhigh 32768 / max 32768) are intentionally left at their schema defaults.
