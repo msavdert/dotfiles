@@ -83,7 +83,7 @@ macos/{Brewfile,setup.sh}         tier 0
 configs/
   mise/{devbox,macos}.toml        toolchains, split by tier
   zsh/{.zshenv,.zshrc,regen-completions.zsh}
-  op/*.env                        op:// references only
+  op-env/*.env                    op:// references only
   nvim/ zellij/                   tier 1 only (not linked on macOS)
   omp/                            coding-agent config -> ~/.omp/agent/
   git/config ssh/config* starship.toml

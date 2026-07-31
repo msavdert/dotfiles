@@ -30,6 +30,13 @@ Synthetic also exposes capability aliases — `syn:large:text` (GLM-5.2),
 ids, not the aliases**, because an alias can be re-pointed upstream and the
 concurrency argument below depends on knowing exactly which model a role hits.
 
+Note the aliases describe Synthetic's own tiering, not OMP's capability
+catalog: `omp models` reports `images: no` for Kimi-K3 and `images: yes` only
+for Qwen3.6-27B. Treat `hf:Qwen/Qwen3.6-27B` as the image-capable Synthetic
+model regardless of what the `:vision` alias names. This also means the two
+Synthetic roles cannot use `snapcompact`, which requires a vision-capable
+model and falls back to context-full compaction with a warning.
+
 ## Role routing
 
 | Work type | Agent / role | Model | Why |

@@ -143,9 +143,10 @@ catch an invented setting name. Inside a session:
 - `/agents` - the resolved agent roster, including which model each one uses
 - `/settings` - the same merged settings the CLI prints
 
-Note that `omp` in this repo is the wrapper defined in `configs/zsh/.zshrc`
-(`omp() { opwith ai omp "$@"; }`), so these commands already run under `op run`
-with `configs/op-env/ai.env` resolved.
+Note that `omp` is invoked directly, with no `opwith` wrapper: `ai.env` sets
+`ANTHROPIC_BASE_URL` to OpenRouter, which would reroute OMP's own Anthropic
+OAuth and break the architect role. Its only file-shaped secret comes from
+`mise run omp:auth`.
 
 A YAML mistake is not always loud: a bad `models.yml` keeps the registry running
 on built-in models and only surfaces the error in the UI, so verify with

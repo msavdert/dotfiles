@@ -61,7 +61,7 @@ configs/
   mise/devbox.toml      container toolchain
   mise/macos.toml       host toolchain (4 tools)
   zsh/                  .zshenv, .zshrc, completion generator
-  op/*.env              op:// references — no secret values
+  op-env/*.env          op:// references — no secret values
   nvim/ zellij/         devbox only
   omp/                  coding-agent roles, rules, skills
   git/ ssh/ starship.toml

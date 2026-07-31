@@ -26,16 +26,19 @@ Existing files:
 
 | File | Purpose | Consumers |
 |---|---|---|
-| `configs/op-env/ai.env` | AI tooling credentials | `claude()`, `kilocode()`, `omp()` wrappers in `configs/zsh/.zshrc` |
+| `configs/op-env/ai.env` | AI tooling credentials | `claude()`, `kilocode()` wrappers in `configs/zsh/.zshrc` |
 | `configs/op-env/git.env` | GitHub tokens for non-interactive `git`/`gh` | `opwith git <cmd>` |
 
 Add to whichever file the consuming command already uses, or create a new
 `configs/op-env/<name>.env` - `opwith <name>` picks up any file in
 `~/.config/op-env/`. Match the existing header-comment style.
 
+`omp` is deliberately NOT wrapped in `opwith` — see the `omp-tuning` skill. Its
+one file-shaped secret is materialised by the `omp:auth` mise task instead, so
+its reference lives in `configs/mise/devbox.toml`, not here:
+
 ```ini
-# configs/op-env/ai.env
-SYNTHETIC_API_KEY=op://dotfiles/Synthetic/api-key
+op://dotfiles/Synthetic/credential
 ```
 
 Non-secret settings (base URLs, model names) may sit in the same file as literal
