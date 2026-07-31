@@ -101,9 +101,13 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
         op run --no-masking --env-file="$env_file" -- "$@"
     }
 
-    # When 1Password Environments leaves beta this becomes
-    #   op run --environment "$env_name" -- "$@"
-    # and the *.env files can be deleted. See docs/05-secrets.md.
+    # Autocompletion for opwith: 1st arg completes env files, remaining args use standard command completion
+    _opwith() {
+        _arguments -C \
+            "1:env file:(_files -W '$OP_ENV_DIR' -g '*.env(:r)')" \
+            "*::command:_normal"
+    }
+    compdef _opwith opwith
 
     # `op run` execs the binary directly (PATH lookup, no shell), so these
     # functions cannot recurse into themselves.
