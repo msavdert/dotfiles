@@ -49,6 +49,7 @@ means gone at the next setup run.** That's the whole discipline.
 | `configs/starship.toml` | `~/.config/starship.toml` |
 | `configs/op-env/` | `~/.config/op-env` |
 | `configs/mise/macos.toml` | `~/.config/mise/config.toml` |
+| `configs/ghostty/config` | `~/.config/ghostty/config` |
 | `configs/ssh/config` | `~/.ssh/config` |
 | `configs/ssh/config.macos` | `~/.ssh/config.macos` |
 

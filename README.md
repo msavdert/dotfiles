@@ -9,7 +9,7 @@ one `ssh dev` away.
 
 ```
 macOS (thin client)  ──ssh dev──▶  devbox container (VPS)
-tabby · 1Password                  languages · nvim · zellij
+ghostty · 1Password                 languages · nvim · zellij
 orbstack · 11 mise CLIs            kubernetes · AI CLIs
 macos/Brewfile                     ghcr.io/msavdert/devbox
 ```

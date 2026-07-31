@@ -105,8 +105,8 @@ exec zsh
 
 ## Colours or icons are wrong
 
-Missing icons → install the Nerd Font and select it in your terminal (Tabby:
-Settings → Appearance → Font):
+Missing icons → install the Nerd Font and select it in your terminal (Ghostty:
+`configs/ghostty/config` → `font-family = "JetBrainsMono Nerd Font"`):
 `brew install --cask font-jetbrains-mono-nerd-font`.
 
 Washed-out or wrong colours → check `echo $TERM`. This config deliberately does

@@ -31,7 +31,6 @@ brew "sshpass"                  # no mise backend, and occasionally unavoidable
 
 # --- Terminal ----------------------------------------------------------------
 cask "ghostty"
-# cask "tabby"
 
 
 # --- Secrets -----------------------------------------------------------------
