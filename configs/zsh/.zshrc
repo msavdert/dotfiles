@@ -115,7 +115,11 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # functions cannot recurse into themselves.
     claude()   { opwith ai claude "$@"; }
     kilocode() { opwith ai kilocode "$@"; }
+    omp()      { opwith ai omp "$@"; }
 fi
+
+# --- OMP Declarative Configuration -----------------------------------------
+export PI_CODING_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/dotfiles/configs/omp}"
 
 # --- Aliases -----------------------------------------------------------------
 # Editors (Guarded: Fallback to system vim/vi on macOS if nvim is not installed)

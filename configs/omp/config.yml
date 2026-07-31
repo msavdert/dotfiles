@@ -1,0 +1,37 @@
+# =============================================================================
+# Oh My Pi (OMP) Global Configuration
+# Declarative & Portable config for msavdert/dotfiles
+# =============================================================================
+
+# Model Roles Assignment
+modelRoles:
+  default: anthropic/claude-opus-5
+  slow: anthropic/claude-opus-5
+  smol: google-antigravity/gemini-3.6-flash
+  plan: anthropic/claude-opus-5
+  advisor: anthropic/claude-sonnet-5
+
+# Subagent Model Overrides
+task:
+  agentModelOverrides:
+    scout: google-antigravity/gemini-3.6-flash
+    sonic: google-antigravity/gemini-3.6-flash
+    librarian: synthetic/hf:moonshotai/Kimi-K3
+    audit: synthetic/syn:large:text
+    reviewer: anthropic/claude-sonnet-5
+    task: google-antigravity/gemini-3.6-flash
+
+# Autonomous Local Memory
+memory:
+  backend: local
+
+# Tool Approval Policies
+tools:
+  approvalMode: yolo
+  intentTracing: true
+
+# Appearance & Status line
+theme:
+  dark: titanium
+  light: light
+symbolPreset: nerd

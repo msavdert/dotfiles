@@ -1,0 +1,10 @@
+# =============================================================================
+# OMP Keybindings Configuration
+# =============================================================================
+app.plan.toggle: Alt+Shift+P
+app.model.selectTemporary: Alt+P
+app.editor.external: Ctrl+G
+app.tools.expand: Ctrl+O
+app.thinking.toggle: Ctrl+T
+app.message.followUp: Ctrl+Q
+app.retry: Alt+R
