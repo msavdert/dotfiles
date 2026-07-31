@@ -132,13 +132,18 @@ auth: re-run the login after a rebuild. Never try to bake a token into
 
 ```bash
 omp config path                       # active agent directory - must be ~/.omp/agent
-omp config get modelRoles.default     # effective value after all layers
+omp config get modelRoles              # whole record; sub-keys are NOT addressable
 omp config list --json                # everything, machine-readable
 omp models                            # provider-grouped tables of concrete models
 ```
 
 Unknown keys make `omp config get` exit non-zero, which is the fastest way to
-catch an invented setting name. Inside a session:
+catch an invented setting name. It is also a trap: **record-typed settings are
+not addressable by sub-key**. `omp config get modelRoles.default` does not print
+the default role, it exits non-zero with `Unknown setting`, which reads exactly
+like a config that failed to load. The same applies to
+`task.agentModelOverrides.<name>` and `retry.fallbackChains.<role>`. Ask for the
+whole record and read the JSON. Inside a session:
 
 - `/agents` - the resolved agent roster, including which model each one uses
 - `/settings` - the same merged settings the CLI prints

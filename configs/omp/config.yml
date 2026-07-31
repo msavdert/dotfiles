@@ -8,11 +8,17 @@
 #
 # IMPORTANT — this file is the source of truth, not a snapshot:
 #   `omp config set`, `omp config reset` and the in-session `/settings` panel
-#   all write straight back into ~/.omp/agent/config.yml. Inside the container
-#   that copy lives on the image layer, so any runtime tweak is silently
-#   discarded on the next rebuild. Treat interactive edits as experiments:
-#   once you like one, port it HERE and rebuild. Nothing in this repo ever
-#   reads the container's mutated copy back.
+#   all write straight back into ~/.omp/agent/config.yml. What that means
+#   depends on where you are, and the two cases fail in opposite directions:
+#     - In the CONTAINER, that copy lives on the image layer, so a runtime tweak
+#       is silently DISCARDED on the next rebuild. Costs nothing, teaches you
+#       nothing.
+#     - On the macOS thin client, ~/.omp/agent/* are symlinks INTO this repo, so
+#       the same tweak silently EDITS A TRACKED FILE and shows up as an
+#       uncommitted diff you did not make deliberately. This is the dangerous
+#       one: it gets committed by accident.
+#   Treat interactive edits as experiments either way: once you like one, port
+#   it HERE deliberately. Nothing in this repo ever reads a mutated copy back.
 #
 # Also note: everything OMP *generates* next to this file (agent.db, history.db,
 # sessions/, terminal-sessions/, last-changelog-version) is runtime state and is
@@ -46,10 +52,16 @@ modelRoles:
   # Titles, classification, and cheap background chatter. Left bare: `smol` is
   # also a cycleOrder stop (Ctrl+P), so it has to stay usable for real chat.
   smol: google-antigravity/gemini-3.6-flash
-  # Advisor reviews EVERY completed turn — its cost is multiplied by turn count,
-  # so it gets Sonnet at the bottom of the ladder. Its job is noticing, not
-  # solving; if it finds something real, Opus handles it.
-  advisor: "anthropic/claude-sonnet-5:low"
+  # Advisor reviews EVERY completed turn, so its cost is multiplied by turn
+  # count: a 76-turn session is 76 extra calls. It used to be Sonnet, which put
+  # that multiplier on the ONE metered pool this setup is trying to protect.
+  # Moved to Antigravity: the advisor's job is noticing, not solving (its own
+  # brief in WATCHDOG.md), and gemini-3.1-pro is demonstrably good enough at
+  # noticing. Anything it finds is handed to Opus anyway, so the quality that
+  # matters is recall, not authorship.
+  # This is the largest Anthropic-quota reduction available that does not touch
+  # the architect role.
+  advisor: "google-antigravity/gemini-3.1-pro:low"
   # Default model for spawned subagents that have no override below. gemini-3.1-pro
   # exposes only `low,high`, and a worker that cannot reason is worse than no
   # worker, so `high` it is.
@@ -82,6 +94,28 @@ modelProviderOrder:
   - anthropic
   - google-antigravity
   - synthetic
+
+# No local inference engine runs in this image, and a keyless local provider is
+# probed on every launch unless it is disabled — three guaranteed-failing
+# connection attempts and three log warnings per start, which contradicts the
+# no-work-at-startup invariant this repo applies to the shell. Arrays REPLACE
+# rather than merge, so this must stay the complete list.
+disabledProviders:
+  - ollama
+  - llama.cpp
+  - lm-studio
+
+# Opus plans, a cheap model types. At the first edit/write after the todo list
+# exists, the session hands off from the active model to the `smol` role. This
+# is the structural version of the rule AGENTS.md states in prose: judgement is
+# the scarce thing, keystrokes are not.
+# It is deliberately a default rather than a per-run flag, because the failure
+# mode it corrects is the architect quietly doing the work itself — and that
+# decision is never made consciously enough to remember a flag. Opt out with
+# `--no-prewalk` when an edit genuinely needs the expensive model, or
+# `--prewalk-into @task` to hand off to gemini-3.1-pro instead of flash.
+prewalk:
+  enabled: true
 
 # --- Subagents ---------------------------------------------------------------
 task:
@@ -127,6 +161,15 @@ task:
   # because the tool is stripped only at the limit.
   maxRecursionDepth: 2
 
+  # Subagents get the `lsp` tool. Default is false, which silently stripped it
+  # at spawn: `agents/audit.md` declares `lsp` in its tool list and its prompt
+  # tells it to run `lsp diagnostics`, and AGENTS.md names that as part of the
+  # verification gate. All three were false — a live probe returned
+  # `read,grep,glob,bash,yield,hub` for every spawned agent. The gate was
+  # quietly weaker than it read. Cheap to fix, and the alternative (deleting the
+  # promise from three files) leaves the audit agent unable to check types.
+  enableLsp: true
+
   # Finished subagents stay live in memory this long before being parked to disk
   # (5 min, down from the 7 min default). Parking is lossless — messaging a
   # parked agent revives it from its session file — so on a memory-constrained
@@ -136,8 +179,16 @@ task:
 # --- Advisor -----------------------------------------------------------------
 # A second model watches every completed turn and injects notes. Worth it here
 # precisely because the primary is expensive: catching a wrong direction on turn
-# 2 costs one Sonnet call, catching it on turn 12 costs eleven Opus turns.
+# 2 costs one cheap call, catching it on turn 12 costs eleven Opus turns.
 # See WATCHDOG.md for what it is told to look for.
+#
+# Tradeoff, stated deliberately: the advisor now runs on gemini-3.1-pro rather
+# than Sonnet (see `modelRoles.advisor`). WATCHDOG.md asks it for reviewer-grade
+# paranoia about secret leakage, volume shadowing and unverified subagent
+# claims, and that judgement is now Gemini's rather than Anthropic's. This is a
+# quality-for-quota trade, made on purpose, not an assumption that coverage is
+# unchanged. If advisor notes visibly degrade, the fix is to move it back and
+# find the quota elsewhere.
 advisor:
   enabled: true
   # NOT on subagents. Subagents are already cheap, short-lived, and reviewed by
@@ -156,14 +207,38 @@ advisor:
   immuneTurns: 5
 
 # --- Memory ------------------------------------------------------------------
-# `local` is the on-box summary pipeline: no network, no remote service, no
-# secret. It mines finished session rollouts in the background and injects a
-# compact summary into the system prompt. The remote backends (hindsight,
-# mnemopi) were rejected — they would need a credential in the environment,
-# which this repo does not do.
+# OFF, and the reason is a correction to what this block used to claim.
+#
+# The previous comment here said `local` was "the on-box summary pipeline: no
+# network, no remote service, no secret". Two of those three were true. `local`
+# describes where memory is STORED and orchestrated, not where inference runs.
+# Per omp://memory.md, the local backend's model selection is:
+#     Phase 1 (per-session extraction)  -> the `default` role
+#     Phase 2 (cross-session synthesis) -> the `smol` role
+# `default` is claude-opus-5. So this block, as previously written, mined up to
+# 32 session rollouts per launch using the single most expensive model in the
+# configuration — to produce a summary nobody had asked for, in the background,
+# on the one pool that is actually rationed. That is the exact failure this
+# whole setup exists to prevent, hiding inside a comment that said the opposite.
+#
+# `providers.memoryModel` does offer on-device options, but omp://local-models.md
+# documents it as driving the Mnemopi backend, not this one. No way was found to
+# point the local backend's Phase 1 at a cheaper role. If that changes, this is
+# worth switching back on: the feature is useful, its default wiring is not.
+#
+# Rejected: leaving it on and accepting the cost. The pipeline had produced
+# nothing yet (`memory://root` reported no artifacts), so the entire spend to
+# date had bought zero context.
+# Rejected: the remote backends (hindsight, mnemopi). They need a credential in
+# the environment, which this repo does not do.
 memory:
-  backend: local
+  # Quoted: bare `off` is a BOOLEAN in YAML 1.1, and this key is an enum
+  # (off|local|hindsight|mnemopi). Quoting removes the ambiguity entirely.
+  backend: "off"
 
+# The `memories.*` tuning below is inert while the backend is off. It is kept,
+# not deleted, because it is correct and re-enabling should not require
+# rediscovering these values.
 memories:
   # Rollout mining runs at startup. These four keys exist to keep that from
   # becoming "work at start-up", which is a repo invariant for the shell and a

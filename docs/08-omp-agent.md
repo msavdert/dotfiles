@@ -21,7 +21,7 @@ manage), one is an API key.
 | Provider | Auth | Notable models | What it is for |
 |---|---|---|---|
 | `anthropic` | OAuth | `claude-opus-5`, `claude-sonnet-5` (1M context, 128K output, thinking `low`…`max`), `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5` | Architecture, planning, review, the final QA gate. The only tier trusted to decide something is finished. |
-| `google-antigravity` | OAuth | `gemini-3.1-pro`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-2.5-pro` (1M context, 66K output) | Bulk work: search, mechanical edits, session titles, general delegated tasks. Fast and high-throughput. |
+| `google-antigravity` | OAuth | `gemini-3.1-pro`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-2.5-pro` (1M context, 66K output) | Bulk work: search, mechanical edits, session titles, general delegated tasks, the per-turn advisor. Fast and high-throughput. |
 | `synthetic` | API key (`SYNTHETIC_API_KEY`) | `hf:zai-org/GLM-5.2` (524K), `hf:moonshotai/Kimi-K3` (524K), `hf:zai-org/GLM-4.7-Flash` (197K), `hf:Qwen/Qwen3.6-27B`, `hf:openai/gpt-oss-120b`, `hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4` | Long-context specialists: adversarial review and documentation. Subscription-priced, so the constraint is concurrency, not cost per token. |
 
 Synthetic also exposes capability aliases — `syn:large:text` (GLM-5.2),
@@ -42,7 +42,7 @@ model and falls back to context-full compaction with a warning.
 | Work type | Agent / role | Model | Why |
 |---|---|---|---|
 | Architecture, planning, final acceptance | `default`, `slow`, `plan` | `anthropic/claude-opus-5` | The only judgement call that cannot be delegated. 1M context means the whole repo plus a plan fits without compaction. |
-| Session titles, classification, cheap background turns | `smol` | `google-antigravity/gemini-3.6-flash` | High volume, zero judgement. Spending Opus here is pure waste. |
+| Session titles, classification, cheap background turns, post-plan edits | `smol` | `google-antigravity/gemini-3.6-flash` | High volume, zero judgement. Spending Opus here is pure waste. Also the prewalk handoff target: once the plan exists, typing is its job — see [O8](#o8--prewalk-is-on-by-default). |
 | Read-only repo search | `scout` | `google-antigravity/gemini-3.6-flash` | Reads a lot, decides nothing. Bundled agent, re-pointed by model override only — see [O4](#o4--bundled-agents-are-re-pointed-by-model-override-not-replaced). |
 | Mechanical edits | `sonic` | `google-antigravity/gemini-3.6-flash` | Rename, move, apply-the-same-change-in-twelve-files. Speed matters, taste does not. |
 | General delegated work | `task` | `google-antigravity/gemini-3.1-pro` | The default worker gets the stronger Gemini: it has to investigate *and* edit in one pass. |
@@ -50,7 +50,7 @@ model and falls back to context-full compaction with a warning.
 | Repository documentation | `docs` | `synthetic/hf:moonshotai/Kimi-K3` | Same model, different prompt — a custom agent that knows this repo's doc conventions. |
 | Adversarial review gate | `audit` | `synthetic/hf:zai-org/GLM-5.2` | A reasoning model, read-only, told to assume the change is broken. Deliberately a *different* model from the one that wrote the code. |
 | Code review | `reviewer` | `anthropic/claude-sonnet-5` | Review needs judgement but not Opus; Sonnet is the cheapest model still trusted to say "no". |
-| Passive per-turn review (advisor) | `advisor` | `anthropic/claude-sonnet-5` | Runs on every turn, so it must be fast; injects concerns and blockers rather than editing. |
+| Passive per-turn review (advisor) | `advisor` | `google-antigravity/gemini-3.1-pro:low` | Runs on every completed turn, so its cost is multiplied by turn count — too expensive for the rationed Anthropic pool. The paranoia WATCHDOG.md asks for is now Gemini's judgement, not Sonnet's: a deliberate quality-for-quota trade, see [O6](#o6--the-advisor-runs-on-gemini-not-sonnet). |
 
 Roles live under `modelRoles` in `configs/omp/config.yml`; subagents are
 re-pointed under `task.agentModelOverrides`, which takes precedence over an
@@ -97,7 +97,7 @@ Everything tracked in `configs/omp/` lands flat in `~/.omp/agent/`.
 
 | Tracked file | Lands at | Controls |
 |---|---|---|
-| `config.yml` | `~/.omp/agent/config.yml` | Global settings: `modelRoles`, `task.agentModelOverrides`, tool approval policy, memory backend, compaction, theme. |
+| `config.yml` | `~/.omp/agent/config.yml` | Global settings: `modelRoles`, `task.agentModelOverrides`, tool approval policy, memory backend (off), compaction, theme. |
 | `models.yml` | `~/.omp/agent/models.yml` | Custom model and provider definitions, including the Synthetic model ids and their context/output limits. |
 | `keybindings.yml` | `~/.omp/agent/keybindings.yml` | TUI key bindings. |
 | `lsp.json` | `~/.omp/agent/lsp.json` | Language-server configuration for the `lsp` tool. |
@@ -121,6 +121,15 @@ Skills must sit exactly one level under `skills/`
 (`skills/<name>/SKILL.md`). A grouping directory in between is not discovered.
 
 ## How the config reaches the agent
+
+**Runtime writes fail in opposite directions on the two tiers.** In the
+container that copy lives on the image layer, so a `/settings` tweak is
+discarded on the next rebuild — costs nothing, teaches you nothing. On the
+macOS thin client the files are symlinks into this repo, so the same tweak
+silently edits a tracked file and shows up as an uncommitted diff you did not
+make deliberately. The macOS case is the dangerous one: it gets committed by
+accident. Treat interactive edits as experiments either way; once one earns its
+keep, port it into `configs/omp/config.yml` deliberately.
 
 **Container.** One line in the `Dockerfile`, at build time:
 
@@ -217,8 +226,8 @@ so writing *about* the keywords in a prompt is safe.
 |---|---|
 | `/agents` | Agent Control Center: which agents were discovered, from where, and which model each resolves to. First stop when an agent misbehaves. |
 | `/models` (alias of `/model`) | Switch the model for this session. |
-| `/settings` | The settings panel. Writes land in the **global** `config.yml` — which on this setup is a symlink into the repo on macOS, so a change here is a repo change. |
-| `/memory` | Inspect and run memory maintenance. |
+| `/settings` | The settings panel. Writes land in the **global** `config.yml`. In the container that copy is discarded on rebuild; on macOS it is a symlink into the repo, so a change here is a repo change. |
+| `/memory` | Inspect the memory store. Inert here: `memory.backend` is off, so there is nothing stored and nothing to maintain — see [O7](#o7--the-memory-backend-is-off). |
 | `/advisor` | Toggle the second reviewing model for this session. `/advisor status` shows its model, context and cost; `/advisor dump` copies its transcript. |
 | `/compact` | Compact the context manually, rather than waiting for the automatic threshold. |
 | `/fresh` | Resets the **provider-side** stream state and leaves the local transcript alone. The repair for a session that has started erroring mid-stream. |
@@ -353,9 +362,110 @@ nothing else.
 **Rejected: a dedicated `configs/op-env/omp.env` with only `SYNTHETIC_API_KEY`.**
 It would work, and it keeps the pattern uniform. It also means every `omp`
 invocation pays a 1Password round-trip before the TUI appears, on a command
-that is started dozens of times a day and is expected to be instant. Writing the
-key once to a 0600 file that OMP reads natively costs one `mise` task and no
+that is started dozens of times a day and is expected to be instant. Writing
+the key once to a 0600 file that OMP reads natively costs one `mise` task and no
 start-up latency. Revisit if OMP ever needs a second key.
+
+## O6 — The advisor runs on Gemini, not Sonnet
+
+**Decision.** `modelRoles.advisor` is `google-antigravity/gemini-3.1-pro:low`.
+It was `anthropic/claude-sonnet-5:low`.
+
+**Why.** The advisor fires on every completed turn, so its cost is the per-call
+price multiplied by the turn count — the most quota-sensitive role in the whole
+routing table. It was sitting on the one rationed pool (Anthropic OAuth) while
+the Antigravity OAuth quota sat largely unspent beside it. Nothing the advisor
+does is unique to Anthropic: it injects concerns and blockers, it never edits,
+and anything it raises is re-judged by Opus before it is acted on. `low`
+thinking is enough for that job.
+
+**Rejected: keep it on Sonnet.** The review quality was the best of the cheap
+options, but the role multiplies whatever it costs by every turn in every
+session, and Anthropic is the pool that runs out first. Keeping the nicest
+reviewer on the scarcest budget is the wrong direction of spend.
+
+**Rejected: disable the advisor entirely.** It earns its keep catching wrong
+directions on turn 2 instead of turn 12 — one cheap call instead of eleven Opus
+turns. Removing the check to save quota optimises the wrong side.
+
+**Cost we accept, stated on purpose:** WATCHDOG.md asks the advisor for
+reviewer-grade paranoia about secret leakage, volume shadowing and unverified
+subagent claims, and that judgement is now Gemini's rather than Sonnet's. This
+is a quality-for-quota trade, made deliberately, not an assumption that
+coverage is unchanged. If advisor notes visibly degrade, the fix is to move the
+role back to Sonnet and find the quota elsewhere.
+
+## O7 — The memory backend is off
+
+**Decision.** `memory.backend` is `"off"` (quoted — a bare `off` is a YAML 1.1
+boolean, and this key is an enum). The `memories.*` tuning block is kept but
+inert.
+
+**Why.** The old comment claimed `local` meant "no network, no remote service,
+no secret" — all true, and all beside the point. `local` describes where memory
+is *stored*, not where inference runs. Per `omp://memory.md`, the local
+backend's Phase 1 extraction runs on the `default` role — `claude-opus-5` — and
+Phase 2 synthesis on `smol`. So every launch was mining up to 32 rollouts on
+the most expensive model in the configuration, in the background, to produce a
+summary nobody had asked for. And it had bought nothing: `memory://root`
+reported zero artifacts at the point the spend was noticed.
+
+**Rejected: leave `local` on and accept the cost.** The pipeline had produced
+nothing yet, so the entire historical spend had purchased zero context. "It
+might be useful eventually" is not a budget line.
+
+**Rejected: point Phase 1 at a cheaper role.** No knob was found that retargets
+the local backend's Phase 1; `providers.memoryModel` drives the Mnemopi
+backend, not this one. If that changes, `local` is worth switching back on —
+the `memories.*` values below it are kept for exactly that day.
+
+**Rejected: the remote backends (hindsight, mnemopi).** They need a credential
+in the environment, which this repo does not do (invariant 2).
+
+## O8 — Prewalk is on by default
+
+**Decision.** `prewalk.enabled: true`. At the first edit or write after the
+todo list exists, the session hands off from the active model to the `smol`
+role (`gemini-3.6-flash`). Escape hatches: `--no-prewalk`, or
+`--prewalk-into @task` to hand off to gemini-3.1-pro instead of flash.
+
+**Why.** It is the structural version of the rule `AGENTS.md` states in prose:
+judgement is the scarce thing, keystrokes are not. The failure mode it
+corrects is the architect quietly doing the typing itself — and that decision
+is never made consciously enough to remember a flag. Defaults are the only
+kind of rule that applies to behaviour nobody decided to have. Once the plan
+exists, the remaining work is execution, and flash-class models execute fine.
+
+**Rejected: leave it off and opt in per session.** The sessions that most need
+the handoff are exactly the ones where nobody reaches for a flag. An opt-in
+saves Opus only when remembered; a default saves it always.
+
+**Rejected: hand off to `task` (gemini-3.1-pro) by default.** Available via
+`--prewalk-into @task`, and the right call when an edit genuinely needs the
+stronger model. As the default it would spend a mid-tier model on work flash
+does correctly; the cheap default with an explicit upgrade path loses nothing,
+because the person who knows the edit is delicate is the person who can type
+the flag.
+
+## O9 — Subagents get the `lsp` tool
+
+**Decision.** `task.enableLsp: true`. The default is `false`, which silently
+strips the `lsp` tool from every spawned subagent.
+
+**Why.** The repo promised a capability the runtime was not delivering.
+`configs/omp/agents/audit.md` declares `lsp` in its tools list, its prompt
+instructs it to run `lsp diagnostics`, and `configs/omp/AGENTS.md` names
+`lsp diagnostics` as part of the verification gate. A live probe of all four
+agent types returned `read,grep,glob,bash,yield,hub` — no `lsp`. The audit gate
+was weaker than the repo said it was, and nothing reported the gap: the tool is
+removed silently, so the failure mode is an audit that simply never checks
+types.
+
+**Rejected: strip `lsp` from the agent files and AGENTS.md instead.** That
+makes the promises honest by lowering them. The devbox ships real toolchains
+(python, node, go, rust, java), `lsp.json` already tunes the servers, and a
+type error caught by the auditor is exactly the class of mistake the gate
+exists for. The honest fix is enabling the tool, not deleting the promise.
 
 ---
 
@@ -369,6 +479,10 @@ start-up latency. Revisit if OMP ever needs a second key.
 | A Synthetic reasoning model returns empty content, no error | GLM-5.2 bills internal thinking against the same `max_tokens` budget as the answer. Thinking consumed all of it and nothing was left to emit. | Raise the output budget for that role, or lower its thinking level. A silent empty response is the signature. |
 | A second Synthetic subagent appears to hang | One concurrent request per model per pack; the second call to the *same* model queues behind the first. | Put the two roles on different Synthetic models. Different models run fully in parallel. |
 | Sessions vanished after an image upgrade | Only `ompsessions:/home/dev/.omp/agent/sessions` is persisted. Anything written elsewhere under `~/.omp` belongs to the image and is replaced on pull. | Nothing to recover. `/export` or `/share` anything worth keeping; treat `~/work` as the only durable location, per [D6](00-architecture.md#d6--the-home-directory-is-not-one-big-volume). |
+| The audit agent never runs `lsp diagnostics` | `task.enableLsp` was false (the default), which silently strips the `lsp` tool from every spawned subagent — a live probe returned `read,grep,glob,bash,yield,hub` for all four agent types. | `task.enableLsp: true` in `config.yml` ([O9](#o9--subagents-get-the-lsp-tool)). If it is set and audits still skip diagnostics, check the project layer's `.omp/config.yml` too. |
+| Anthropic quota drains faster than expected although subagents are on cheap models | Something per-turn or per-launch is billed to `default`. The two historical offenders: the advisor (every completed turn — fixed by moving it to Gemini, [O6](#o6--the-advisor-runs-on-gemini-not-sonnet)) and the `local` memory backend (Phase 1 extraction mines up to 32 rollouts per launch on Opus — fixed by `memory.backend: "off"`, [O7](#o7--the-memory-backend-is-off)). | `omp config get modelRoles.advisor` and `omp config get memory.backend`. Also note that large tool results stay in context and are re-sent every turn, so a `default`-role session that fetches web pages or big API responses inline pays for them repeatedly — delegate bulk fetching to `librarian`. |
+| Three provider connection warnings on every start | The keyless local engines `ollama`, `llama.cpp` and `lm-studio` are probed at launch; nothing on this box serves them. | Already suppressed by `disabledProviders` in `config.yml`. If the warnings persist, a project layer's `.omp/config.yml` has replaced the array wholesale — arrays are never appended (see the row above). |
+| `omp config get modelRoles.default` says "Unknown setting" | Record-typed settings are not addressable by sub-key; the non-zero exit looks like a config that failed to load, but the config is fine. | Query the whole record: `omp config get modelRoles`. Same for `task.agentModelOverrides.<name>` and `retry.fallbackChains.<role>` — drop the sub-key. |
 | A custom agent does not appear in `/agents` | Its frontmatter is missing `name` or `description` — both are required, and the file is skipped with a warning rather than failing the session. | Add both fields. One bad file does not stop the others loading, which is why the omission is easy to miss. |
 | A skill is never offered | The file is one level too deep. Discovery is non-recursive: `skills/<name>/SKILL.md` is found, `skills/<group>/<name>/SKILL.md` is not. Native discovery also *requires* `description`. | Flatten the directory and give the frontmatter a `description` that says when to use the skill. |
 | A bundled agent lost `blocking: true` or its prompt | A file in `configs/omp/agents/` shares its name and replaced the definition wholesale. | Delete the file and set the model in `task.agentModelOverrides` instead — [O4](#o4--bundled-agents-are-re-pointed-by-model-override-not-replaced). |
