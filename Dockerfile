@@ -89,6 +89,7 @@ COPY --chown=$UID:$GID configs/op-env/      .config/op-env/
 COPY --chown=$UID:$GID configs/starship.toml .config/starship.toml
 COPY --chown=$UID:$GID configs/zellij/      .config/zellij/
 COPY --chown=$UID:$GID configs/nvim/        .config/nvim/
+COPY --chown=$UID:$GID configs/omp/         .omp/agent/
 
 RUN chmod 700 "$HOME/.ssh" && chmod 600 "$HOME/.ssh/config"
 
@@ -116,7 +117,9 @@ RUN nvim --headless "+Lazy! restore" +qa 2>/dev/null \
 
 # --- Runtime -----------------------------------------------------------------
 # Directories that get a persistent volume mounted over them in compose.yaml.
-RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh"
+# ~/.omp/agent/sessions is created here so the named volume inherits `dev`
+# ownership; a path Docker has to create itself would land as root-owned.
+RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh" "$HOME/.omp/agent/sessions"
 
 # The container's job is to stay alive; you enter it with `docker exec` (see
 # the `Host dev` block in docs/03-vps-deployment.md). Running zellij as PID 1

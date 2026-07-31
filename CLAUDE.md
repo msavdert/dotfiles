@@ -28,6 +28,8 @@ Full rationale and decision records: `docs/00-architecture.md`.
 | Connect | `ssh dev` |
 | Regenerate completions | `mise run completions:regen` |
 | Pull kubeconfig | `mise run kube:homelab` |
+| Restore OMP Synthetic key | `mise run omp:auth` (then `/login` for the OAuth providers) |
+| Check effective OMP config | `omp config list` · `omp config path` · `omp models` |
 | Lint | `shellcheck macos/setup.sh` · `zsh -n configs/zsh/.zshrc` |
 
 ## Invariants — do not break these
@@ -60,6 +62,17 @@ Full rationale and decision records: `docs/00-architecture.md`.
    hostnames, signing keys and installer-injected `PATH` lines go in
    `~/.ssh/config.local`, `~/.gitconfig.local` and `~/.zshrc.local`, all of
    which are read but never committed.
+10. **The OMP config contract.** Declarative agent files are tracked in
+    `configs/omp/` and reach `~/.omp/agent/` two ways: the `Dockerfile` copies
+    the directory into the image, and `link_configs()` in `macos/setup.sh`
+    symlinks each file individually. Never set `PI_CODING_AGENT_DIR`. Runtime
+    state OMP writes into that same directory (`agent.db*`, `history.db*`,
+    `models.db*`, `sessions/`, `.env`) is never committed. A file in
+    `configs/omp/agents/` must never be named after a bundled agent (`scout`,
+    `sonic`, `task`, `librarian`, `reviewer`, `designer`) — it replaces the
+    definition wholesale and drops flags like `blocking: true`; to change only
+    the model, use `task.agentModelOverrides` in `config.yml`. See
+    `docs/08-omp-agent.md`.
 
 ## Layout
 
@@ -72,9 +85,10 @@ configs/
   zsh/{.zshenv,.zshrc,regen-completions.zsh}
   op/*.env                        op:// references only
   nvim/ zellij/                   tier 1 only (not linked on macOS)
+  omp/                            coding-agent config -> ~/.omp/agent/
   git/config ssh/config* starship.toml
 .github/workflows/build.yml       native multi-arch build → ghcr.io
-docs/00..07                       architecture through troubleshooting
+docs/00..08                       architecture through the coding agent
 docs/reference/                   zellij keybindings, mise backends
 ```
 

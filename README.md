@@ -10,7 +10,7 @@ one `ssh dev` away.
 ```
 macOS (thin client)  ──ssh dev──▶  devbox container (VPS)
 ghostty · 1Password                 languages · nvim · zellij
-orbstack · 11 mise CLIs            kubernetes · AI CLIs
+orbstack · 11 mise CLIs            kubernetes · AI CLIs · omp agent
 macos/Brewfile                     ghcr.io/msavdert/devbox
 ```
 
@@ -63,6 +63,7 @@ configs/
   zsh/                  .zshenv, .zshrc, completion generator
   op/*.env              op:// references — no secret values
   nvim/ zellij/         devbox only
+  omp/                  coding-agent roles, rules, skills
   git/ ssh/ starship.toml
 .github/workflows/      multi-arch build → ghcr.io
 docs/                   ← read this
@@ -82,6 +83,7 @@ Everything — what, why, and what was rejected — is in **[docs/](docs/README.
 | [05 Secrets](docs/05-secrets.md) | 1Password, plus Connect/Environments migrations |
 | [06 Maintenance](docs/06-maintenance.md) | adding tools, upgrading, rolling back |
 | [07 Troubleshooting](docs/07-troubleshooting.md) | symptom → cause → fix |
+| [08 OMP coding agent](docs/08-omp-agent.md) | model routing, and the audit gate |
 
 ## Design in one paragraph
 
@@ -92,7 +94,9 @@ pinned by image digest. macOS packages are declared in a Brewfile applied with
 into the shell; each command that needs one is wrapped in `op run`, which
 resolves the `op://` references in `configs/op-env/*.env` in a single request and
 injects them into that one process. Shell start-up does no work at all: no
-network calls, no completion generation, no secret loading.
+network calls, no completion generation, no secret loading. The coding agent is
+declared the same way: `configs/omp/` routes architecture to Claude Opus, bulk
+work to cheaper models, and gates the result behind an adversarial audit pass.
 
 The reasoning behind each of those, and the alternatives that were considered
 and rejected, is recorded in

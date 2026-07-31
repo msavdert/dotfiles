@@ -13,3 +13,16 @@ node_modules
 !configs/op-env/*.env          # these hold op:// references only, no secrets
 .op_secret.env
 configs/ssh/config.local
+
+# OMP runtime state.
+# On macOS ~/.omp/agent/* are symlinks INTO this repo, so everything OMP writes
+# next to them at runtime would otherwise show up as untracked files here.
+# These are anchored patterns under configs/omp/ and therefore cannot disturb
+# the `!configs/op-env/*.env` negation above.
+configs/omp/*.db
+configs/omp/*.db-shm
+configs/omp/*.db-wal
+configs/omp/sessions/
+configs/omp/terminal-sessions/
+configs/omp/last-changelog-version
+configs/omp/.env

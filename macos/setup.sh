@@ -92,7 +92,7 @@ link_configs() {
     # Create only PARENT directories. Creating the link targets themselves (the
     # old script did `mkdir -p ~/.config/nvim` right before linking it)
     # guarantees a pointless backup dance on every fresh machine.
-    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$HOME/.ssh/sockets"
+    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$HOME/.ssh/sockets" "$HOME/.omp/agent"
     run chmod 700 "$HOME/.ssh"
 
     local pairs=(
@@ -105,6 +105,22 @@ link_configs() {
         "$REPO_DIR/configs/ghostty/config:$CONFIG_DIR/ghostty/config"
         "$REPO_DIR/configs/ssh/config:$HOME/.ssh/config"
         "$REPO_DIR/configs/ssh/config.macos:$HOME/.ssh/config.macos"
+
+        # OMP is linked PER FILE, never as a whole directory. OMP treats
+        # ~/.omp/agent as its working directory too: the auth store
+        # (agent.db), session JSONL transcripts and several SQLite databases
+        # are written right next to the config. Linking the directory would
+        # dump all of that into this repo's working tree.
+        "$REPO_DIR/configs/omp/config.yml:$HOME/.omp/agent/config.yml"
+        "$REPO_DIR/configs/omp/models.yml:$HOME/.omp/agent/models.yml"
+        "$REPO_DIR/configs/omp/keybindings.yml:$HOME/.omp/agent/keybindings.yml"
+        "$REPO_DIR/configs/omp/lsp.json:$HOME/.omp/agent/lsp.json"
+        "$REPO_DIR/configs/omp/AGENTS.md:$HOME/.omp/agent/AGENTS.md"
+        "$REPO_DIR/configs/omp/RULES.md:$HOME/.omp/agent/RULES.md"
+        "$REPO_DIR/configs/omp/WATCHDOG.md:$HOME/.omp/agent/WATCHDOG.md"
+        "$REPO_DIR/configs/omp/APPEND_SYSTEM.md:$HOME/.omp/agent/APPEND_SYSTEM.md"
+        "$REPO_DIR/configs/omp/agents:$HOME/.omp/agent/agents"
+        "$REPO_DIR/configs/omp/skills:$HOME/.omp/agent/skills"
     )
 
     local pair src dst tilde='~'

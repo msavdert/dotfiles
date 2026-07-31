@@ -17,6 +17,7 @@ change doesn't quietly re-introduce a problem that was already solved.
 | 05 | [Secrets & 1Password](05-secrets.md) | How secrets are resolved, plus migration plans for Connect and Environments. |
 | 06 | [Maintenance](06-maintenance.md) | Adding a tool, upgrading, rolling back, version policy. |
 | 07 | [Troubleshooting](07-troubleshooting.md) | Symptom → cause → fix. |
+| 08 | [OMP coding agent](08-omp-agent.md) | Why Opus only architects and audits, which model does which job, and how `configs/omp/` reaches `~/.omp/agent/`. |
 
 ## Reference
 
@@ -36,4 +37,6 @@ published to `ghcr.io` for amd64 and arm64 by GitHub Actions. It runs on a VPS
 via `compose.yaml`; `ssh dev` drops straight into a persistent zellij session
 inside it. Secrets are never exported into the shell — each command that needs
 them is wrapped in `op run`, which resolves the `op://` references in
-`configs/op-env/*.env` in a single request.
+`configs/op-env/*.env` in a single request. The coding agent on top of that is
+declarative too: `configs/omp/` pins which model plays architect, which ones do
+the bulk work, and which one audits the result before anything is called done.

@@ -70,10 +70,22 @@ if (( $+commands[mise] )); then
 fi
 
 (( $+commands[zoxide] ))   && eval "$(zoxide init zsh)"
-(( $+commands[starship] )) && eval "$(starship init zsh)"
 
-# fzf ships its own keybindings (Ctrl-R history, Ctrl-T files).
-(( $+commands[fzf] )) && source <(fzf --zsh)
+# Everything below this point talks to the prompt or to zle, and neither exists
+# under a dumb terminal. `zsh -c`, editor subshells and any tool that captures
+# command output run with TERM=dumb, where starship prints
+#   [ERROR] - (starship::print): Under a 'dumb' terminal
+# and fzf's keybindings abort with
+#   (eval):1: can't change option: zle
+# straight into the captured stream. `mise activate` and `zoxide` above are
+# deliberately NOT guarded: captured shells still need a correct PATH and
+# working directory resolution.
+if [[ ${TERM:-} != dumb ]]; then
+    (( $+commands[starship] )) && eval "$(starship init zsh)"
+
+    # fzf ships its own keybindings (Ctrl-R history, Ctrl-T files).
+    (( $+commands[fzf] )) && source <(fzf --zsh)
+fi
 
 # --- Secrets -----------------------------------------------------------------
 # Secrets are NEVER exported into the shell environment. Each wrapper below
@@ -115,11 +127,20 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # functions cannot recurse into themselves.
     claude()   { opwith ai claude "$@"; }
     kilocode() { opwith ai kilocode "$@"; }
-    omp()      { opwith ai omp "$@"; }
+
+    # NOTE: no `omp` wrapper here, on purpose. op-env/ai.env sets
+    # ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN and ANTHROPIC_MODEL, which would
+    # reroute OMP's own Anthropic OAuth through OpenRouter and break the Claude
+    # architect setup. OMP resolves its credentials from ~/.omp/agent/agent.db
+    # and its Synthetic key from ~/.omp/agent/.env (`mise run omp:auth`).
 fi
 
-# --- OMP Declarative Configuration -----------------------------------------
-export PI_CODING_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/dotfiles/configs/omp}"
+# --- OMP ---------------------------------------------------------------------
+# OMP uses its DEFAULT agent directory, ~/.omp/agent. PI_CODING_AGENT_DIR is
+# deliberately NOT set: the container never clones this repo, so pointing it at
+# a repo path would be a dangling reference there. The declarative config
+# reaches that directory by COPY in the Dockerfile (devbox) and by per-file
+# symlinks from macos/setup.sh (laptop).
 
 # --- Aliases -----------------------------------------------------------------
 # Editors (Guarded: Fallback to system vim/vi on macOS if nvim is not installed)
@@ -208,9 +229,10 @@ fi
 
 # --- Plugins -----------------------------------------------------------------
 # Order matters: zsh-syntax-highlighting wraps every widget that exists when it
-# is sourced, so it must come last.
+# is sourced, so it must come last. Both are zle widgets, hence the same dumb
+# terminal guard as the prompt integrations above.
 ZSH_PLUGINS="${XDG_DATA_HOME:-$HOME/.local/share}/zsh-plugins"
-if [[ -d $ZSH_PLUGINS ]]; then
+if [[ -d $ZSH_PLUGINS && ${TERM:-} != dumb ]]; then
     source "$ZSH_PLUGINS/zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
     source "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" 2>/dev/null
 fi

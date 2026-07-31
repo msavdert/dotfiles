@@ -96,6 +96,19 @@ op read "op://dotfiles/texts/homelab-talosconfig" > ~/.talos/config
 chmod 600 ~/.kube/config ~/.talos/config
 """
 
+# The `Synthetic` item must exist in the `dotfiles` vault. ~/.omp/agent/.env is
+# part of OMP's native .env discovery chain, so the key never has to live in the
+# shell environment. The anthropic and google-antigravity providers are OAuth
+# backed and still need an interactive `/login` inside OMP - an OAuth session
+# cannot be restored from a stored key.
+[tasks."omp:auth"]
+description = "Write the Synthetic API key from 1Password into ~/.omp/agent/.env"
+run = """
+mkdir -p ~/.omp/agent
+printf 'SYNTHETIC_API_KEY=%s\\n' "$(op read "op://dotfiles/Synthetic/credential")" > ~/.omp/agent/.env
+chmod 600 ~/.omp/agent/.env
+"""
+
 [settings]
 npm.package_manager = "bun"
 task.source_freshness_hash_contents = true

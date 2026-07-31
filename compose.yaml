@@ -42,6 +42,16 @@ services:
       - state:/home/dev/.local/state         # shell history, zellij sessions
       - kube:/home/dev/.kube                 # `mise run kube:homelab` output
 
+      # Note the SUBDIRECTORY. Mounting ~/.omp would shadow the declarative
+      # config baked in by the Dockerfile (config.yml, models.yml, agents/,
+      # skills/), so image upgrades would silently stop taking effect - the
+      # same failure mode described for /home/dev above.
+      #
+      # OMP's auth store (~/.omp/agent/agent.db) is deliberately NOT persisted.
+      # Credentials are disposable: `mise run omp:auth` restores the Synthetic
+      # key and `/login` re-runs the OAuth flows, exactly like `gh auth login`.
+      - ompsessions:/home/dev/.omp/agent/sessions   # agent transcripts
+
       # Optional: talk to the host's Docker daemon from inside the devbox.
       # - /var/run/docker.sock:/var/run/docker.sock
 
@@ -67,3 +77,4 @@ volumes:
   work:
   state:
   kube:
+  ompsessions:
