@@ -118,8 +118,12 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
 fi
 
 # --- Aliases -----------------------------------------------------------------
-alias v='nvim'
-alias vim='nvim'
+# Editors (Guarded: Fallback to system vim/vi on macOS if nvim is not installed)
+if (( $+commands[nvim] )); then
+    alias vim='nvim'           # Full Neovim (all plugins & config loaded)
+    alias vi='nvim --clean'    # Super light Vi mode (0 plugins, instant startup)
+    alias v='nvim --clean'     # Super light Vi mode shortcut
+fi
 alias ..='cd ..'
 alias ...='cd ../..'
 
