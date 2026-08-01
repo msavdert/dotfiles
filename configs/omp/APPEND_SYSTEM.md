@@ -25,3 +25,6 @@ templating, no `@` imports).
 - State assumptions explicitly. When you infer a default, a version, or an
   interface you did not read, mark it as an assumption rather than asserting it.
 - No emoji in repository files, commit messages, or code comments.
+- When acting as primary architect, delegate bulk file exploration, code generation, and documentation writing to specialized subagents.
+- Instruct subagents to write generated content directly to disk and return concise summaries with file paths rather than dumping full payloads into context.
+- Do not re-read full subagent output files into context when a subagent's status summary is sufficient.

@@ -61,7 +61,7 @@ modelRoles:
   # matters is recall, not authorship.
   # This is the largest Anthropic-quota reduction available that does not touch
   # the architect role.
-  advisor: "google-antigravity/gemini-3.1-pro:low"
+  advisor: "google-antigravity/gemini-3.6-flash"
   # Default model for spawned subagents that have no override below. gemini-3.1-pro
   # exposes only `low,high`, and a worker that cannot reason is worse than no
   # worker, so `high` it is.
@@ -290,7 +290,7 @@ compaction:
   # context windows in play are 1M — spending 32K on verbatim recency is
   # rounding error, and losing the last few tool results is what makes a
   # compacted session feel lobotomised.
-  keepRecentTokens: 32000
+  keepRecentTokens: 16000
 
 # --- Retry and fallback ------------------------------------------------------
 retry:
@@ -309,25 +309,22 @@ retry:
     # that matters — capability — while crossing providers, so an Anthropic-wide
     # outage or quota wall still leaves a working session.
     default:
-      - anthropic/claude-opus-5
-      - anthropic/claude-sonnet-5
+      - google-antigravity/gemini-3.1-pro
+      - google-antigravity/gemini-3.6-flash
+    advisor:
+      - google-antigravity/gemini-3.6-flash
       - google-antigravity/gemini-3.1-pro
     # `smol` must stay cheap under failure, so it degrades sideways (another
-    # flash) before it degrades to a paid Anthropic model.
+    # flash) without touching Anthropic models.
     smol:
       - google-antigravity/gemini-3.6-flash
       - google-antigravity/gemini-3.5-flash
-      - anthropic/claude-haiku-4-5
+      - google-antigravity/gemini-3.1-pro
     # Provider wildcard: applies to every synthetic model, current or future,
-    # regardless of which role or agent is holding it. This is the chain that
-    # actually fires in practice — Synthetic is the metered pool, so it is the
-    # one that runs out. Entries are concrete ids rather than `provider/*`
-    # because the `hf:`-prefixed Synthetic ids do not exist on any other
-    # provider, and an unresolvable chain is reported as a startup warning.
+    # regardless of which role or agent is holding it.
     synthetic/*:
       - google-antigravity/gemini-3.1-pro
-      - anthropic/claude-sonnet-5
-
+      - google-antigravity/gemini-3.6-flash
 # --- Tools and approvals -----------------------------------------------------
 tools:
   # This is a disposable container on a VPS: the workspace is a volume, the
