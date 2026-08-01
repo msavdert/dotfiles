@@ -125,7 +125,7 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
 
     # `op run` execs the binary directly (PATH lookup, no shell), so these
     # functions cannot recurse into themselves.
-    claude()   { opwith ai claude "$@"; }
+    # Note: claude() is intentionally not wrapped with opwith so it can use native claude.ai OAuth login & Connectors.
     kilocode() { opwith ai kilocode "$@"; }
 
     # NOTE: no `omp` wrapper here, on purpose. op-env/ai.env sets
