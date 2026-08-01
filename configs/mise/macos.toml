@@ -27,12 +27,14 @@ eza      = "latest"     # ls / ll / la / lt aliases
 bat      = "latest"     # bcat alias
 
 # --- Host-side utilities -----------------------------------------------------
-gh  = "latest"          # ~/.gitconfig uses `gh auth git-credential`
-jq  = "latest"          # ad-hoc JSON without opening the devbox
-fzf = "latest"          # the ssh host picker in .zshrc
-ripgrep = "latest"      # searching this repo from the host
-fd  = "latest"          # file lookups on the host
-uv  = "latest"          # one-off python scripts without a devbox round-trip
+gh          = "latest"  # ~/.gitconfig uses `gh auth git-credential`
+jq          = "latest"  # ad-hoc JSON without opening the devbox
+fzf         = "latest"  # the ssh host picker in .zshrc
+ripgrep     = "latest"  # searching this repo from the host
+fd          = "latest"  # file lookups on the host
+uv          = "latest"  # one-off python scripts without a devbox round-trip
+claude-code = "latest"  # Claude Code CLI
+
 
 # --- Repo maintenance --------------------------------------------------------
 shellcheck = "latest"   # linting macos/setup.sh before committing
