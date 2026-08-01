@@ -1,7 +1,6 @@
 ---
 name: audit
 description: "READ-ONLY adversarial reviewer. Assumes the change is broken and proves it: correctness and edge cases, secret leakage, resource and concurrency bugs, and tests that assert nothing. Use as the gate before anything is declared done."
-model: synthetic/hf:zai-org/GLM-5.2
 thinkingLevel: high
 read-summarize: false
 tools:

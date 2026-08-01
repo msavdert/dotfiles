@@ -41,7 +41,8 @@ setupVersion: 1
 modelRoles:
   # Interactive driver. Deliberately left bare so `defaultThinkingLevel: auto`
   # (below) picks the depth per turn instead of billing a fixed tier forever.
-  default: anthropic/claude-opus-5
+  # The `:medium` thinking-level suffix is intentional to match runtime drift.
+  default: anthropic/claude-opus-5:medium
   # `slow` is the explicit "I am stuck, think properly" escalation. If you have
   # already decided to pay for it, pay all the way: opus-5 tops out at `max`.
   slow: "anthropic/claude-opus-5:max"
@@ -127,9 +128,7 @@ task:
   # Role -> model for BUNDLED agents. This is the single place model policy for
   # subagents lives, so the bundled agent definitions (prompt, tool set,
   # `blocking: true` on scout) are inherited untouched.
-  # `audit` is deliberately absent: agents/audit.md is a custom agent that pins
-  # its own model in frontmatter, and duplicating it here would create two
-  # sources of truth that silently disagree.
+  # This table mirrors the routing table in configs/omp/AGENTS.md and the two must be kept in sync.
   agentModelOverrides:
     # Read-only repo search. Volume-heavy, judgement-light, and `blocking: true`
     # means it runs inline — latency matters more than depth.
@@ -142,9 +141,13 @@ task:
     # Docs/research. Kimi-K3 benchmarked as the best documentation writer of the
     # pool here (1946 chars in 5.3s). 524K context swallows whole doc trees.
     librarian: "synthetic/hf:moonshotai/Kimi-K3"
+    docs: "synthetic/hf:moonshotai/Kimi-K3"
+    audit: "synthetic/hf:zai-org/GLM-5.2"
     # Reviewer is a quality gate whose output gets acted on, so it stays on
     # Anthropic — but Sonnet, not Opus: reviewing is cheaper than authoring.
     reviewer: anthropic/claude-sonnet-5
+    security-reviewer: "synthetic/hf:zai-org/GLM-5.2"
+    designer: anthropic/claude-sonnet-5
 
   # Synthetic allows exactly ONE in-flight request PER MODEL per subscription
   # pack; a second call to the same model queues behind the first, while calls
@@ -336,6 +339,15 @@ tools:
   # audit trail of what an unattended fan-out actually did.
   intentTracing: true
 
+  # Large tool payloads are re-billed on every subsequent orchestrator turn,
+  # so they must spill to artifacts instead of inlining. 16 KB sits above
+  # ordinary small file reads and diffs while still spilling anything genuinely large.
+  artifactSpillThreshold: 16
+  artifactHeadBytes: 6
+  artifactTailBytes: 3
+  artifactTailLines: 120
+  outputMaxColumns: 768
+
 bash:
   # Ordered command rules; FIRST MATCH WINS, so specificity goes at the top and
   # the permissive catch-all goes last. Matching is asymmetric on purpose:
@@ -486,10 +498,10 @@ read:
   # plus a targeted second read.
   summarize:
     enabled: true
-  # Raised from 300. The long files in this repo (Dockerfile, zshrc, docs/*.md)
-  # sit in the 300-500 line band, and a limit that lands mid-file just buys a
-  # second round-trip at full token cost.
-  defaultLimit: 400
+    prose: false
+  # 250 covers a typical config or source file in one call while still capping
+  # pathological whole-file reads.
+  defaultLimit: 250
 
 # --- Thinking ----------------------------------------------------------------
 # `auto` classifies each turn and picks a depth, instead of billing one fixed

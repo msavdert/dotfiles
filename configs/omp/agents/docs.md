@@ -1,7 +1,6 @@
 ---
 name: docs
 description: "Documentation writer for this repository. Produces reference tables, architecture rationale with rejected alternatives, and symptom/cause/fix troubleshooting entries. Use for new docs, doc rewrites, and keeping docs in step with a behaviour change."
-model: synthetic/hf:moonshotai/Kimi-K3
 thinkingLevel: medium
 tools:
   - read

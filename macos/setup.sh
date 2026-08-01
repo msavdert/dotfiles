@@ -121,6 +121,7 @@ link_configs() {
         "$REPO_DIR/configs/omp/APPEND_SYSTEM.md:$HOME/.omp/agent/APPEND_SYSTEM.md"
         "$REPO_DIR/configs/omp/agents:$HOME/.omp/agent/agents"
         "$REPO_DIR/configs/omp/skills:$HOME/.omp/agent/skills"
+        "$REPO_DIR/configs/omp/hooks:$HOME/.omp/agent/hooks"
     )
 
     local pair src dst tilde='~'

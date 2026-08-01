@@ -15,3 +15,15 @@ AGENTS.md, which is loaded once per session.
   regenerate.
 - State uncertainty. If an API, flag, or field is not confirmed in the source or
   docs you read, say so instead of inventing plausible behaviour.
+- Architect tool calls are whitelist-only (AGENTS.md). Anything that could return
+  over ~50 lines, touch the network, or search the repo is dispatched to a
+  subagent.
+- Full payloads live in `local://` files; only paths and summaries cross agent
+  boundaries. No agent returns file contents or long output inline.
+- A subagent brief must name its files and its acceptance criteria. A dispatch
+  without both is incomplete; fix the brief, not the subagent.
+- Subagents never run builds, linters, or test suites. The architect runs the
+  gates once, at the end.
+- Verify a subagent's claim by re-reading one narrow range or running one
+  command. Re-reading everything it produced re-pays the cost you delegated to
+  avoid.
