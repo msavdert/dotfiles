@@ -60,7 +60,8 @@ ENV HOME=/home/$USERNAME \
     XDG_CONFIG_HOME=/home/$USERNAME/.config \
     XDG_DATA_HOME=/home/$USERNAME/.local/share \
     XDG_STATE_HOME=/home/$USERNAME/.local/state \
-    XDG_CACHE_HOME=/home/$USERNAME/.cache
+    XDG_CACHE_HOME=/home/$USERNAME/.cache \
+    DEVBOX_CONTAINER=1
 
 # --- mise --------------------------------------------------------------------
 RUN curl -fsSL https://mise.run | MISE_QUIET=1 sh

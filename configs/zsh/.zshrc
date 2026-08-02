@@ -128,6 +128,15 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # Note: claude() is intentionally not wrapped with opwith so it can use native claude.ai OAuth login & Connectors.
     kilocode() { opwith ai kilocode "$@"; }
 
+    # $DEVBOX_CONTAINER is only set inside the devbox image (see Dockerfile),
+    # never on the macOS thin client. The VPS devbox is a disposable,
+    # single-tenant container with no other workloads in it, so skipping the
+    # permission-prompt loop there is an acceptable trade - it is NOT safe to
+    # do on macOS, where `claude` runs against the real filesystem.
+    if [[ -n $DEVBOX_CONTAINER ]]; then
+        claude() { command claude --dangerously-skip-permissions "$@"; }
+    fi
+
     # NOTE: no `omp` wrapper here, on purpose. op-env/ai.env sets
     # ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN and ANTHROPIC_MODEL, which would
     # reroute OMP's own Anthropic OAuth through OpenRouter and break the Claude
