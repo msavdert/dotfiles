@@ -92,7 +92,7 @@ link_configs() {
     # Create only PARENT directories. Creating the link targets themselves (the
     # old script did `mkdir -p ~/.config/nvim` right before linking it)
     # guarantees a pointless backup dance on every fresh machine.
-    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$HOME/.ssh/sockets" "$HOME/.omp/agent"
+    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude"
     run chmod 700 "$HOME/.ssh"
 
     local pairs=(
@@ -122,6 +122,14 @@ link_configs() {
         "$REPO_DIR/configs/omp/agents:$HOME/.omp/agent/agents"
         "$REPO_DIR/configs/omp/skills:$HOME/.omp/agent/skills"
         "$REPO_DIR/configs/omp/hooks:$HOME/.omp/agent/hooks"
+
+        # Claude Code: global settings, statusline and custom subagents. Per
+        # file/dir, same reasoning as OMP above — ~/.claude also holds runtime
+        # state (history.jsonl, sessions/, shell-snapshots/, telemetry/) that
+        # must never end up in this repo's working tree.
+        "$REPO_DIR/configs/claude/settings.json:$HOME/.claude/settings.json"
+        "$REPO_DIR/configs/claude/statusline-command.sh:$HOME/.claude/statusline-command.sh"
+        "$REPO_DIR/configs/claude/agents:$HOME/.claude/agents"
     )
 
     local pair src dst tilde='~'

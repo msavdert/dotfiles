@@ -73,6 +73,14 @@ Full rationale and decision records: `docs/00-architecture.md`.
     definition wholesale and drops flags like `blocking: true`; to change only
     the model, use `task.agentModelOverrides` in `config.yml`. See
     `docs/08-omp-agent.md`.
+11. **The Claude Code config contract.** `configs/claude/` holds
+    `settings.json`, `statusline-command.sh` and `agents/` (custom
+    subagents), tracked and reaching `~/.claude/` the same two ways as OMP:
+    `Dockerfile` copies the whole directory into the image, `link_configs()`
+    in `macos/setup.sh` symlinks each of the three per file/dir. Never
+    symlink `~/.claude` itself — it also holds runtime state
+    (`history.jsonl`, `sessions/`, `shell-snapshots/`, `telemetry/`, OAuth
+    credentials) that must never land in this repo's working tree.
 
 ## Layout
 
@@ -86,6 +94,7 @@ configs/
   op-env/*.env                    op:// references only
   nvim/ zellij/                   tier 1 only (not linked on macOS)
   omp/                            coding-agent config -> ~/.omp/agent/
+  claude/                         Claude Code config -> ~/.claude/
   git/config ssh/config* starship.toml
 .github/workflows/build.yml       native multi-arch build → ghcr.io
 docs/00..08                       architecture through the coding agent

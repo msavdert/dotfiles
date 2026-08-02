@@ -90,6 +90,7 @@ COPY --chown=$UID:$GID configs/starship.toml .config/starship.toml
 COPY --chown=$UID:$GID configs/zellij/      .config/zellij/
 COPY --chown=$UID:$GID configs/nvim/        .config/nvim/
 COPY --chown=$UID:$GID configs/omp/         .omp/agent/
+COPY --chown=$UID:$GID configs/claude/      .claude/
 
 RUN chmod 700 "$HOME/.ssh" && chmod 600 "$HOME/.ssh/config"
 

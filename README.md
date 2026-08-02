@@ -64,6 +64,7 @@ configs/
   op-env/*.env          op:// references — no secret values
   nvim/ zellij/         devbox only
   omp/                  coding-agent roles, rules, skills
+  claude/               Claude Code settings, statusline, subagents
   git/ ssh/ starship.toml
 .github/workflows/      multi-arch build → ghcr.io
 docs/                   ← read this
