@@ -1,4 +1,5 @@
 {
+  "hasCompletedOnboarding": true,
   "env": {
     "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "3"
   },
@@ -7,7 +8,7 @@
   },
   "model": "opusplan",
   "effortLevel": "medium",
-  "theme": "auto",
+  "theme": "dark",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
