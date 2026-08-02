@@ -158,9 +158,10 @@ Order matters.
 
 ## Not applicable
 
-- **git push/pull needs no secret.** `configs/git/config` uses
-  `gh auth git-credential` over HTTPS, so the devbox authenticates without any
-  token in the environment and without an SSH key.
+- **git push/pull needs no secret in the environment.** `configs/git/config`
+  ships a credential helper that resolves op://dotfiles/GitHub/admintoken
+  itself on demand, so the devbox authenticates without an SSH key and
+  without depending on gh auth login's machine-local OAuth session.
 - **SSH keys** live in 1Password and are served by its agent
   (`configs/ssh/config.macos`). No private key file exists on the Mac. Outbound
   SSH *from* the container needs the forwarded-socket workaround in

@@ -22,15 +22,20 @@
     allow = always
 
 # --- Credentials -------------------------------------------------------------
-# HTTPS remotes authenticate through the gh CLI, so no token has to exist in the
-# environment and the devbox needs no SSH key for git at all.
+# HTTPS remotes authenticate straight from 1Password (op://dotfiles/GitHub/
+# admintoken), not through `gh auth login`'s OAuth session. That session lives
+# in ~/.config/gh/hosts.yml on ONE machine and does not exist in fresh devbox
+# rebuilds, ephemeral containers, or non-interactive AI-agent shells (they
+# don't source ~/.zshrc, so the `opwith` wrapper isn't available either). A
+# helper that resolves the token itself needs nothing pre-set - it works the
+# same in an interactive shell, this devbox, or any headless agent process.
 # The empty first `helper` resets any helper inherited from a system config.
 [credential "https://github.com"]
     helper =
-    helper = !gh auth git-credential
+    helper = "!f() { test \"$1\" = get && printf 'username=x-access-token\\npassword=%s\\n' \"$(op read op://dotfiles/GitHub/admintoken)\"; }; f"
 [credential "https://gist.github.com"]
     helper =
-    helper = !gh auth git-credential
+    helper = "!f() { test \"$1\" = get && printf 'username=x-access-token\\npassword=%s\\n' \"$(op read op://dotfiles/GitHub/admintoken)\"; }; f"
 
 # --- Transfer ----------------------------------------------------------------
 [http]

@@ -81,14 +81,12 @@ Nothing is exported into the shell — `env | grep -i token` should be empty. Se
 
 ## Git
 
-`~/.gitconfig` authenticates through `gh auth git-credential`, so HTTPS remotes
-work with no token in the environment and no SSH key inside the container.
-
-First time in a fresh container:
-
-```bash
-opwith git gh auth setup-git
-```
+`~/.gitconfig` resolves GitHub HTTPS credentials straight from 1Password
+(`op://dotfiles/GitHub/admintoken`), not through `gh auth login`'s OAuth
+session. No bootstrap step, no token in the environment, no SSH key inside
+the container - and it behaves identically in a fresh container, a rebuilt
+devbox image, or a non-interactive AI-agent shell (those never source
+`~/.zshrc`, so the `opwith` wrapper isn't available to them either).
 
 ## Kubernetes
 

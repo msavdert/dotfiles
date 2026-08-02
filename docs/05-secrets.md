@@ -117,9 +117,11 @@ forwarding lands inside it natively, with none of the above. This is the main
 practical reason to eventually adopt Tailscale
 ([03-vps-deployment.md](03-vps-deployment.md#later-tailscale)).
 
-**Note that git needs none of this.** `~/.gitconfig` uses
-`gh auth git-credential` over HTTPS, so the devbox pushes and pulls without any
-SSH key.
+**Note that git needs no SSH key.** `~/.gitconfig` resolves GitHub HTTPS
+credentials directly from 1Password (`op://dotfiles/GitHub/admintoken`) via a
+custom credential helper - not through `gh auth login`'s OAuth session, which
+lives on one machine and would not exist in a fresh container or a
+non-interactive agent shell.
 
 ## Adding a new secret
 

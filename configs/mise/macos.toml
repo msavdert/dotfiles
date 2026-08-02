@@ -27,7 +27,7 @@ eza      = "latest"     # ls / ll / la / lt aliases
 bat      = "latest"     # bcat alias
 
 # --- Host-side utilities -----------------------------------------------------
-gh          = "latest"  # ~/.gitconfig uses `gh auth git-credential`
+gh          = "latest"  # `gh` CLI for PR/issue management; git itself auths via op, not gh
 jq          = "latest"  # ad-hoc JSON without opening the devbox
 fzf         = "latest"  # the ssh host picker in .zshrc
 ripgrep     = "latest"  # searching this repo from the host
