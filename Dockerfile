@@ -92,7 +92,7 @@ COPY --chown=$UID:$GID configs/nvim/        .config/nvim/
 COPY --chown=$UID:$GID configs/omp/         .omp/agent/
 COPY --chown=$UID:$GID configs/claude/      .claude/
 
-RUN chmod 700 "$HOME/.ssh" && chmod 600 "$HOME/.ssh/config"
+RUN mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh" "$HOME/.ssh/sockets" && chmod 600 "$HOME/.ssh/config"
 
 # zsh plugins are vendored into the image rather than cloned on first login.
 ARG ZSH_AUTOSUGGESTIONS_REF=v0.7.1
