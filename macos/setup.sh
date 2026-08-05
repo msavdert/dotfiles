@@ -129,6 +129,7 @@ link_configs() {
         # must never end up in this repo's working tree.
         "$REPO_DIR/configs/claude/settings.json:$HOME/.claude/settings.json"
         "$REPO_DIR/configs/claude/statusline-command.sh:$HOME/.claude/statusline-command.sh"
+        "$REPO_DIR/configs/claude/statusline.sh:$HOME/.claude/statusline.sh"
         "$REPO_DIR/configs/claude/agents:$HOME/.claude/agents"
     )
 
