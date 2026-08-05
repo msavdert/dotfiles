@@ -121,7 +121,7 @@ chmod 600 ~/.omp/agent/.env
 
 [tasks."dotfiles:sync"]
 description = "Pull latest dotfiles and link configs inside devbox container"
-run = """
+run = '''
 if [ -d "$HOME/work/dotfiles" ]; then
     REPO_DIR="$HOME/work/dotfiles"
 elif [ -d "$HOME/Documents/all/github/dotfiles" ]; then
@@ -165,7 +165,7 @@ ln -sfn "$REPO_DIR/configs/claude/statusline-command.sh" "$HOME/.claude/statusli
 [ -d "$REPO_DIR/configs/claude/agents" ] && ln -sfn "$REPO_DIR/configs/claude/agents" "$HOME/.claude/agents"
 
 printf '\033[0;32m[ok]\033[0m Dotfiles synced and linked successfully!\n'
-"""
+'''
 
 [settings]
 npm.package_manager = "bun"
