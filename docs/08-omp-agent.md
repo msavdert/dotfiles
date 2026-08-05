@@ -167,17 +167,15 @@ OMP writes its runtime state into the *same* directory as the config:
 | `last-changelog-version` | "Have I shown you the changelog" marker. |
 | `.env` | Written by `mise run omp:auth`; see below. |
 
-None of it is tracked — `.gitignore` excludes all of it. Only `sessions/` is
-persisted across container recreation, by a named volume in `compose.yaml`:
+None of it is tracked — `.gitignore` excludes all of it. `~/.omp/agent` is
+persisted across container recreation by a named volume in `compose.yaml`:
 
 ```yaml
     volumes:
-      - ompsessions:/home/dev/.omp/agent/sessions
+      - omp:/home/dev/.omp/agent
 ```
 
-The mount is on the **`sessions` subdirectory**, not on `~/.omp` or
-`~/.omp/agent`, and that is the whole point — see
-[O2](#o2--the-volume-mounts-sessions-not-the-agent-directory).
+This volume preserves `agent.db` (OAuth sessions), `.env` (Synthetic API key) and `sessions/` (transcripts). Repositories and dotfile configurations in `configs/omp/` are symlinked into `~/.omp/agent` via `mise run dotfiles:sync`.
 
 **Credentials are not baked into the image and are not in the repo.** They are
 treated as disposable, exactly like `gh` auth: losing them costs a minute, not a
@@ -282,16 +280,11 @@ symlinks fails safe; a denylist of ignores fails open.
 `link_configs()`. The loop warns and skips on a missing source, so a forgotten
 entry is visible on the next `./macos/setup.sh --links-only` rather than silent.
 
-## O2 — The volume mounts `sessions`, not the agent directory
+## O2 — The agent directory volume preserves auth & sessions
 
-**Decision.** `compose.yaml` mounts `ompsessions:/home/dev/.omp/agent/sessions`.
+**Decision.** `compose.yaml` mounts `omp:/home/dev/.omp/agent`.
 
-**Why.** This is [D6](00-architecture.md#d6--the-home-directory-is-not-one-big-volume)
-applied one directory deeper. A volume on `~/.omp` or `~/.omp/agent` would
-shadow everything the `COPY` put there: pull an image with an updated
-`config.yml`, new agent definitions or a new skill, and you would still be
-running last month's config, because the volume wins. The failure is silent —
-nothing errors, the config just stops changing.
+**Why.** Mounting `omp:/home/dev/.omp/agent` ensures OAuth logins (`agent.db`), API keys (`.env`), and session transcripts (`sessions/`) survive container recreation. Declarative config files (`config.yml`, `models.yml`, `agents/`, `skills/`) in `configs/omp/` are symlinked into `~/.omp/agent` via `mise run dotfiles:sync`.
 
 Session transcripts are the only thing in that directory that cannot be
 rebuilt from the repo or recovered with a login, so they get the volume and
@@ -478,7 +471,7 @@ exists for. The honest fix is enabling the tool, not deleting the promise.
 | A model is not selectable although it is authenticated | `disabledProviders` is evaluated **before** credentials — a disabled id drops the provider regardless of any stored key, OAuth session or `.env` entry. | Remove the id from the effective `disabledProviders` (check the project layer too). If the list is clean, the provider is simply not authenticated: `mise run omp:auth` for Synthetic, `/login <provider>` for the OAuth ones. Restart the session if the model list was already built. |
 | A Synthetic reasoning model returns empty content, no error | GLM-5.2 bills internal thinking against the same `max_tokens` budget as the answer. Thinking consumed all of it and nothing was left to emit. | Raise the output budget for that role, or lower its thinking level. A silent empty response is the signature. |
 | A second Synthetic subagent appears to hang | One concurrent request per model per pack; the second call to the *same* model queues behind the first. | Put the two roles on different Synthetic models. Different models run fully in parallel. |
-| Sessions vanished after an image upgrade | Only `ompsessions:/home/dev/.omp/agent/sessions` is persisted. Anything written elsewhere under `~/.omp` belongs to the image and is replaced on pull. | Nothing to recover. `/export` or `/share` anything worth keeping; treat `~/work` as the only durable location, per [D6](00-architecture.md#d6--the-home-directory-is-not-one-big-volume). |
+| Sessions vanished after an image upgrade | `omp:/home/dev/.omp/agent` volume persists sessions across container recreates. If volumes were manually pruned (`docker compose down -v`), session transcripts are lost. | `/export` or `/share` anything worth keeping; treat `~/work` as the primary durable location, per [D6](00-architecture.md#d6--the-home-directory-is-not-one-big-volume). |
 | The audit agent never runs `lsp diagnostics` | `task.enableLsp` was false (the default), which silently strips the `lsp` tool from every spawned subagent — a live probe returned `read,grep,glob,bash,yield,hub` for all four agent types. | `task.enableLsp: true` in `config.yml` ([O9](#o9--subagents-get-the-lsp-tool)). If it is set and audits still skip diagnostics, check the project layer's `.omp/config.yml` too. |
 | Anthropic quota drains faster than expected although subagents are on cheap models | Something per-turn or per-launch is billed to `default`. The two historical offenders: the advisor (every completed turn — fixed by moving it to Gemini, [O6](#o6--the-advisor-runs-on-gemini-not-sonnet)) and the `local` memory backend (Phase 1 extraction mines up to 32 rollouts per launch on Opus — fixed by `memory.backend: "off"`, [O7](#o7--the-memory-backend-is-off)). | `omp config get modelRoles.advisor` and `omp config get memory.backend`. Also note that large tool results stay in context and are re-sent every turn, so a `default`-role session that fetches web pages or big API responses inline pays for them repeatedly — delegate bulk fetching to `librarian`. |
 | Three provider connection warnings on every start | The keyless local engines `ollama`, `llama.cpp` and `lm-studio` are probed at launch; nothing on this box serves them. | Already suppressed by `disabledProviders` in `config.yml`. If the warnings persist, a project layer's `.omp/config.yml` has replaced the array wholesale — arrays are never appended (see the row above). |

@@ -59,13 +59,24 @@ The catch: OSC 52 *paste* (reading the system clipboard) is refused by most
 terminals for security reasons. Use `Cmd-V`, which sends the text as keystrokes
 and always works.
 
+## Syncing configuration changes
+
+When you make changes to dotfiles or configs (`configs/zsh`, `configs/claude`, `configs/omp`, etc.), you don't need to rebuild or recreate the container:
+
+```bash
+mise run dotfiles:sync      # or: mise run sync
+```
+
+This pulls the latest repo changes and refreshes all symlinks in seconds without interrupting active terminal sessions or losing login credentials.
+
 ## Secrets
 
 Wrapped commands resolve their own secrets. Just run them:
 
 ```bash
-claude          # ANTHROPIC_* injected by op run, one request
-kilocode
+claude          # ANTHROPIC_* injected by op run; includes avenoxstatusline ASCII pet status bar
+herdr           # AI workspace & agent terminal manager
+agy             # Google Antigravity SDK CLI
 ```
 
 For anything else:

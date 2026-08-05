@@ -23,6 +23,17 @@ CI builds and publishes both architectures. Then on the VPS:
 ssh vps 'cd ~/devbox && docker compose pull && docker compose up -d'
 ```
 
+## Fast config updates (without image rebuild)
+
+For dotfile and config edits (`configs/zsh`, `configs/claude`, `configs/omp`, etc.), image rebuilds are unnecessary:
+
+```bash
+ssh dev 'mise run dotfiles:sync'
+```
+
+This pulls the latest repo changes and updates symlinks in seconds without container recreation or losing login credentials.
+
+
 **Check arm64 availability first.** Not every tool publishes arm64 binaries. If
 the arm64 CI job fails on a specific tool, either drop the tool or exclude it
 per-architecture. Quick check:

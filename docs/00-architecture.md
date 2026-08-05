@@ -202,17 +202,15 @@ Regenerate completions by hand after adding a tool: `mise run completions:regen`
 
 ## D6 — The home directory is not one big volume
 
-**Decision.** `compose.yaml` mounts only `~/work`, `~/.local/state` and
-`~/.kube`.
+**Decision.** `compose.yaml` mounts narrow persistent paths: `~/work`, `~/.local/state`, `~/.kube`, `~/.omp/agent`, `~/.claude.json`, and `~/.gemini`.
 
 **Why.** A volume mounted at `/home/dev` shadows everything the image put there.
 Pull a new image with an updated `.zshrc` and a fixed toolchain, and you'd still
 be running last month's config, because the volume wins. Persisting narrowly
-means image upgrades actually take effect, and the only things that survive a
-`docker compose down -v` are the ones that genuinely can't be rebuilt.
+(work, state, kube, and AI agent auth/session stores) means image upgrades
+and live config sync (`mise run dotfiles:sync`) take effect while preserving login credentials.
 
-**Consequence to remember:** anything you save outside those three paths is
-disposable. `~/work` is where code goes.
+**Consequence to remember:** code goes in `~/work`. Declarative configs are managed in this repo and synced via `mise run dotfiles:sync`.
 
 ## D7 — Language runtimes are pinned, CLI tools are not
 
