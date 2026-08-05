@@ -62,6 +62,7 @@ delta   = "latest"
 # --- AI tooling ---
 claude-code = "latest"
 "npm:@oh-my-pi/pi-coding-agent" = "latest"
+herdr = "latest"
 #"npm:@kilocode/cli" = "latest"
 #"npm:@earendil-works/pi-coding-agent" = { version = "latest", npm_args = "--ignore-scripts" }
 
