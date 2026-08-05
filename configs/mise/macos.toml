@@ -48,6 +48,29 @@ herdr integration install claude
 herdr integration install omp
 """
 
+[tasks."dotfiles:sync"]
+description = "Pull latest dotfiles and link configs"
+run = """
+if [ -d "$HOME/work/dotfiles" ]; then
+    REPO_DIR="$HOME/work/dotfiles"
+elif [ -d "$HOME/Documents/all/github/dotfiles" ]; then
+    REPO_DIR="$HOME/Documents/all/github/dotfiles"
+else
+    REPO_DIR="$HOME/work/dotfiles"
+fi
+
+if [ ! -d "$REPO_DIR" ]; then
+    printf 'Cloning dotfiles repo to %s...\n' "$REPO_DIR"
+    git clone https://github.com/msavdert/dotfiles.git "$REPO_DIR"
+else
+    printf 'Pulling latest dotfiles in %s...\n' "$REPO_DIR"
+    git -C "$REPO_DIR" pull
+fi
+
+"$REPO_DIR/macos/setup.sh" --links-only
+"""
+
 [settings]
 npm.package_manager = "bun"
+
 

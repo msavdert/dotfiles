@@ -105,6 +105,9 @@ Three named volumes, nothing else:
 | `work` | `/home/dev/work` | your code |
 | `state` | `/home/dev/.local/state` | shell history, zellij sessions |
 | `kube` | `/home/dev/.kube` | output of `mise run kube:homelab` |
+| `omp` | `/home/dev/.omp/agent` | OMP agent state, auth database & session transcripts |
+| `claude_auth` | `/home/dev/.claude.json` | Claude Code OAuth login credentials |
+| `agy_auth` | `/home/dev/.gemini` | Antigravity (AGY) CLI auth & state |
 
 **Everything outside these paths is disposable and will be replaced on the next
 image pull.** That's deliberate — see
