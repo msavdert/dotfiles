@@ -119,9 +119,9 @@ RUN nvim --headless "+Lazy! restore" +qa 2>/dev/null \
 
 # --- Runtime -----------------------------------------------------------------
 # Directories that get a persistent volume mounted over them in compose.yaml.
-# ~/.omp/agent/sessions is created here so the named volume inherits `dev`
-# ownership; a path Docker has to create itself would land as root-owned.
-RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh" "$HOME/.omp/agent/sessions"
+# Pre-created here so named volumes inherit `dev` ownership; paths Docker has
+# to create itself land as root-owned.
+RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini"
 
 # The container's job is to stay alive; you enter it with `docker exec` (see
 # the `Host dev` block in docs/03-vps-deployment.md). Running zellij as PID 1

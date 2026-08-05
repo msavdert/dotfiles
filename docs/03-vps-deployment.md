@@ -106,7 +106,7 @@ Three named volumes, nothing else:
 | `state` | `/home/dev/.local/state` | shell history, zellij sessions |
 | `kube` | `/home/dev/.kube` | output of `mise run kube:homelab` |
 | `omp` | `/home/dev/.omp/agent` | OMP agent state, auth database & session transcripts |
-| `claude_auth` | `/home/dev/.claude.json` | Claude Code OAuth login credentials |
+| `claude_auth` | `/home/dev/.claude` | Claude Code settings, auth & history |
 | `agy_auth` | `/home/dev/.gemini` | Antigravity (AGY) CLI auth & state |
 
 **Everything outside these paths is disposable and will be replaced on the next
