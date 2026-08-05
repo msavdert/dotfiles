@@ -33,6 +33,7 @@ typeset -A gens=(
     mise      "mise completion zsh"
     starship  "starship completions zsh"
     omp       "omp completions zsh"
+    herdr     "herdr completion zsh"
     zoxide    "zoxide init zsh --no-cmd"
     usql      "usql --completion-script-zsh"
 )

@@ -89,6 +89,14 @@ usql = "latest"
 description = "Regenerate the shell completion cache in ~/.local/share/zsh/completions"
 run = "~/.config/zsh/regen-completions.zsh"
 
+[tasks."herdr:integrations"]
+description = "Install and sync Herdr integrations for AI agents"
+run = """
+herdr integration install antigravity-cli
+herdr integration install claude
+herdr integration install omp
+"""
+
 [tasks."kube:homelab"]
 description = "Pull kubeconfig + talosconfig from 1Password into ~/.kube and ~/.talos"
 run = """

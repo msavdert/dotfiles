@@ -34,10 +34,20 @@ ripgrep     = "latest"  # searching this repo from the host
 fd          = "latest"  # file lookups on the host
 uv          = "latest"  # one-off python scripts without a devbox round-trip
 claude-code = "latest"  # Claude Code CLI
+herdr       = "latest"  # Herdr AI agent terminal workspace manager
 
 
 # --- Repo maintenance --------------------------------------------------------
 shellcheck = "latest"   # linting macos/setup.sh before committing
 
+[tasks."herdr:integrations"]
+description = "Install and sync Herdr integrations for AI agents"
+run = """
+herdr integration install antigravity-cli
+herdr integration install claude
+herdr integration install omp
+"""
+
 [settings]
 npm.package_manager = "bun"
+
