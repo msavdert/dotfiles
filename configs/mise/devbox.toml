@@ -106,6 +106,58 @@ op read "op://dotfiles/texts/homelab-talosconfig" > ~/.talos/config
 chmod 600 ~/.kube/config ~/.talos/config
 """
 
+# Writes only to ~/.ssh/config.local, which configs/ssh/config Includes first
+# and which this repo never tracks - the baked-in config is untouched. The
+# managed block is fenced by markers so re-running replaces only what this
+# task wrote last time and leaves anything you added by hand alone. Each
+# private key goes straight into the running ssh-agent, nothing touches disk;
+# the public key (not sensitive) is written per host and pinned with
+# IdentityFile + IdentitiesOnly so ssh offers only that key for that host -
+# with many keys loaded, offering all of them trips sshd's MaxAuthTries and
+# the connection gets dropped as "too many authentication failures" before
+# the right key is ever reached.
+[tasks."ssh:sync"]
+description = "Pull SSH hosts tagged ssh-host from 1Password into ~/.ssh/config.local and ssh-agent"
+run = """
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+touch ~/.ssh/config.local
+rm -rf ~/.ssh/1p-hosts && mkdir -p ~/.ssh/1p-hosts && chmod 700 ~/.ssh/1p-hosts
+
+BEGIN_MARK="# --- BEGIN op ssh:sync (managed, do not edit) ---"
+END_MARK="# --- END op ssh:sync ---"
+
+awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
+  $0 == b { skip = 1 }
+  !skip   { print }
+  $0 == e { skip = 0 }
+' ~/.ssh/config.local > ~/.ssh/config.local.tmp
+
+{
+  cat ~/.ssh/config.local.tmp
+  echo "$BEGIN_MARK"
+  op item list --vault dotfiles --tags ssh-host --categories "SSH Key" --format json \
+    | jq -r '.[].id' \
+    | while read -r id; do
+        item=$(op item get "$id" --format json)
+        title=$(printf '%s' "$item" | jq -r '.title')
+        host=$(printf '%s' "$item" | jq -r '.fields[] | select(.label=="hostname") | .value')
+        user=$(printf '%s' "$item" | jq -r '.fields[] | select(.label=="user") | .value')
+        port=$(printf '%s' "$item" | jq -r '[.fields[] | select(.label=="port") | .value] | first // "22"')
+        op read "op://dotfiles/$id/private key?ssh-format=openssh" | ssh-add -q -
+        op read "op://dotfiles/$id/public key" > ~/.ssh/1p-hosts/"$title".pub
+        printf 'Host %s\\n    HostName %s\\n    User %s\\n    Port %s\\n    IdentityFile ~/.ssh/1p-hosts/%s.pub\\n    IdentitiesOnly yes\\n\\n' \
+          "$title" "$host" "$user" "$port" "$title"
+      done
+  echo "$END_MARK"
+} > ~/.ssh/config.local.new
+
+mv ~/.ssh/config.local.new ~/.ssh/config.local
+rm -f ~/.ssh/config.local.tmp
+chmod 600 ~/.ssh/config.local
+printf 'Synced. ssh-agent now holds:\\n'
+ssh-add -l
+"""
+
 # The `Synthetic` item must exist in the `dotfiles` vault. ~/.omp/agent/.env is
 # part of OMP's native .env discovery chain, so the key never has to live in the
 # shell environment. The anthropic and google-antigravity providers are OAuth
