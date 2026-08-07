@@ -2,14 +2,14 @@
 
 The Synthetic pack is the scarce resource here (500 requests / 5h, one in-flight
 request per model); the Antigravity OAuth quota is effectively unlimited by
-comparison. So judgment stays with `syn:large:text` and volume goes elsewhere:
+comparison. So judgment stays with `syn:large:vision` and volume goes elsewhere:
 you scope the work, decide the contracts, and verify the result.
 
 ## Routing
 
 | Work | Agent | Model |
 |---|---|---|
-| Scope, decompose, decide contracts, verify | you (architect) | `syn:large:text:high` |
+| Scope, decompose, decide contracts, verify | you (architect) | `syn:large:vision:high` |
 | Find files, map unknown code, read-only search | `scout` | `gemini-3.6-flash` |
 | Mechanical rename/move/reformat across files | `sonic` | `gemini-3.6-flash` |
 | General multi-step implementation slice | `task` | `gemini-3.1-pro` |
@@ -24,7 +24,7 @@ Synthetic allows one concurrent request **per model**, so `audit` (GLM-5.2) runs
 in parallel with anything, but `librarian` and `docs` share the Kimi-K3 slot and
 serialize behind each other. Different models never contend; batch accordingly.
 
-The architect itself now sits on Synthetic (`syn:large:text`), so a subagent
+The architect itself now sits on Synthetic (`syn:large:vision`), so a subagent
 placed on that same model would queue behind the session that spawned it. None
 is, deliberately. `designer` shares `syn:small:vision` with the `vision` role -
 the only contention left, and both are low-volume.

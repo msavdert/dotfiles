@@ -99,7 +99,12 @@ fi
 # NOTE: this is ~/.config/op-env, NOT ~/.config/op. The latter is the 1Password
 # CLI's own state directory (its config file and daemon socket live there);
 # putting our files on top of it breaks `op` completely.
-OP_ENV_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/op-env"
+# Exported, unlike the secrets themselves: this is a PATH, not a credential, so
+# it leaks nothing into child processes. It has to be exported because agents and
+# other non-interactive shells inherit the environment but not this file — the
+# `opwith` function reaches them via the shell snapshot while the variable it
+# depends on did not, so `opwith` failed there with "no such env file".
+export OP_ENV_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/op-env"
 
 if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # Usage: opwith ai claude   ->  op run --env-file ~/.config/op/ai.env -- claude

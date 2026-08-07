@@ -43,26 +43,31 @@ setupVersion: 1
 # now runs on the Antigravity OAuth quota and the Synthetic pack. Two structural
 # consequences follow and are worked around below rather than discovered later:
 #   1. Synthetic is BOTH the metered pool and the one that allows a single
-#      in-flight request PER MODEL. Every extra role parked on syn:large:text is
+#      in-flight request PER MODEL. Every extra role parked on syn:large:vision is
 #      a request that queues behind the main session, so only the architect roles
 #      sit there and no subagent does.
-#   2. syn:large:text has no image input, so the main session no longer satisfies
-#      snapcompact's requirement (see `compaction.strategy`).
+#   2. The architect is syn:large:VISION, not syn:large:text. Same 524K window
+#      and same pack, but it accepts image input, which is what keeps
+#      `compaction.strategy: snapcompact` working on the main session. The text
+#      variant would have silently degraded every architect compaction to
+#      context-full — lossy where snapcompact is not. The price is a
+#      `low,high,max` ladder instead of `minimal,high,max`, which costs nothing:
+#      no architect turn should be running at `minimal` anyway.
 modelRoles:
-  # Interactive driver and architect. syn:large:text exposes only
-  # `minimal,high,max` — there is no low or medium rung — so `defaultThinkingLevel:
-  # auto` has three stops here rather than six, and pinning `:high` costs nothing
-  # that auto would not have picked anyway on work worth giving to the architect.
-  default: "synthetic/syn:large:text:high"
+  # Interactive driver and architect. The ladder is `low,high,max` — no minimal
+  # or medium rung — so `defaultThinkingLevel: auto` has three stops here rather
+  # than six, and pinning `:high` costs nothing that auto would not have picked
+  # anyway on work worth giving to the architect.
+  default: "synthetic/syn:large:vision:high"
   # `slow` is the explicit "I am stuck, think properly" escalation. Same model at
   # the top of its ladder: if you have already decided to pay for it, pay all the
-  # way. It shares syn:large:text with `default`, which is free — they are the
-  # same session and never in flight at the same time.
-  slow: "synthetic/syn:large:text:max"
+  # way. It shares the model with `default`, which is free — they are the same
+  # session and never in flight at the same time.
+  slow: "synthetic/syn:large:vision:max"
   # Plan mode is read-only exploration that produces a plan every later agent
   # follows, so a bad plan is the most expensive possible mistake — but it is
   # still bounded work, so `high` rather than `max`.
-  plan: "synthetic/syn:large:text:high"
+  plan: "synthetic/syn:large:vision:high"
   # Titles, classification, and cheap background chatter. Left bare: `smol` is
   # also a cycleOrder stop (Ctrl+P), so it has to stay usable for real chat.
   smol: google-antigravity/gemini-3.6-flash
@@ -164,7 +169,7 @@ task:
     docs: "synthetic/hf:moonshotai/Kimi-K3"
     audit: "synthetic/hf:zai-org/GLM-5.2"
     # Reviewer is a quality gate whose output gets acted on, so it wants the best
-    # judgement available — but NOT syn:large:text, because the architect is
+    # judgement available — but NOT syn:large:vision, because the architect is
     # sitting on that model and Synthetic serialises per model: a reviewer there
     # would block the session it is reviewing for. gemini-3.1-pro at `:high` is
     # the strongest model on this box that is genuinely parallel with the main
@@ -305,17 +310,13 @@ compaction:
   # paying for an LLM summarisation call: local, deterministic, no network, no
   # key, and therefore also safe as overflow recovery.
   # It requires the CURRENT model to accept image input (`model.input` includes
-  # "image"); otherwise the run falls back to context-full and warns.
-  #
-  # KNOWN GAP as of 2026-08-06: syn:large:text takes no images, so the MAIN
-  # session no longer qualifies and every architect compaction degrades to
-  # context-full. That is a real loss, not a formality — context-full throws
-  # history away where snapcompact archived it. It is left as-is rather than
-  # papered over because the alternatives both cost something the owner has not
-  # chosen yet: move `default` to syn:large:vision (same 524K window, vision
-  # capable, but a `low,high,max` ladder), or accept lossy compaction.
-  # The gemini roles and syn:small:vision still snapcompact normally; the
-  # Synthetic text models (GLM-5.2, Kimi-K3) never did.
+  # "image"); otherwise the run falls back to context-full and warns. This
+  # requirement is why the architect roles are on syn:large:VISION rather than
+  # the text variant — the text model would have degraded every main-session
+  # compaction to context-full, which throws history away where snapcompact
+  # archives it. The gemini roles and syn:small:vision qualify too. The Synthetic
+  # text models (GLM-5.2, Kimi-K3) do not, so audit/librarian/docs subagents
+  # degrade automatically; that is fine, they are short-lived and rarely compact.
   strategy: snapcompact
   # Compact at safe tool-loop boundaries mid-turn rather than only between
   # turns. Long agentic turns are exactly where this session blows its window.
@@ -324,7 +325,7 @@ compaction:
   # would interrupt a subagent fan-out for no reason.
   autoContinue: true
   # Headroom left for the turn that follows a compaction. Raised from 16384:
-  # syn:large:text emits up to 66K output tokens and `slow` runs at `:max`
+  # syn:large:vision emits up to 66K output tokens and `slow` runs at `:max`
   # thinking, so the default reserve is thin enough to trigger an immediate
   # re-compaction.
   reserveTokens: 32768
@@ -552,9 +553,9 @@ defaultThinkingLevel: auto
 providers:
   # Ceiling the `auto` classifier may resolve to. `xhigh` keeps it one tier
   # below the top, so `max` stays reserved for an explicit `ultrathink` — which
-  # matters here because syn:large:text at `max` is by far the most expensive
+  # matters here because syn:large:vision at `max` is by far the most expensive
   # token class in this configuration, on the only metered pool.
-  # Note that syn:large:text's ladder is `minimal,high,max`: it has no `xhigh`
+  # Note that syn:large:vision's ladder is `low,high,max`: it has no `xhigh`
   # rung, so this ceiling resolves down to `high` on the architect and does its
   # real work on the gemini roles, which expose the full ladder.
   autoThinkingMaxEffort: xhigh
