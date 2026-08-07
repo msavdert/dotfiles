@@ -162,7 +162,8 @@ done
 ln -sfn "$REPO_DIR/configs/claude/settings.json" "$HOME/.claude/settings.json"
 ln -sfn "$REPO_DIR/configs/claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 [ -e "$REPO_DIR/configs/claude/statusline.sh" ] && ln -sfn "$REPO_DIR/configs/claude/statusline.sh" "$HOME/.claude/statusline.sh"
-[ -d "$REPO_DIR/configs/claude/agents" ] && ln -sfn "$REPO_DIR/configs/claude/agents" "$HOME/.claude/agents"
+# CLAUDE.md, agents/ and skills/ describe agent behaviour, not machine setup:
+# they live in ~/work/ai-hub and are linked by that repo's install.sh.
 
 printf '\033[0;32m[ok]\033[0m Dotfiles synced and linked successfully!\n'
 '''

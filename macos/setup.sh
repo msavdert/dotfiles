@@ -123,14 +123,17 @@ link_configs() {
         "$REPO_DIR/configs/omp/skills:$HOME/.omp/agent/skills"
         "$REPO_DIR/configs/omp/hooks:$HOME/.omp/agent/hooks"
 
-        # Claude Code: global settings, statusline and custom subagents. Per
-        # file/dir, same reasoning as OMP above — ~/.claude also holds runtime
-        # state (history.jsonl, sessions/, shell-snapshots/, telemetry/) that
-        # must never end up in this repo's working tree.
+        # Claude Code: global settings and statusline only. Per file/dir, same
+        # reasoning as OMP above — ~/.claude also holds runtime state
+        # (history.jsonl, sessions/, shell-snapshots/, telemetry/) that must
+        # never end up in this repo's working tree.
+        #
+        # CLAUDE.md, agents/ and skills/ describe agent behaviour rather than
+        # machine setup: they live in ~/work/ai-hub and are linked by that
+        # repo's install.sh.
         "$REPO_DIR/configs/claude/settings.json:$HOME/.claude/settings.json"
         "$REPO_DIR/configs/claude/statusline-command.sh:$HOME/.claude/statusline-command.sh"
         "$REPO_DIR/configs/claude/statusline.sh:$HOME/.claude/statusline.sh"
-        "$REPO_DIR/configs/claude/agents:$HOME/.claude/agents"
     )
 
     local pair src dst tilde='~'
