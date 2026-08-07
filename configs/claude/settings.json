@@ -1,17 +1,32 @@
 {
-  "hasCompletedOnboarding": true,
   "env": {
     "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "3"
   },
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "opusplan",
-  "effortLevel": "medium",
-  "theme": "dark",
+  "model": "opus",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/home/dev/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline.sh",
     "refreshInterval": 3
-  }
+  },
+  "effortLevel": "medium",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
+  "hasCompletedOnboarding": true
 }
