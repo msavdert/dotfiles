@@ -22,9 +22,9 @@
 #
 # Also note: everything OMP *generates* next to this file (agent.db, history.db,
 # sessions/, terminal-sessions/, last-changelog-version) is runtime state and is
-# gitignored. Credentials in particular are NOT baked — anthropic and
-# google-antigravity OAuth plus the synthetic API key live in agent.db and are
-# treated as disposable/recoverable, exactly like `gh` auth.
+# gitignored. Credentials in particular are NOT baked — the google-antigravity
+# OAuth token plus the synthetic API key live in agent.db and are treated as
+# disposable/recoverable, exactly like `gh` auth.
 #
 # Every key below is a real key in OMP's settings schema (`omp config list`).
 # Defaults are only restated when the comment explains why the default is the
@@ -34,41 +34,56 @@
 setupVersion: 1
 
 # --- Model roles -------------------------------------------------------------
-# The whole point of this setup: Claude Opus is the ARCHITECT and the QA gate,
-# and cheap/fast models do the bulk work, so Opus quota is only ever spent on
-# judgement. A role value may carry a thinking suffix (`:low` … `:max`); it is
-# used only where the extra reasoning tokens actually buy something.
+# The whole point of this setup: one large model is the ARCHITECT and the QA
+# gate, and cheap/fast models do the bulk work, so the scarce pool is only ever
+# spent on judgement. A role value may carry a thinking suffix (`:low` … `:max`);
+# it is used only where the extra reasoning tokens actually buy something.
+#
+# 2026-08-06 — Anthropic models were removed from this file entirely. Everything
+# now runs on the Antigravity OAuth quota and the Synthetic pack. Two structural
+# consequences follow and are worked around below rather than discovered later:
+#   1. Synthetic is BOTH the metered pool and the one that allows a single
+#      in-flight request PER MODEL. Every extra role parked on syn:large:text is
+#      a request that queues behind the main session, so only the architect roles
+#      sit there and no subagent does.
+#   2. syn:large:text has no image input, so the main session no longer satisfies
+#      snapcompact's requirement (see `compaction.strategy`).
 modelRoles:
-  # Interactive driver. Deliberately left bare so `defaultThinkingLevel: auto`
-  # (below) picks the depth per turn instead of billing a fixed tier forever.
-  # The `:medium` thinking-level suffix is intentional to match runtime drift.
-  default: anthropic/claude-opus-5:medium
-  # `slow` is the explicit "I am stuck, think properly" escalation. If you have
-  # already decided to pay for it, pay all the way: opus-5 tops out at `max`.
-  slow: "anthropic/claude-opus-5:max"
+  # Interactive driver and architect. syn:large:text exposes only
+  # `minimal,high,max` — there is no low or medium rung — so `defaultThinkingLevel:
+  # auto` has three stops here rather than six, and pinning `:high` costs nothing
+  # that auto would not have picked anyway on work worth giving to the architect.
+  default: "synthetic/syn:large:text:high"
+  # `slow` is the explicit "I am stuck, think properly" escalation. Same model at
+  # the top of its ladder: if you have already decided to pay for it, pay all the
+  # way. It shares syn:large:text with `default`, which is free — they are the
+  # same session and never in flight at the same time.
+  slow: "synthetic/syn:large:text:max"
   # Plan mode is read-only exploration that produces a plan every later agent
   # follows, so a bad plan is the most expensive possible mistake — but it is
   # still bounded work, so `high` rather than `max`.
-  plan: "anthropic/claude-opus-5:high"
+  plan: "synthetic/syn:large:text:high"
   # Titles, classification, and cheap background chatter. Left bare: `smol` is
   # also a cycleOrder stop (Ctrl+P), so it has to stay usable for real chat.
   smol: google-antigravity/gemini-3.6-flash
   # Advisor reviews EVERY completed turn, so its cost is multiplied by turn
-  # count: a 76-turn session is 76 extra calls. It used to be Sonnet, which put
-  # that multiplier on the ONE metered pool this setup is trying to protect.
-  # Moved to Antigravity: the advisor's job is noticing, not solving (its own
-  # brief in WATCHDOG.md), and gemini-3.1-pro is demonstrably good enough at
-  # noticing. Anything it finds is handed to Opus anyway, so the quality that
-  # matters is recall, not authorship.
-  # This is the largest Anthropic-quota reduction available that does not touch
-  # the architect role.
+  # count: a 76-turn session is 76 extra calls. That multiplier must never land
+  # on Synthetic, which is the metered pool and serialises per model — an advisor
+  # there would queue behind the architect on every single turn.
+  # On Antigravity: the advisor's job is noticing, not solving (its own brief in
+  # WATCHDOG.md), and flash is good enough at noticing. Anything it finds is
+  # handed to the architect anyway, so the quality that matters is recall, not
+  # authorship.
   advisor: "google-antigravity/gemini-3.6-flash"
   # Default model for spawned subagents that have no override below. gemini-3.1-pro
   # exposes only `low,high`, and a worker that cannot reason is worse than no
   # worker, so `high` it is.
   task: "google-antigravity/gemini-3.1-pro:high"
-  # Image reading is perception, not reasoning — no thinking suffix.
-  vision: google-antigravity/gemini-3.1-pro
+  # Image reading is perception, not reasoning — no thinking suffix. syn:small:vision
+  # is the only vision-capable model left in the routing table that is not also
+  # doing something else in a hot path, and its 262K window is enough for the
+  # screenshot-and-diagram traffic this role actually sees.
+  vision: synthetic/syn:small:vision
   # Commit-message drafting: short, structured, high volume.
   commit: google-antigravity/gemini-3.6-flash
   # `tiny` is the online model for pure background chores (session titles, memory
@@ -85,14 +100,13 @@ cycleOrder:
   - default
   - slow
 
-# Several ids exist on more than one provider (google-antigravity also resells
-# claude-*, and gpt-oss-120b is on both antigravity and synthetic). When a bare
-# or canonical id is ambiguous, resolve it in this order: first-party Anthropic
-# first (best cache behaviour and thinking ladder), then the OAuth Antigravity
-# quota, then Synthetic — Synthetic last because it is the only metered pool
-# here (500 requests / 5h, $24 credits/week) and should not be spent by accident.
+# Several ids exist on more than one provider (gpt-oss-120b is on both
+# antigravity and synthetic). When a bare or canonical id is ambiguous, resolve
+# it against the OAuth Antigravity quota first and Synthetic second — Synthetic
+# last because it is the only metered pool here (500 requests / 5h, $24
+# credits/week) and should not be spent by accident. Roles that genuinely want a
+# Synthetic model name it explicitly above, so this order only governs accidents.
 modelProviderOrder:
-  - anthropic
   - google-antigravity
   - synthetic
 
@@ -101,12 +115,18 @@ modelProviderOrder:
 # connection attempts and three log warnings per start, which contradicts the
 # no-work-at-startup invariant this repo applies to the shell. Arrays REPLACE
 # rather than merge, so this must stay the complete list.
+#
+# `anthropic` is disabled deliberately, not merely unreferenced: removing the
+# names from the roles above would still leave `/model`, a bare id, or a future
+# default able to reach it. Disabling the provider makes the decision hold
+# without depending on nobody typing the wrong thing.
 disabledProviders:
+  - anthropic
   - ollama
   - llama.cpp
   - lm-studio
 
-# Opus plans, a cheap model types. At the first edit/write after the todo list
+# The architect plans, a cheap model types. At the first edit/write after the todo list
 # exists, the session hands off from the active model to the `smol` role. This
 # is the structural version of the rule AGENTS.md states in prose: judgement is
 # the scarce thing, keystrokes are not.
@@ -143,20 +163,30 @@ task:
     librarian: "synthetic/hf:moonshotai/Kimi-K3"
     docs: "synthetic/hf:moonshotai/Kimi-K3"
     audit: "synthetic/hf:zai-org/GLM-5.2"
-    # Reviewer is a quality gate whose output gets acted on, so it stays on
-    # Anthropic — but Sonnet, not Opus: reviewing is cheaper than authoring.
-    reviewer: anthropic/claude-sonnet-5
+    # Reviewer is a quality gate whose output gets acted on, so it wants the best
+    # judgement available — but NOT syn:large:text, because the architect is
+    # sitting on that model and Synthetic serialises per model: a reviewer there
+    # would block the session it is reviewing for. gemini-3.1-pro at `:high` is
+    # the strongest model on this box that is genuinely parallel with the main
+    # session, and that availability is worth more here than a marginally better
+    # verdict that arrives after a stall.
+    reviewer: "google-antigravity/gemini-3.1-pro:high"
     security-reviewer: "synthetic/hf:zai-org/GLM-5.2"
-    designer: anthropic/claude-sonnet-5
+    # Design work is the one subagent role that routinely reads screenshots and
+    # mockups, so it gets the vision model rather than a text one.
+    designer: synthetic/syn:small:vision
 
   # Synthetic allows exactly ONE in-flight request PER MODEL per subscription
   # pack; a second call to the same model queues behind the first, while calls
   # to *different* models run fully parallel. That is why librarian (Kimi-K3)
   # and audit (GLM-5.2) sit on different models — but it also caps useful width:
   # a batch of 20 librarians is 20 serialised requests, not a fan-out.
-  # 8 is the honest ceiling for this box: wide enough for a real Antigravity /
-  # Anthropic fan-out, narrow enough that a Synthetic-heavy batch does not build
-  # a 30-deep queue behind one slot, and gentle on a shared VPS's RAM.
+  # 8 is the honest ceiling for this box: wide enough for a real Antigravity
+  # fan-out, narrow enough that a Synthetic-heavy batch does not build a 30-deep
+  # queue behind one slot, and gentle on a shared VPS's RAM. With Anthropic gone
+  # this ceiling binds harder than it used to — the parallel width now lives
+  # almost entirely on Antigravity, so a batch of Synthetic agents is the case to
+  # keep an eye on.
   maxConcurrency: 8
 
   # architect -> worker -> scout is two levels and covers every real workflow.
@@ -182,16 +212,16 @@ task:
 # --- Advisor -----------------------------------------------------------------
 # A second model watches every completed turn and injects notes. Worth it here
 # precisely because the primary is expensive: catching a wrong direction on turn
-# 2 costs one cheap call, catching it on turn 12 costs eleven Opus turns.
+# 2 costs one cheap call, catching it on turn 12 costs eleven architect turns.
 # See WATCHDOG.md for what it is told to look for.
 #
-# Tradeoff, stated deliberately: the advisor now runs on gemini-3.1-pro rather
-# than Sonnet (see `modelRoles.advisor`). WATCHDOG.md asks it for reviewer-grade
-# paranoia about secret leakage, volume shadowing and unverified subagent
-# claims, and that judgement is now Gemini's rather than Anthropic's. This is a
+# Tradeoff, stated deliberately: the advisor runs on flash. WATCHDOG.md asks it
+# for reviewer-grade paranoia about secret leakage, volume shadowing and
+# unverified subagent claims, and that judgement is a cheap model's. This is a
 # quality-for-quota trade, made on purpose, not an assumption that coverage is
-# unchanged. If advisor notes visibly degrade, the fix is to move it back and
-# find the quota elsewhere.
+# unchanged. If advisor notes visibly degrade, the fix is to move it up to
+# gemini-3.1-pro — not onto Synthetic, which would serialise it behind the
+# architect on every turn.
 advisor:
   enabled: true
   # NOT on subagents. Subagents are already cheap, short-lived, and reviewed by
@@ -204,7 +234,7 @@ advisor:
   # is far enough behind that its notes are about to be useless anyway.
   syncBacklog: "3"
   # After a concern/blocker interrupts, route further ones as non-interrupting
-  # asides for this many turns. Raised from 3 because Opus turns here are long:
+  # asides for this many turns. Raised from 3 because architect turns are long:
   # a repeat interrupt inside 3 turns is almost always the same unresolved
   # concern re-fired, and a second interrupt does not add information.
   immuneTurns: 5
@@ -218,11 +248,13 @@ advisor:
 # Per omp://memory.md, the local backend's model selection is:
 #     Phase 1 (per-session extraction)  -> the `default` role
 #     Phase 2 (cross-session synthesis) -> the `smol` role
-# `default` is claude-opus-5. So this block, as previously written, mined up to
+# `default` is the architect. So this block, as previously written, mined up to
 # 32 session rollouts per launch using the single most expensive model in the
 # configuration — to produce a summary nobody had asked for, in the background,
 # on the one pool that is actually rationed. That is the exact failure this
 # whole setup exists to prevent, hiding inside a comment that said the opposite.
+# Since the architect now sits on Synthetic, which serialises per model, this
+# would additionally have queued the mining calls in front of the first prompt.
 #
 # `providers.memoryModel` does offer on-device options, but omp://local-models.md
 # documents it as driving the Mnemopi backend, not this one. No way was found to
@@ -256,7 +288,7 @@ memories:
   maxRolloutsPerStartup: 32
   # Budget for the summary injected into every system prompt. Trimmed from 5000
   # because this rides along on subagent prompts too, and the Synthetic models
-  # have far smaller windows than the 1M Anthropic/Gemini ones.
+  # have far smaller windows (197K-524K) than the 1M Gemini ones.
   summaryInjectionTokenLimit: 4000
 
 # --- Context and compaction --------------------------------------------------
@@ -273,11 +305,17 @@ compaction:
   # paying for an LLM summarisation call: local, deterministic, no network, no
   # key, and therefore also safe as overflow recovery.
   # It requires the CURRENT model to accept image input (`model.input` includes
-  # "image"); otherwise the run falls back to context-full and warns. Every
-  # model driving a main session here qualifies — claude-opus-5/sonnet-5 and the
-  # whole gemini-3.x line take images. The Synthetic text models (GLM-5.2,
-  # Kimi-K3) do not, so audit/librarian subagents degrade to context-full
-  # automatically; that is fine, they are short-lived and rarely compact at all.
+  # "image"); otherwise the run falls back to context-full and warns.
+  #
+  # KNOWN GAP as of 2026-08-06: syn:large:text takes no images, so the MAIN
+  # session no longer qualifies and every architect compaction degrades to
+  # context-full. That is a real loss, not a formality — context-full throws
+  # history away where snapcompact archived it. It is left as-is rather than
+  # papered over because the alternatives both cost something the owner has not
+  # chosen yet: move `default` to syn:large:vision (same 524K window, vision
+  # capable, but a `low,high,max` ladder), or accept lossy compaction.
+  # The gemini roles and syn:small:vision still snapcompact normally; the
+  # Synthetic text models (GLM-5.2, Kimi-K3) never did.
   strategy: snapcompact
   # Compact at safe tool-loop boundaries mid-turn rather than only between
   # turns. Long agentic turns are exactly where this session blows its window.
@@ -286,8 +324,9 @@ compaction:
   # would interrupt a subagent fan-out for no reason.
   autoContinue: true
   # Headroom left for the turn that follows a compaction. Raised from 16384:
-  # opus-5 emits up to 128K output tokens and `slow` runs at `:max` thinking,
-  # so the default reserve is thin enough to trigger an immediate re-compaction.
+  # syn:large:text emits up to 66K output tokens and `slow` runs at `:max`
+  # thinking, so the default reserve is thin enough to trigger an immediate
+  # re-compaction.
   reserveTokens: 32768
   # Recent history always preserved verbatim. Raised from 20000 because the
   # context windows in play are 1M — spending 32K on verbatim recency is
@@ -309,8 +348,10 @@ retry:
   fallbackRevertPolicy: cooldown-expiry
   fallbackChains:
     # Covers every assigned role without its own chain. Degrades along the axis
-    # that matters — capability — while crossing providers, so an Anthropic-wide
-    # outage or quota wall still leaves a working session.
+    # that matters — capability — while crossing providers, so a Synthetic-wide
+    # outage or a spent pack still leaves a working session. This chain matters
+    # more than it used to: the architect now lives on the metered pool, and
+    # `500 requests / 5h` is a wall you can actually hit in a long day.
     default:
       - google-antigravity/gemini-3.1-pro
       - google-antigravity/gemini-3.6-flash
@@ -318,7 +359,7 @@ retry:
       - google-antigravity/gemini-3.6-flash
       - google-antigravity/gemini-3.1-pro
     # `smol` must stay cheap under failure, so it degrades sideways (another
-    # flash) without touching Anthropic models.
+    # flash) without ever reaching for the metered Synthetic pack.
     smol:
       - google-antigravity/gemini-3.6-flash
       - google-antigravity/gemini-3.5-flash
@@ -511,8 +552,11 @@ defaultThinkingLevel: auto
 providers:
   # Ceiling the `auto` classifier may resolve to. `xhigh` keeps it one tier
   # below the top, so `max` stays reserved for an explicit `ultrathink` — which
-  # matters here because opus-5 at `max` is by far the most expensive token
-  # class in this configuration.
+  # matters here because syn:large:text at `max` is by far the most expensive
+  # token class in this configuration, on the only metered pool.
+  # Note that syn:large:text's ladder is `minimal,high,max`: it has no `xhigh`
+  # rung, so this ceiling resolves down to `high` on the architect and does its
+  # real work on the gemini roles, which expose the full ladder.
   autoThinkingMaxEffort: xhigh
   webSearchGeminiModel: "gemini-3.6-flash"
 
@@ -521,9 +565,8 @@ web_search:
 
 # thinkingBudgets.* (minimal 1024 / low 2048 / medium 8192 / high 16384 /
 # xhigh 32768 / max 32768) are intentionally left at their schema defaults.
-# They only apply to providers that take an explicit token budget, they are
-# already well-matched to Anthropic's ladder, and inventing values here would
-# be guessing against a number the vendor tunes.
+# They only apply to providers that take an explicit token budget, and inventing
+# values here would be guessing against a number the vendor tunes.
 
 # --- Subagent service tier ---------------------------------------------------
 tier:

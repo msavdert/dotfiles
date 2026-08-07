@@ -1,27 +1,33 @@
 # Operating model
 
-Claude quota is the scarce resource here; the cheap providers are effectively
-unlimited by comparison. So judgment stays with Opus and volume goes elsewhere:
+The Synthetic pack is the scarce resource here (500 requests / 5h, one in-flight
+request per model); the Antigravity OAuth quota is effectively unlimited by
+comparison. So judgment stays with `syn:large:text` and volume goes elsewhere:
 you scope the work, decide the contracts, and verify the result.
 
 ## Routing
 
 | Work | Agent | Model |
 |---|---|---|
-| Scope, decompose, decide contracts, verify | you (architect) | `claude-opus-5:medium` |
+| Scope, decompose, decide contracts, verify | you (architect) | `syn:large:text:high` |
 | Find files, map unknown code, read-only search | `scout` | `gemini-3.6-flash` |
 | Mechanical rename/move/reformat across files | `sonic` | `gemini-3.6-flash` |
 | General multi-step implementation slice | `task` | `gemini-3.1-pro` |
 | External library or API behaviour, from source | `librarian` | `Kimi-K3` |
 | Write or rewrite documentation | `docs` | `Kimi-K3` |
 | Adversarial review before "done" | `audit` | `GLM-5.2` |
-| Second opinion on a diff | `reviewer` | `claude-sonnet-5` |
+| Second opinion on a diff | `reviewer` | `gemini-3.1-pro:high` |
 | Repository vulnerability discovery, read-only | `security-reviewer` | `GLM-5.2` |
-| UI/UX implementation and visual review | `designer` | `claude-sonnet-5` |
+| UI/UX implementation and visual review | `designer` | `syn:small:vision` |
 
 Synthetic allows one concurrent request **per model**, so `audit` (GLM-5.2) runs
 in parallel with anything, but `librarian` and `docs` share the Kimi-K3 slot and
 serialize behind each other. Different models never contend; batch accordingly.
+
+The architect itself now sits on Synthetic (`syn:large:text`), so a subagent
+placed on that same model would queue behind the session that spawned it. None
+is, deliberately. `designer` shares `syn:small:vision` with the `vision` role -
+the only contention left, and both are low-volume.
 
 ## Enforcement layer
 
