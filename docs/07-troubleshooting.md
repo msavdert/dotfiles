@@ -19,6 +19,46 @@ rm -f ~/.ssh/sockets/*
 If `RemoteCommand` fails with "the input device is not a TTY", `RequestTTY yes`
 is missing from the `Host dev` block.
 
+## `ssh-add -l` says "Error connecting to agent: Connection refused"
+
+The fallback agent `.zshrc` manages lives at a fixed socket path
+(`~/.ssh/ssh-agent.sock`); if that `ssh-agent` process dies (killed, OOM'd)
+the socket *file* is often left behind. A plain `[[ -S ... ]]` check can't
+tell a dead socket from a live one, so every later shell - including
+`exec zsh` - used to keep trusting the stale path forever. `.zshrc` now
+probes with `ssh-add -l` instead (exit `2` = nothing is listening) and
+replaces the socket when that happens, so this should now self-heal on the
+next new shell. `mise run ssh:sync` does the same check independently,
+since mise tasks run under plain `sh` and never source `.zshrc` at all.
+
+If it's still stuck, force it:
+
+```bash
+rm -f ~/.ssh/ssh-agent.sock
+exec zsh
+```
+
+## `ssh <host><TAB>` shows system users, not my hosts
+
+Only `~/.ssh/config` is baked into the image; per-server entries from
+`mise run ssh:sync` live in the untracked `~/.ssh/config.local`, which
+`config` `Include`s (see [05-secrets.md](05-secrets.md#syncing-ssh-hosts-from-1password)).
+zsh's stock `_ssh_hosts` completion, though, tries a generic
+`/etc/hosts` + system-user lookup *first* and returns as soon as that's
+non-empty - which it always is - so it never reaches its own
+`config.local`-aware parser. `.zshrc` now feeds `config.local`'s `Host`
+entries into completion directly via `zstyle ':completion:*:hosts' hosts
+...`, and separately silences the local-username half of `ssh`/`scp`/`sftp`
+completion (`zstyle ':completion:*:*:(ssh|slogin|scp|sftp):*:users' users`) -
+other commands that use `_users` (`passwd`, `chown`, ...) are untouched.
+
+If a host you just added with `ssh:sync` still doesn't show up:
+
+```bash
+grep '^Host ' ~/.ssh/config.local   # is it actually in there?
+exec zsh                            # zstyle is computed once, at shell start
+```
+
 ## zellij session vanished
 
 ```bash

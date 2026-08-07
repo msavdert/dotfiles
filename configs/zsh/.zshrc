@@ -62,6 +62,30 @@ zstyle ':completion:*' menu select
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache"
 
+# `ssh <TAB>` normally falls back to zsh's generic host completion (`_hosts`,
+# which lists /etc/hosts) before it ever tries parsing ~/.ssh/config itself -
+# `_ssh_hosts`'s `_combination` call returns as soon as that generic list is
+# non-empty, which it always is, so aliases from ~/.ssh/config.local (written
+# by `mise run ssh:sync`, see docs/05-secrets.md) never get a chance to show.
+# Feed them in directly via the `hosts` style instead, which `_hosts` reads
+# ahead of its own /etc/hosts fallback.
+if [[ -r $HOME/.ssh/config.local ]]; then
+    _1p_ssh_hosts=(${(f)"$(command awk '
+        tolower($1) == "host" {
+            for (i = 2; i <= NF; i++) if ($i !~ /[*?]/) print $i
+        }' $HOME/.ssh/config.local)"})
+    (( ${#_1p_ssh_hosts} )) && zstyle ':completion:*:hosts' hosts $_1p_ssh_hosts
+    unset _1p_ssh_hosts
+fi
+
+# `ssh <TAB>` also always offers every local system account (root, www-data,
+# uucp, ...) alongside hosts - stock behaviour, so you can start typing
+# `user@host` too (`_ssh`'s `userhost` state runs `_ssh_users`, which falls
+# back to /etc/passwd same as `_users` does absent an override). Silence that
+# half for ssh/scp/sftp specifically; other commands using `_users`
+# (chown, passwd, ...) are untouched.
+zstyle ':completion:*:*:(ssh|slogin|scp|sftp):*:users' users
+
 # --- Tool integration --------------------------------------------------------
 # `mise activate` replaces the shims from .zshenv with direct paths and keeps
 # them in sync on every directory change.
@@ -228,12 +252,22 @@ zs() {
 }
 
 # --- SSH agent ---------------------------------------------------------------
-# Only start an agent if nothing else already provides one. On macOS that is the
-# 1Password agent (see configs/ssh/config.macos); inside the devbox it is the
-# forwarded agent from the laptop. Starting our own would shadow both.
-if [[ -z ${SSH_AUTH_SOCK:-} ]] && (( $+commands[ssh-agent] )); then
+# Only manage the agent if nothing else already provides one, or if what's
+# there is our own fallback socket. On macOS that "something else" is the
+# 1Password agent (see configs/ssh/config.macos); inside the devbox it can be
+# the forwarded agent from the laptop. Starting our own would shadow both, so
+# a SSH_AUTH_SOCK pointing anywhere else is left untouched.
+#
+# `-S` alone only checks the path is *a* socket file - a dead agent (killed,
+# OOM'd) leaves that file behind, and every later shell would otherwise trust
+# the stale path forever, including across `exec zsh`. Probe it with
+# `ssh-add -l` instead: exit 2 means nothing is listening, so only then do we
+# remove and restart it.
+if [[ -z ${SSH_AUTH_SOCK:-} || $SSH_AUTH_SOCK == "${XDG_RUNTIME_DIR:-$HOME/.ssh}/ssh-agent.sock" ]] \
+    && (( $+commands[ssh-agent] && $+commands[ssh-add] )); then
     _agent_sock="${XDG_RUNTIME_DIR:-$HOME/.ssh}/ssh-agent.sock"
-    if [[ ! -S $_agent_sock ]]; then
+    SSH_AUTH_SOCK="$_agent_sock" command ssh-add -l &>/dev/null
+    if (( $? == 2 )); then
         rm -f "$_agent_sock"
         eval "$(ssh-agent -s -a "$_agent_sock")" >/dev/null
     fi
