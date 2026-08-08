@@ -92,7 +92,7 @@ link_configs() {
     # Create only PARENT directories. Creating the link targets themselves (the
     # old script did `mkdir -p ~/.config/nvim` right before linking it)
     # guarantees a pointless backup dance on every fresh machine.
-    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude"
+    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$CONFIG_DIR/herdr" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude"
     run chmod 700 "$HOME/.ssh"
 
     local pairs=(
@@ -103,6 +103,7 @@ link_configs() {
         "$REPO_DIR/configs/op-env:$CONFIG_DIR/op-env"
         "$REPO_DIR/configs/mise/macos.toml:$CONFIG_DIR/mise/config.toml"
         "$REPO_DIR/configs/ghostty/config:$CONFIG_DIR/ghostty/config"
+        "$REPO_DIR/configs/herdr/config.toml:$CONFIG_DIR/herdr/config.toml"
         "$REPO_DIR/configs/ssh/config:$HOME/.ssh/config"
         "$REPO_DIR/configs/ssh/config.macos:$HOME/.ssh/config.macos"
 

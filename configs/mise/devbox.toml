@@ -205,7 +205,7 @@ else
     git -C "$REPO_DIR" pull
 fi
 
-mkdir -p "$HOME/.config" "$HOME/.config/mise" "$HOME/.config/ghostty" "$HOME/.config/zsh" "$HOME/.ssh" "$HOME/.omp/agent" "$HOME/.claude"
+mkdir -p "$HOME/.config" "$HOME/.config/mise" "$HOME/.config/ghostty" "$HOME/.config/herdr" "$HOME/.config/zsh" "$HOME/.ssh" "$HOME/.omp/agent" "$HOME/.claude"
 
 # Symlink dotfiles configs to container HOME
 ln -sfn "$REPO_DIR/configs/zsh/.zshenv" "$HOME/.zshenv"
@@ -216,6 +216,7 @@ ln -sfn "$REPO_DIR/configs/starship.toml" "$HOME/.config/starship.toml"
 ln -sfn "$REPO_DIR/configs/op-env" "$HOME/.config/op-env"
 ln -sfn "$REPO_DIR/configs/mise/devbox.toml" "$HOME/.config/mise/config.toml"
 ln -sfn "$REPO_DIR/configs/ghostty/config" "$HOME/.config/ghostty/config"
+[ -d "$REPO_DIR/configs/herdr" ] && ln -sfn "$REPO_DIR/configs/herdr/config.toml" "$HOME/.config/herdr/config.toml"
 ln -sfn "$REPO_DIR/configs/ssh/config" "$HOME/.ssh/config"
 [ -d "$REPO_DIR/configs/zellij" ] && ln -sfn "$REPO_DIR/configs/zellij" "$HOME/.config/zellij"
 [ -d "$REPO_DIR/configs/nvim" ] && ln -sfn "$REPO_DIR/configs/nvim" "$HOME/.config/nvim"

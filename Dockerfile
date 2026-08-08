@@ -90,6 +90,7 @@ COPY --chown=$UID:$GID configs/op-env/      .config/op-env/
 COPY --chown=$UID:$GID configs/starship.toml .config/starship.toml
 COPY --chown=$UID:$GID configs/zellij/      .config/zellij/
 COPY --chown=$UID:$GID configs/nvim/        .config/nvim/
+COPY --chown=$UID:$GID configs/herdr/       .config/herdr/
 COPY --chown=$UID:$GID configs/omp/         .omp/agent/
 COPY --chown=$UID:$GID configs/claude/      .claude/
 
