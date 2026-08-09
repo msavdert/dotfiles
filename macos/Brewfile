@@ -55,6 +55,7 @@ cask "microsoft-edge"
 cask "obsidian"
 cask "google-drive"
 cask "dbeaver-community"
+cask "syncthing-app"
 
 # --- Fonts -------------------------------------------------------------------
 cask "font-jetbrains-mono"
