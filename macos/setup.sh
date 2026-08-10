@@ -92,7 +92,7 @@ link_configs() {
     # Create only PARENT directories. Creating the link targets themselves (the
     # old script did `mkdir -p ~/.config/nvim` right before linking it)
     # guarantees a pointless backup dance on every fresh machine.
-    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$CONFIG_DIR/herdr" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude"
+    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$CONFIG_DIR/herdr" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini/antigravity-cli"
     run chmod 700 "$HOME/.ssh"
 
     local pairs=(
@@ -135,6 +135,13 @@ link_configs() {
         "$REPO_DIR/configs/claude/settings.json:$HOME/.claude/settings.json"
         "$REPO_DIR/configs/claude/statusline-command.sh:$HOME/.claude/statusline-command.sh"
         "$REPO_DIR/configs/claude/statusline.sh:$HOME/.claude/statusline.sh"
+
+        # Antigravity (AGY): global settings and statusline only. Per file/dir,
+        # same reasoning as OMP and Claude above — ~/.gemini also holds runtime
+        # state (brain/, transcripts/, auth.json, telemetry) that must never
+        # end up in this repo's working tree.
+        "$REPO_DIR/configs/gemini/antigravity-cli/settings.json:$HOME/.gemini/antigravity-cli/settings.json"
+        "$REPO_DIR/configs/gemini/antigravity-cli/statusline.sh:$HOME/.gemini/antigravity-cli/statusline.sh"
     )
 
     local pair src dst tilde='~'

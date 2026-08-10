@@ -93,6 +93,7 @@ COPY --chown=$UID:$GID configs/nvim/        .config/nvim/
 COPY --chown=$UID:$GID configs/herdr/       .config/herdr/
 COPY --chown=$UID:$GID configs/omp/         .omp/agent/
 COPY --chown=$UID:$GID configs/claude/      .claude/
+COPY --chown=$UID:$GID configs/gemini/      .gemini/
 
 RUN mkdir -p "$HOME/.ssh/sockets" && chmod 700 "$HOME/.ssh" "$HOME/.ssh/sockets" && chmod 600 "$HOME/.ssh/config"
 

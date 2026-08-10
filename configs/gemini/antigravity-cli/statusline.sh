@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Claude Code Statusline — Tokyo Cyber Minimalist
+# Antigravity CLI (AGY) Statusline — Tokyo Cyber Minimalist
 # ==============================================================================
 #
 # A high-density, ultra-clean 2-line developer HUD providing at-a-glance visibility
-# into AI model parameters, context window pressure, git/PR status, and usage/quota.
+# into Gemini model parameters, agent/subagent state, context window pressure,
+# git/PR status, and rate limits.
 #
 # OUTPUT LAYOUT:
-#   Line 1: [VIM] 󰚩 Model · effort · thinking  │  ⚡Cache%  │  󰔛 5h% (⏱ reset) · 7d%  │  󰚩 agent
+#   Line 1: [VIM] 󰚩 Model · state · 󰚩 subagents ·  tasks  │  ⚡Cache%  │  󰔛 5h% (⏱ reset) · 7d%
 #   Line 2: [▓▓░░░░░░] CTX% (tokens)  │   dir  │   branch*+?  │   #PR 󰄬  │  +add -rem · $cost
 #
 # CORE DESIGN PRINCIPLES:
-#   1. Zero Latency (0ms): Claude Code re-renders the statusline on every event
-#      and periodic timer. External git/disk I/O is cached for 5s per session_id.
+#   1. Zero Latency (0ms): agy re-renders the statusline on every state event.
+#      External git/disk I/O is cached for 5s per session/conversation ID.
 #   2. Fail-Safe: Graceful fallbacks for missing/null JSON fields; safe arithmetic
 #      guards ensure the script never throws errors and always exits 0.
 #   3. Cross-Platform: Fully compatible with both macOS (BSD) and Linux (GNU).
@@ -28,8 +29,6 @@ set -f
 # ------------------------------------------------------------------------------
 # 1. PATH Setup (macOS Homebrew & Standard Binary Locations)
 # ------------------------------------------------------------------------------
-# Ensure package-manager directories are prepended to PATH so dependencies like
-# jq and git can always be resolved, even in restricted subshell environments.
 for d in /opt/homebrew/bin /usr/local/bin; do
   [ -d "$d" ] && case ":$PATH:" in *":$d:"*) ;; *) PATH="$d:$PATH";; esac
 done
@@ -38,8 +37,6 @@ export PATH
 # ------------------------------------------------------------------------------
 # 2. Dependency Verification (jq)
 # ------------------------------------------------------------------------------
-# Claude Code streams session state as JSON via stdin. If jq is missing,
-# print a clean diagnostic message and exit 0 to prevent UI disruption.
 if ! command -v jq >/dev/null 2>&1; then
   printf 'statusline: jq not found on PATH\n'
   exit 0
@@ -52,7 +49,6 @@ input=$(cat)
 # ------------------------------------------------------------------------------
 # 3. ANSI Color Palette (Tokyo Night / Catppuccin Inspired)
 # ------------------------------------------------------------------------------
-# Raw ESC assignment allows fast, direct string interpolation with printf '%s'.
 ESC=$'\033'
 R="${ESC}[0m"           # Reset
 B="${ESC}[1m"           # Bold
@@ -80,14 +76,14 @@ DOT=" ${GRAY}·${R} "    # Minor segment separator
 link() {
   local text="$1" url="$2"
   if [ -n "$url" ]; then
-    printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$url" "$text"
+    printf "\033]8;;%s\033\\\\%s\033]8;;\033\\\\" "$url" "$text"
   else
     printf '%s' "$text"
   fi
 }
 
 # fmt_tokens <count>
-# Converts raw token numbers (e.g. 68420 -> 68k, 1000000 -> 1M) into compact strings.
+# Converts raw token numbers (e.g. 68420 -> 68k, 1048576 -> 1M) into compact strings.
 fmt_tokens() {
   local n=${1:-0}
   if [ "$n" -ge 1000000 ]; then
@@ -106,22 +102,12 @@ int() { case "$1" in ''|*[!0-9-]*) echo "${2:-0}";; *) echo "$1";; esac; }
 # ------------------------------------------------------------------------------
 # 5. Single-Pass JSON Parsing Engine
 # ------------------------------------------------------------------------------
-# Running separate jq processes for each metric adds significant subshell overhead.
-# This block parses all metrics in a single jq pass, emitting one value per line.
-#
-# WHY LINE-BY-LINE INSTEAD OF TAB-DELIMITED:
-# Tab characters are IFS whitespace; sequential empty fields collapse and shift left
-# (e.g. an empty git_worktree shifts session_id into CWD, breaking git lookups).
-# Using 'IFS= read -r' line-by-line preserves empty fields and internal whitespace.
-#
-# WHY PROCESS SUBSTITUTION '< <(...)':
-# Standard piping 'jq ... | while read' runs inside a subshell, losing variable values
-# when the loop terminates. Process substitution populates parent shell variables directly.
+# Handles Antigravity CLI / AGY schema fields (including camelCase protojson and snake_case fallbacks).
 {
   IFS= read -r MODEL
-  IFS= read -r EFFORT
-  IFS= read -r THINK
-  IFS= read -r FAST
+  IFS= read -r STATE
+  IFS= read -r SUBAGENTS
+  IFS= read -r TASKS
   IFS= read -r CTX_PCT
   IFS= read -r CTX_SIZE
   IFS= read -r IN_TOK
@@ -138,39 +124,39 @@ int() { case "$1" in ''|*[!0-9-]*) echo "${2:-0}";; *) echo "$1";; esac; }
   IFS= read -r PR_URL
   IFS= read -r PR_STATE
   IFS= read -r VIM_MODE
-  IFS= read -r AGENT
   IFS= read -r SID
 } < <(
   printf '%s' "$input" | jq -r '
     [
-      (.model.display_name // "?"),
-      (.effort.level // ""),
-      (.thinking.enabled // false),
-      (.fast_mode // false),
-      (.context_window.used_percentage // 0 | floor),
-      (.context_window.context_window_size // 200000),
-      (.context_window.total_input_tokens // 0),
-      (.context_window.current_usage.cache_read_input_tokens // 0),
-      (.cost.total_cost_usd // 0),
-      (.cost.total_lines_added // 0),
-      (.cost.total_lines_removed // 0),
-      (.rate_limits.five_hour.used_percentage // -1 | floor),
-      (.rate_limits.five_hour.resets_at // 0),
-      (.rate_limits.seven_day.used_percentage // -1 | floor),
-      (.workspace.git_worktree // ""),
-      (.workspace.current_dir // .cwd // "."),
+      (.modelName // .model.display_name // .model.name // .model // "?"),
+      (.agentState // .agent_state // .state // ""),
+      (.activeSubagents // .active_subagents // (.subagents | length? // 0) // 0),
+      (.activeTasks // .active_tasks // (.backgroundTasks | length? // (.tasks | length? // 0)) // 0),
+      (.contextWindow.usedPercentage // .context_window.used_percentage // 0 | floor),
+      (.contextWindow.contextWindowSize // .context_window.context_window_size // 1048576),
+      (.contextWindow.totalInputTokens // .context_window.total_input_tokens // 0),
+      (.contextWindow.currentUsage.cacheReadInputTokens // .context_window.current_usage.cache_read_input_tokens // 0),
+      (.cost.totalCostUsd // .cost.total_cost_usd // 0),
+      (.cost.totalLinesAdded // .cost.total_lines_added // 0),
+      (.cost.totalLinesRemoved // .cost.total_lines_removed // 0),
+      (.rateLimits.fiveHour.usedPercentage // .rate_limits.five_hour.used_percentage // -1 | floor),
+      (.rateLimits.fiveHour.resetsAt // .rate_limits.five_hour.resets_at // 0),
+      (.rateLimits.sevenDay.usedPercentage // .rate_limits.seven_day.used_percentage // -1 | floor),
+      (.workspace.gitWorktree // .workspace.git_worktree // ""),
+      (.workspacePaths[0] // .workspace.currentDir // .workspace.current_dir // .cwd // "."),
       (.pr.number // ""),
       (.pr.url // ""),
-      (.pr.review_state // ""),
+      (.pr.reviewState // .pr.review_state // ""),
       (.vim.mode // ""),
-      (.agent.name // ""),
-      (.session_id // "nosess")
+      (.conversationId // .sessionId // .session_id // "nosess")
     ] | .[] | tostring | gsub("[\r\n\t]"; " ")' 2>/dev/null
 )
 
 # Convert all numeric values to safe integers
+SUBAGENTS=$(int "$SUBAGENTS" 0)
+TASKS=$(int "$TASKS" 0)
 CTX_PCT=$(int "$CTX_PCT" 0)
-CTX_SIZE=$(int "$CTX_SIZE" 200000)
+CTX_SIZE=$(int "$CTX_SIZE" 1048576)
 IN_TOK=$(int "$IN_TOK" 0)
 CACHE_R=$(int "$CACHE_R" 0)
 L_ADD=$(int "$L_ADD" 0)
@@ -184,14 +170,7 @@ SID=${SID:-nosess}
 # ------------------------------------------------------------------------------
 # 6. Git & Project Badge (5-Second Cache per session_id)
 # ------------------------------------------------------------------------------
-# Git status queries and repository checks require disk I/O. Since Claude Code
-# invokes the statusline frequently, results are cached in a temporary file for 5s.
-# Note: Keying off $$ (PID) will never cache because each execution is a new process.
-#
-# stat -c (Linux/GNU) vs stat -f (macOS/BSD):
-# On Linux, 'stat -f' outputs filesystem info instead of modification time.
-# 'stat -c %Y' is attempted first to reliably obtain epoch mtime on Linux.
-CACHE="${TMPDIR:-/tmp}/cc-sl-${SID//[^A-Za-z0-9]/_}.cache"
+CACHE="${TMPDIR:-/tmp}/agy-sl-${SID//[^A-Za-z0-9]/_}.cache"
 now=$(date +%s 2>/dev/null || echo 0)
 mt=$(stat -c %Y "$CACHE" 2>/dev/null || stat -f %m "$CACHE" 2>/dev/null || echo 0)
 case "$mt" in ''|*[!0-9]*) mt=0;; esac
@@ -234,7 +213,7 @@ fi
 # ==============================================================================
 L1=""
 
-# 1. Vim Editor Mode (when Vim mode is enabled in Claude Code)
+# 1. Vim Editor Mode (when Vim mode is enabled)
 if [ -n "$VIM_MODE" ]; then
   case "$VIM_MODE" in
     NORMAL)  L1="${L1}${MG}[NOR]${R} ";;
@@ -244,15 +223,28 @@ if [ -n "$VIM_MODE" ]; then
   esac
 fi
 
-# 2. Model Name & Execution Modifiers (Effort / Thinking / Fast Mode)
+# 2. Model Name & Execution Modifiers
 L1="${L1}${CY}󰚩 ${B}${MODEL}${R}"
-[ -n "$EFFORT" ]    && L1="${L1}${DOT}${WH}${EFFORT}${R}"
-[ "$THINK" = true ]  && L1="${L1}${DOT}${MG}think${R}"
-[ "$FAST" = true ]   && L1="${L1}${DOT}${YE}⚡fast${R}"
+
+# Agent State
+if [ -n "$STATE" ]; then
+  case "$STATE" in
+    thinking|*think*) L1="${L1}${DOT}${MG}think${R}";;
+    running|*run*)    L1="${L1}${DOT}${GR}run${R}";;
+    idle)             L1="${L1}${DOT}${D}idle${R}";;
+    *)                L1="${L1}${DOT}${WH}${STATE}${R}";;
+  esac
+fi
+
+# Active Subagents & Background Tasks Badges
+if [ "$SUBAGENTS" -gt 0 ]; then
+  L1="${L1}${DOT}${BL}󰚩 ${SUBAGENTS} agents${R}"
+fi
+if [ "$TASKS" -gt 0 ]; then
+  L1="${L1}${DOT}${YE} ${TASKS} tasks${R}"
+fi
 
 # 3. Prompt Caching Efficiency (Cache Hit Ratio)
-# Formula: (cache_read_input_tokens / total_input_tokens) * 100
-# Measures the fraction of prompt tokens served directly from cache for cost/speed gains.
 if [ "$IN_TOK" -gt 0 ] && [ "$CACHE_R" -gt 0 ]; then
   hit_pct=$(( CACHE_R * 100 / IN_TOK ))
   [ $hit_pct -gt 100 ] && hit_pct=100
@@ -260,7 +252,6 @@ if [ "$IN_TOK" -gt 0 ] && [ "$CACHE_R" -gt 0 ]; then
 fi
 
 # 4. Rate Limits & Reset Countdown (5-Hour & 7-Day Windows)
-# Calculates time remaining until reset epoch (e.g. '⏱ 45m' or '⏱ 1h20m').
 if [ "$FIVE_PCT" -ge 0 ]; then
   five_col="$GR"
   [ "$FIVE_PCT" -ge 50 ] && five_col="$YE"
@@ -288,18 +279,12 @@ if [ "$SEVEN_PCT" -ge 0 ]; then
   L1="${L1}${DOT}${D}7d: ${SEVEN_PCT}%${R}"
 fi
 
-# 5. Agent Badge (populated when running with --agent)
-if [ -n "$AGENT" ]; then
-  L1="${L1}${SEP}${BL}󰚩 ${AGENT}${R}"
-fi
-
 # ==============================================================================
 # LINE 2 ASSEMBLY: Context Window, Workspace, Git/PR & Cost
 # ==============================================================================
 L2=""
 
 # 1. Context Window Usage Bar (8-Character Block Graph)
-# Visual indication of context buffer fullness. Green <50%, Yellow 50-80%, Red >=80%.
 ctx_col="$GR"
 [ "$CTX_PCT" -ge 50 ] && ctx_col="$YE"
 [ "$CTX_PCT" -ge 80 ] && ctx_col="$RD"
@@ -319,7 +304,6 @@ size_tok_fmt=$(fmt_tokens "$CTX_SIZE")
 L2="${ctx_col}[${bar}] ${CTX_PCT}%${R} ${D}(${in_tok_fmt}/${size_tok_fmt})${R}"
 
 # 2. Current Working Directory (CWD) or Active Worktree
-# Shortens $HOME to '~' and trims leading segments if longer than 28 chars.
 dir_disp="${CWD/#$HOME/\~}"
 [ ${#dir_disp} -gt 28 ] && dir_disp="…${dir_disp: -27}"
 
@@ -345,7 +329,6 @@ if [ -n "$BRANCH" ]; then
 fi
 
 # 4. Clickable Pull Request Badge (OSC 8 Hyperlink & Review State)
-# Renders an interactive link opening the PR in browser when clicked.
 if [ -n "$PR_NUM" ]; then
   pr_icon=""
   pr_state_icon=""

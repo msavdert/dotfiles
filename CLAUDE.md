@@ -81,6 +81,14 @@ Full rationale and decision records: `docs/00-architecture.md`.
     symlink `~/.claude` itself — it also holds runtime state
     (`history.jsonl`, `sessions/`, `shell-snapshots/`, `telemetry/`, OAuth
     credentials) that must never land in this repo's working tree.
+12. **The Antigravity (AGY) config contract.** `configs/gemini/` holds
+    `antigravity-cli/settings.json`, `antigravity-cli/statusline.sh` and
+    customizations, tracked and reaching `~/.gemini/` the same two ways as
+    OMP and Claude: `Dockerfile` copies the whole directory into the image,
+    `link_configs()` in `macos/setup.sh` symlinks individual files/directories.
+    Never symlink `~/.gemini` itself — it also holds runtime state (`brain/`,
+    `transcripts/`, `auth.json`, OAuth credentials) that must never land in
+    this repo's working tree.
 
 ## Layout
 
@@ -95,6 +103,7 @@ configs/
   nvim/ zellij/                   tier 1 only (not linked on macOS)
   omp/                            coding-agent config -> ~/.omp/agent/
   claude/                         Claude Code config -> ~/.claude/
+  gemini/                         Antigravity (AGY) config -> ~/.gemini/
   git/config ssh/config* starship.toml
 .github/workflows/build.yml       native multi-arch build → ghcr.io
 docs/00..08                       architecture through the coding agent

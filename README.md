@@ -65,6 +65,7 @@ configs/
   nvim/ zellij/         devbox only
   omp/                  coding-agent roles, rules, skills
   claude/               Claude Code settings, statusline, subagents
+  gemini/               Antigravity (AGY) settings, statusline
   git/ ssh/ starship.toml
 .github/workflows/      multi-arch build → ghcr.io
 docs/                   ← read this

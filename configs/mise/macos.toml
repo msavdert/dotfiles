@@ -34,6 +34,7 @@ ripgrep     = "latest"  # searching this repo from the host
 fd          = "latest"  # file lookups on the host
 uv          = "latest"  # one-off python scripts without a devbox round-trip
 claude-code = "latest"  # Claude Code CLI
+agy         = "latest"  # Antigravity CLI
 herdr       = "latest"  # Herdr AI agent terminal workspace manager
 
 

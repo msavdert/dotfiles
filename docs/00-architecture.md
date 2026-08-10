@@ -63,6 +63,7 @@ or do I need it where the code is?"** Almost everything is the second answer.
 | Shell | `configs/zsh/` | **both** |
 | Git, SSH, starship | `configs/git/`, `configs/ssh/`, `configs/starship.toml` | **both** |
 | Editor, multiplexer | `configs/nvim/`, `configs/zellij/` | Tier 1 only |
+| AI Agent configs | `configs/omp/`, `configs/claude/`, `configs/gemini/` | both |
 | Secret references | `configs/op-env/*.env` | both |
 
 Shared configs are guarded (`(( $+commands[x] ))`) so a tool that only exists in

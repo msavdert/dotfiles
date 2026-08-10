@@ -205,7 +205,7 @@ else
     git -C "$REPO_DIR" pull
 fi
 
-mkdir -p "$HOME/.config" "$HOME/.config/mise" "$HOME/.config/ghostty" "$HOME/.config/herdr" "$HOME/.config/zsh" "$HOME/.ssh" "$HOME/.omp/agent" "$HOME/.claude"
+mkdir -p "$HOME/.config" "$HOME/.config/mise" "$HOME/.config/ghostty" "$HOME/.config/herdr" "$HOME/.config/zsh" "$HOME/.ssh" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini/antigravity-cli"
 
 # Symlink dotfiles configs to container HOME
 ln -sfn "$REPO_DIR/configs/zsh/.zshenv" "$HOME/.zshenv"
@@ -232,6 +232,10 @@ ln -sfn "$REPO_DIR/configs/claude/statusline-command.sh" "$HOME/.claude/statusli
 [ -e "$REPO_DIR/configs/claude/statusline.sh" ] && ln -sfn "$REPO_DIR/configs/claude/statusline.sh" "$HOME/.claude/statusline.sh"
 # CLAUDE.md, agents/ and skills/ describe agent behaviour, not machine setup:
 # they live in ~/work/ai-hub and are linked by that repo's install.sh.
+
+# Antigravity (AGY) configs
+ln -sfn "$REPO_DIR/configs/gemini/antigravity-cli/settings.json" "$HOME/.gemini/antigravity-cli/settings.json"
+[ -e "$REPO_DIR/configs/gemini/antigravity-cli/statusline.sh" ] && ln -sfn "$REPO_DIR/configs/gemini/antigravity-cli/statusline.sh" "$HOME/.gemini/antigravity-cli/statusline.sh"
 
 printf '\033[0;32m[ok]\033[0m Dotfiles synced and linked successfully!\n'
 '''
