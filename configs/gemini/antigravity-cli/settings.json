@@ -1,5 +1,4 @@
 {
-  "model": "gemini-3.6-flash-high",
   "toolPermission": "always-proceed",
   "permissions": {
     "defaultMode": "bypassPermissions",
