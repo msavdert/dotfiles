@@ -80,7 +80,7 @@ DOT=" ${GRAY}·${R} "    # Minor segment separator
 link() {
   local text="$1" url="$2"
   if [ -n "$url" ]; then
-    printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$url" "$text"
+    printf "\033]8;;%s\033\\\\%s\033]8;;\033\\\\" "$url" "$text"
   else
     printf '%s' "$text"
   fi
@@ -198,21 +198,42 @@ case "$mt" in ''|*[!0-9]*) mt=0;; esac
 
 if [ -s "$CACHE" ] && [ $(( now - mt )) -lt 5 ]; then
   # Cache hit (< 5s old)
-  IFS=$'\t' read -r BRANCH GIT_FLAGS BADGE < "$CACHE"
+  IFS=$'\t' read -r BRANCH AHEAD BEHIND STAGED UNSTAGED UNTRACKED GIT_ADD GIT_REM BADGE < "$CACHE"
 else
   # Cache miss or expired: query git and workspace state
   BRANCH=$(git -C "$CWD" symbolic-ref --short HEAD 2>/dev/null \
            || git -C "$CWD" rev-parse --short HEAD 2>/dev/null || echo "")
-  GIT_FLAGS=""
+  AHEAD=0
+  BEHIND=0
+  STAGED=0
+  UNSTAGED=0
+  UNTRACKED=0
+  GIT_ADD=0
+  GIT_REM=0
+
   if [ -n "$BRANCH" ]; then
+    # Ahead / Behind remote tracking branch
+    counts=$(git -C "$CWD" rev-list --left-right --count 'HEAD...@{upstream}' 2>/dev/null || echo "")
+    if [ -n "$counts" ]; then
+      AHEAD=$(echo "$counts" | cut -f1)
+      BEHIND=$(echo "$counts" | cut -f2)
+    fi
+
+    # Staged, Unstaged and Untracked file counts
     gs=$(git -C "$CWD" status --porcelain 2>/dev/null)
     if [ -n "$gs" ]; then
-      # Untracked new files: ?
-      echo "$gs" | grep -q '^??' 2>/dev/null && GIT_FLAGS="${GIT_FLAGS}?"
-      # Unstaged modified/deleted files: *
-      echo "$gs" | grep -q '^.[MADRCU]' 2>/dev/null && GIT_FLAGS="${GIT_FLAGS}*"
-      # Staged changes: +
-      echo "$gs" | grep -q '^[MADRC]' 2>/dev/null && GIT_FLAGS="${GIT_FLAGS}+"
+      STAGED=$(echo "$gs" | grep -c '^[MADRC]' 2>/dev/null || echo 0)
+      UNSTAGED=$(echo "$gs" | grep -c '^.[MADRCU]' 2>/dev/null || echo 0)
+      UNTRACKED=$(echo "$gs" | grep -c '^??' 2>/dev/null || echo 0)
+    fi
+
+    # Line churn from git diff: uncommitted diff first, then unpushed diff
+    numstat=$(git -C "$CWD" diff --numstat HEAD 2>/dev/null)
+    if [ -z "$numstat" ] && [ "$AHEAD" -gt 0 ]; then
+      numstat=$(git -C "$CWD" diff --numstat '@{upstream}...HEAD' 2>/dev/null)
+    fi
+    if [ -n "$numstat" ]; then
+      read -r GIT_ADD GIT_REM < <(echo "$numstat" | awk '{add+=$1; del+=$2} END {printf "%d\t%d\n", add, del}')
     fi
   fi
 
@@ -224,8 +245,26 @@ else
     BADGE=$( (cd "$ROOT" 2>/dev/null && eval "$SL_BADGE_CMD") 2>/dev/null | head -1 | tr -d '\t\n' )
   fi
 
-  printf '%s\t%s\t%s' "$BRANCH" "$GIT_FLAGS" "$BADGE" > "$CACHE" 2>/dev/null
+  AHEAD=$(int "$AHEAD" 0)
+  BEHIND=$(int "$BEHIND" 0)
+  STAGED=$(int "$STAGED" 0)
+  UNSTAGED=$(int "$UNSTAGED" 0)
+  UNTRACKED=$(int "$UNTRACKED" 0)
+  GIT_ADD=$(int "$GIT_ADD" 0)
+  GIT_REM=$(int "$GIT_REM" 0)
+
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' \
+    "$BRANCH" "$AHEAD" "$BEHIND" "$STAGED" "$UNSTAGED" "$UNTRACKED" "$GIT_ADD" "$GIT_REM" "$BADGE" > "$CACHE" 2>/dev/null
 fi
+
+AHEAD=$(int "$AHEAD" 0)
+BEHIND=$(int "$BEHIND" 0)
+STAGED=$(int "$STAGED" 0)
+UNSTAGED=$(int "$UNSTAGED" 0)
+UNTRACKED=$(int "$UNTRACKED" 0)
+GIT_ADD=$(int "$GIT_ADD" 0)
+GIT_REM=$(int "$GIT_REM" 0)
+
 # Truncate long branch names to avoid line overflow
 [ ${#BRANCH} -gt 24 ] && BRANCH="${BRANCH:0:23}…"
 
@@ -329,19 +368,15 @@ else
   L2="${L2}${SEP}${BL} ${dir_disp}${R}"
 fi
 
-# 3. Git Branch & Status Indicators
+# 3. Git Branch & Detailed Status Indicators (Ahead/Behind & File Counts)
 if [ -n "$BRANCH" ]; then
-  flags_colored=""
-  case "$GIT_FLAGS" in
-    *"?"*) flags_colored="${flags_colored}${CY}?${R}";;
-  esac
-  case "$GIT_FLAGS" in
-    *"*"*) flags_colored="${flags_colored}${YE}*${R}";;
-  esac
-  case "$GIT_FLAGS" in
-    *"+"*) flags_colored="${flags_colored}${GR}+${R}";;
-  esac
-  L2="${L2}${SEP}${MG} ${BRANCH}${R}${flags_colored}"
+  git_seg="${MG} ${BRANCH}${R}"
+  [ "$AHEAD" -gt 0 ]     && git_seg="${git_seg} ${BL}⇡${AHEAD}${R}"
+  [ "$BEHIND" -gt 0 ]    && git_seg="${git_seg} ${RD}⇣${BEHIND}${R}"
+  [ "$STAGED" -gt 0 ]    && git_seg="${git_seg} ${GR}+${STAGED}${R}"
+  [ "$UNSTAGED" -gt 0 ]  && git_seg="${git_seg} ${YE}*${UNSTAGED}${R}"
+  [ "$UNTRACKED" -gt 0 ] && git_seg="${git_seg} ${CY}?${UNTRACKED}${R}"
+  L2="${L2}${SEP}${git_seg}"
 fi
 
 # 4. Clickable Pull Request Badge (OSC 8 Hyperlink & Review State)
@@ -362,9 +397,16 @@ if [ -n "$PR_NUM" ]; then
 fi
 
 # 5. Code Churn (Added/Removed Lines) & Total Session Cost
+churn_add=$L_ADD
+churn_rem=$L_REM
+if [ "$churn_add" -eq 0 ] && [ "$churn_rem" -eq 0 ]; then
+  churn_add=$GIT_ADD
+  churn_rem=$GIT_REM
+fi
+
 churn_cost=""
-if [ "$L_ADD" -gt 0 ] || [ "$L_REM" -gt 0 ]; then
-  churn_cost="${GR}+${L_ADD}${R} ${RD}-${L_REM}${R}"
+if [ "$churn_add" -gt 0 ] || [ "$churn_rem" -gt 0 ]; then
+  churn_cost="${GR}+${churn_add}${R} ${RD}-${churn_rem}${R}"
 fi
 
 cost_val=$(awk "BEGIN {print ($COST + 0)}")
