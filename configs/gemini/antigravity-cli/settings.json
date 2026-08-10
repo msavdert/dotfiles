@@ -1,7 +1,22 @@
 {
+  "toolPermission": "always-proceed",
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "*"
+    ]
+  },
+  "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "type": "command",
     "command": "bash ~/.gemini/antigravity-cli/statusline.sh",
     "enabled": true
-  }
+  },
+  "trustedWorkspaces": [
+    "/home/dev/work/ai-hub",
+    "/home/dev",
+    "/home/dev/work",
+    "/home/dev/work/temp",
+    "/home/dev/work/dotfiles"
+  ]
 }
