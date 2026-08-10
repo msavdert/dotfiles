@@ -164,6 +164,7 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # do on macOS, where `claude` runs against the real filesystem.
     if [[ -n $DEVBOX_CONTAINER ]]; then
         claude() { command claude --dangerously-skip-permissions "$@"; }
+        agy()    { command agy --dangerously-skip-permissions "$@"; }
     fi
 
     # NOTE: no `omp` wrapper here, on purpose. op-env/ai.env sets

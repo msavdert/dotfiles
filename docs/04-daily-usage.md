@@ -74,9 +74,9 @@ This pulls the latest repo changes and refreshes all symlinks in seconds without
 Wrapped commands resolve their own secrets. Just run them:
 
 ```bash
-claude          # ANTHROPIC_* injected by op run; includes avenoxstatusline ASCII pet status bar
+claude          # ANTHROPIC_* injected by op run; includes Tokyo Cyber Minimalist status bar
 herdr           # AI workspace & agent terminal manager
-agy             # Google Antigravity SDK CLI
+agy             # Google Antigravity SDK CLI (auto-skips permissions in devbox)
 ```
 
 For anything else:
