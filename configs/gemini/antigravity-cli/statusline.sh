@@ -102,9 +102,10 @@ int() { case "$1" in ''|*[!0-9-]*) echo "${2:-0}";; *) echo "$1";; esac; }
 # ------------------------------------------------------------------------------
 # 5. Single-Pass JSON Parsing Engine
 # ------------------------------------------------------------------------------
-# Handles Antigravity CLI / AGY schema fields (including camelCase protojson and snake_case fallbacks).
+# Handles Antigravity CLI / AGY schema fields (including .quota, .context_window, camelCase and snake_case).
 {
   IFS= read -r MODEL
+  IFS= read -r EFFORT
   IFS= read -r STATE
   IFS= read -r SUBAGENTS
   IFS= read -r TASKS
@@ -127,28 +128,47 @@ int() { case "$1" in ''|*[!0-9-]*) echo "${2:-0}";; *) echo "$1";; esac; }
   IFS= read -r SID
 } < <(
   printf '%s' "$input" | jq -r '
+    def is_3p: ((.model.id // .model.display_name // "") | test("claude|gpt|3p"; "i"));
+    def q_5h: if is_3p then .quota["3p-5h"] else .quota["gemini-5h"] end // .quota["gemini-5h"] // .quota["3p-5h"] // (.quota | to_entries[0].value?);
+    def q_weekly: if is_3p then .quota["3p-weekly"] else .quota["gemini-weekly"] end // .quota["gemini-weekly"] // .quota["3p-weekly"] // (.quota | to_entries[1].value?);
     [
-      (.modelName // .model.display_name // .model.name // .model // "?"),
-      (.agentState // .agent_state // .state // ""),
+      (.model.display_name // .modelName // .model.name // .model // "?"),
+      (.model.effort // ""),
+      (.agent_state // .agentState // .state // ""),
       (.activeSubagents // .active_subagents // (.subagents | length? // 0) // 0),
       (.activeTasks // .active_tasks // (.backgroundTasks | length? // (.tasks | length? // 0)) // 0),
-      (.contextWindow.usedPercentage // .context_window.used_percentage // 0 | floor),
-      (.contextWindow.contextWindowSize // .context_window.context_window_size // 1048576),
-      (.contextWindow.totalInputTokens // .context_window.total_input_tokens // 0),
-      (.contextWindow.currentUsage.cacheReadInputTokens // .context_window.current_usage.cache_read_input_tokens // 0),
+      (.context_window.used_percentage // .contextWindow.usedPercentage // 0 | floor),
+      (.context_window.context_window_size // .contextWindow.contextWindowSize // 1048576),
+      (.context_window.total_input_tokens // .contextWindow.totalInputTokens // 0),
+      (.context_window.current_usage.cache_read_input_tokens // .contextWindow.currentUsage.cacheReadInputTokens // 0),
       (.cost.totalCostUsd // .cost.total_cost_usd // 0),
       (.cost.totalLinesAdded // .cost.total_lines_added // 0),
       (.cost.totalLinesRemoved // .cost.total_lines_removed // 0),
-      (.rateLimits.fiveHour.usedPercentage // .rate_limits.five_hour.used_percentage // -1 | floor),
-      (.rateLimits.fiveHour.resetsAt // .rate_limits.five_hour.resets_at // 0),
-      (.rateLimits.sevenDay.usedPercentage // .rate_limits.seven_day.used_percentage // -1 | floor),
+      (
+        if q_5h.remaining_fraction != null then (q_5h.remaining_fraction * 100 | floor)
+        elif .rateLimits.fiveHour.usedPercentage != null then (100 - .rateLimits.fiveHour.usedPercentage | floor)
+        elif .rate_limits.five_hour.used_percentage != null then (100 - .rate_limits.five_hour.used_percentage | floor)
+        else -1 end
+      ),
+      (
+        q_5h.reset_in_seconds //
+        (if .rateLimits.fiveHour.resetsAt then (.rateLimits.fiveHour.resetsAt - (now | floor))
+         elif .rate_limits.five_hour.resets_at then (.rate_limits.five_hour.resets_at - (now | floor))
+         else 0 end) // 0
+      ),
+      (
+        if q_weekly.remaining_fraction != null then (q_weekly.remaining_fraction * 100 | floor)
+        elif .rateLimits.sevenDay.usedPercentage != null then (100 - .rateLimits.sevenDay.usedPercentage | floor)
+        elif .rate_limits.seven_day.used_percentage != null then (100 - .rate_limits.seven_day.used_percentage | floor)
+        else -1 end
+      ),
       (.workspace.gitWorktree // .workspace.git_worktree // ""),
       (.workspacePaths[0] // .workspace.currentDir // .workspace.current_dir // .cwd // "."),
       (.pr.number // ""),
       (.pr.url // ""),
       (.pr.reviewState // .pr.review_state // ""),
       (.vim.mode // ""),
-      (.conversationId // .sessionId // .session_id // "nosess")
+      (.conversationId // .conversation_id // .sessionId // .session_id // "nosess")
     ] | .[] | tostring | gsub("[\r\n\t]"; " ")' 2>/dev/null
 )
 
@@ -268,10 +288,10 @@ L1="${L1}${CY}󰚩 ${B}${MODEL}${R}"
 # Agent State
 if [ -n "$STATE" ]; then
   case "$STATE" in
-    thinking|*think*) L1="${L1}${DOT}${MG}think${R}";;
-    running|*run*)    L1="${L1}${DOT}${GR}run${R}";;
-    idle)             L1="${L1}${DOT}${D}idle${R}";;
-    *)                L1="${L1}${DOT}${WH}${STATE}${R}";;
+    thinking|*think*)             L1="${L1}${DOT}${MG}think${R}";;
+    running|working|*run*|*work*) L1="${L1}${DOT}${GR}${STATE}${R}";;
+    idle)                         L1="${L1}${DOT}${D}idle${R}";;
+    *)                            L1="${L1}${DOT}${WH}${STATE}${R}";;
   esac
 fi
 
@@ -293,12 +313,20 @@ fi
 # 4. Rate Limits & Reset Countdown (5-Hour & 7-Day Windows)
 if [ "$FIVE_PCT" -ge 0 ]; then
   five_col="$GR"
-  [ "$FIVE_PCT" -ge 50 ] && five_col="$YE"
-  [ "$FIVE_PCT" -ge 80 ] && five_col="$RD"
+  [ "$FIVE_PCT" -lt 50 ] && five_col="$YE"
+  [ "$FIVE_PCT" -lt 20 ] && five_col="$RD"
 
   rst_txt=""
-  if [ "$FIVE_RST" -gt 0 ] && [ "$FIVE_RST" -gt "$now" ]; then
-    diff=$(( FIVE_RST - now ))
+  diff=0
+  if [ "$FIVE_RST" -gt 0 ]; then
+    if [ "$FIVE_RST" -gt "$now" ]; then
+      diff=$(( FIVE_RST - now ))
+    else
+      diff="$FIVE_RST"
+    fi
+  fi
+
+  if [ "$diff" -gt 0 ]; then
     mins=$(( diff / 60 ))
     if [ "$mins" -ge 60 ]; then
       h=$(( mins / 60 ))
