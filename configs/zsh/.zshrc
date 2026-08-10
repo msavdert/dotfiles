@@ -157,6 +157,12 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # Note: claude() is intentionally not wrapped with opwith so it can use native claude.ai OAuth login & Connectors.
     kilocode() { opwith ai kilocode "$@"; }
 
+    # `gh` reads GH_TOKEN from the environment, so wrapping it here removes the
+    # need for `gh auth login` and keeps the token out of ~/.config/gh/hosts.yml.
+    # git itself is NOT wrapped - configs/git/config resolves its credential
+    # from 1Password per invocation and needs nothing in the environment.
+    gh() { opwith git gh "$@"; }
+
     # $DEVBOX_CONTAINER is only set inside the devbox image (see Dockerfile),
     # never on the macOS thin client. The VPS devbox is a disposable,
     # single-tenant container with no other workloads in it, so skipping the
