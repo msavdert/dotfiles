@@ -203,7 +203,8 @@ Regenerate completions by hand after adding a tool: `mise run completions:regen`
 
 ## D6 — The home directory is not one big volume
 
-**Decision.** `compose.yaml` mounts narrow persistent paths: `~/work`, `~/.local/state`, `~/.kube`, `~/.omp/agent`, `~/.claude`, `~/.claude.json`, and `~/.gemini`.
+**Decision.** `compose.yaml` mounts narrow persistent paths: `~/work`, `~/.local/state`, `~/.kube`, `~/.omp/agent`, `~/.claude`, and `~/.gemini`.
+
 
 **Why.** A volume mounted at `/home/dev` shadows everything the image put there.
 Pull a new image with an updated `.zshrc` and a fixed toolchain, and you'd still

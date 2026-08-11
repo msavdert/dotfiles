@@ -107,8 +107,8 @@ Named volumes, nothing else:
 | `kube` | `/home/dev/.kube` | output of `mise run kube:homelab` |
 | `omp` | `/home/dev/.omp/agent` | OMP agent state, auth database & session transcripts |
 | `claude_auth` | `/home/dev/.claude` | Claude Code settings, auth & history |
-| `claude_json` | `/home/dev/.claude.json` | Claude Code oauth/onboarding state (a separate file, not under `~/.claude/`) |
 | `agy_auth` | `/home/dev/.gemini` | Antigravity (AGY) CLI auth & state |
+
 
 **Everything outside these paths is disposable and will be replaced on the next
 image pull.** That's deliberate — see
