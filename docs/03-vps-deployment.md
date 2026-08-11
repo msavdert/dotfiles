@@ -109,7 +109,6 @@ Named volumes, nothing else:
 | `claude_auth` | `/home/dev/.claude` | Claude Code settings, auth & history |
 | `agy_auth` | `/home/dev/.gemini` | Antigravity (AGY) CLI auth & state |
 
-
 **Everything outside these paths is disposable and will be replaced on the next
 image pull.** That's deliberate — see
 [D6](00-architecture.md#d6--the-home-directory-is-not-one-big-volume). If a

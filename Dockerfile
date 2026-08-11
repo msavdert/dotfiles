@@ -127,7 +127,6 @@ ENV CLAUDE_CONFIG_DIR="/home/dev/.claude"
 # to create itself land as root-owned.
 RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini"
 
-
 # The container's job is to stay alive; you enter it with `docker exec` (see
 # the `Host dev` block in docs/03-vps-deployment.md). Running zellij as PID 1
 # would tie the whole container's lifetime to one terminal session.
