@@ -120,18 +120,14 @@ RUN nvim --headless "+Lazy! restore" +qa 2>/dev/null \
     || true
 
 # --- Runtime -----------------------------------------------------------------
-# Directories that get a persistent volume mounted over them in compose.yaml.
-# Pre-created here so named volumes inherit `dev` ownership; paths Docker has
-# to create itself land as root-owned.
-RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini"
-
-# Claude Code's oauth/onboarding state (`hasCompletedOnboarding`, account info,
-# theme) lives in this file, NOT under ~/.claude/. It needs its own named
-# volume in compose.yaml (`claude_json`) or a container recreation resets
-# login. Pre-created here, as `dev`, for the same reason as the directories
-# above: so the named volume's first-populate copies dev-owned content
-# instead of Docker creating a root-owned mountpoint.
-RUN touch "$HOME/.claude.json"
+# Directories (and the one file, ~/.claude.json) that get a persistent volume
+# mounted over them in compose.yaml. Pre-created here so named volumes
+# inherit `dev` ownership; paths Docker has to create itself land as
+# root-owned. ~/.claude.json holds Claude Code's oauth/onboarding state
+# separately from ~/.claude/ — without it pre-existing, the named volume's
+# first-populate would copy a root-owned mountpoint instead of a file.
+RUN mkdir -p "$HOME/work" "$HOME/.local/state/zsh" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini" \
+    && touch "$HOME/.claude.json"
 
 # The container's job is to stay alive; you enter it with `docker exec` (see
 # the `Host dev` block in docs/03-vps-deployment.md). Running zellij as PID 1
