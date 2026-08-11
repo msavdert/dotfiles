@@ -81,6 +81,11 @@ Full rationale and decision records: `docs/00-architecture.md`.
     symlink `~/.claude` itself — it also holds runtime state
     (`history.jsonl`, `sessions/`, `shell-snapshots/`, `telemetry/`, OAuth
     credentials) that must never land in this repo's working tree.
+    **`~/.claude.json` is a separate file, not under `~/.claude/`.** It holds
+    onboarding/oauth state (`hasCompletedOnboarding`, account info, theme).
+    `compose.yaml` mounts it with its own named volume (`claude_json`); if that
+    volume is ever dropped, `docker compose up -d` after an image update makes
+    Claude Code look like a fresh install (re-prompts login and theme).
 12. **The Antigravity (AGY) config contract.** `configs/gemini/` holds
     `antigravity-cli/settings.json`, `antigravity-cli/statusline.sh` and
     customizations, tracked and reaching `~/.gemini/` the same two ways as
