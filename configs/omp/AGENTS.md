@@ -10,8 +10,8 @@ you scope the work, decide the contracts, and verify the result.
 | Work | Agent | Model |
 |---|---|---|
 | Scope, decompose, decide contracts, verify | you (architect) | `syn:large:vision:high` |
-| Find files, map unknown code, read-only search | `scout` | `gemini-3.6-flash` |
-| Mechanical rename/move/reformat across files | `sonic` | `gemini-3.6-flash` |
+| Find files, map unknown code, read-only search | `scout` | `gemini-3.7-flash:high` |
+| Mechanical rename/move/reformat across files | `sonic` | `gemini-3.7-flash:high` |
 | General multi-step implementation slice | `task` | `gemini-3.1-pro` |
 | External library or API behaviour, from source | `librarian` | `Kimi-K3` |
 | Write or rewrite documentation | `docs` | `Kimi-K3` |

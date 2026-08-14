@@ -157,9 +157,9 @@ task:
   agentModelOverrides:
     # Read-only repo search. Volume-heavy, judgement-light, and `blocking: true`
     # means it runs inline — latency matters more than depth.
-    scout: google-antigravity/gemini-3.6-flash
+    scout: google-antigravity/gemini-3.7-flash:high
     # Strictly mechanical edits. Same reasoning as scout.
-    sonic: google-antigravity/gemini-3.6-flash
+    sonic: google-antigravity/gemini-3.7-flash:high
     # General worker. Matches modelRoles.task; stated explicitly so a change to
     # the interactive `task` role does not silently retune every subagent.
     task: google-antigravity/gemini-3.1-pro
