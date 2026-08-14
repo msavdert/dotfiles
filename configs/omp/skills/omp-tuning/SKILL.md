@@ -48,7 +48,7 @@ Roles first, in `config.yml`:
 ```yaml
 modelRoles:
   default: anthropic/claude-opus-5
-  smol: google-antigravity/gemini-3.6-flash
+  smol: google-antigravity/gemini-3.7-flash:high
 ```
 
 Per-subagent model, also in `config.yml`:
@@ -56,7 +56,7 @@ Per-subagent model, also in `config.yml`:
 ```yaml
 task:
   agentModelOverrides:
-    scout: google-antigravity/gemini-3.6-flash
+    scout: google-antigravity/gemini-3.7-flash:high
     librarian: synthetic/hf:moonshotai/Kimi-K3
 ```
 

@@ -58,19 +58,19 @@ modelRoles:
   # or medium rung — so `defaultThinkingLevel: auto` has three stops here rather
   # than six, and pinning `:high` costs nothing that auto would not have picked
   # anyway on work worth giving to the architect.
-  default: "synthetic/syn:large:vision:high"
+  default: "synthetic/syn:large:text:high"
   # `slow` is the explicit "I am stuck, think properly" escalation. Same model at
   # the top of its ladder: if you have already decided to pay for it, pay all the
   # way. It shares the model with `default`, which is free — they are the same
   # session and never in flight at the same time.
-  slow: "synthetic/syn:large:vision:max"
+  slow: "synthetic/syn:large:text:max"
   # Plan mode is read-only exploration that produces a plan every later agent
   # follows, so a bad plan is the most expensive possible mistake — but it is
   # still bounded work, so `high` rather than `max`.
-  plan: "synthetic/syn:large:vision:high"
+  plan: "synthetic/syn:large:text:high"
   # Titles, classification, and cheap background chatter. Left bare: `smol` is
   # also a cycleOrder stop (Ctrl+P), so it has to stay usable for real chat.
-  smol: google-antigravity/gemini-3.6-flash
+  smol: "google-antigravity/gemini-3.7-flash:high"
   # Advisor reviews EVERY completed turn, so its cost is multiplied by turn
   # count: a 76-turn session is 76 extra calls. That multiplier must never land
   # on Synthetic, which is the metered pool and serialises per model — an advisor
@@ -79,7 +79,7 @@ modelRoles:
   # WATCHDOG.md), and flash is good enough at noticing. Anything it finds is
   # handed to the architect anyway, so the quality that matters is recall, not
   # authorship.
-  advisor: "google-antigravity/gemini-3.6-flash"
+  advisor: "google-antigravity/gemini-3.7-flash:high"
   # Default model for spawned subagents that have no override below. gemini-3.1-pro
   # exposes only `low,high`, and a worker that cannot reason is worse than no
   # worker, so `high` it is.
@@ -90,12 +90,12 @@ modelRoles:
   # screenshot-and-diagram traffic this role actually sees.
   vision: synthetic/syn:small:vision
   # Commit-message drafting: short, structured, high volume.
-  commit: google-antigravity/gemini-3.6-flash
+  commit: "google-antigravity/gemini-3.7-flash:high"
   # `tiny` is the online model for pure background chores (session titles, memory
   # summarisation, auto-thinking classification, unexpected-stop detection). It
   # is invoked constantly and nobody reads its reasoning, hence `:minimal`.
   # Unset, this would fall back to `smol` and quietly cost more.
-  tiny: "google-antigravity/gemini-3.6-flash:minimal"
+  tiny: "google-antigravity/gemini-3.7-flash:high"
 
 # Ctrl+P / Shift+Ctrl+P walk this ladder. Ordered cheap -> capable so the first
 # press is always the de-escalation, which is the one you want under a quota wall.
@@ -141,7 +141,7 @@ disabledProviders:
 # `--no-prewalk` when an edit genuinely needs the expensive model, or
 # `--prewalk-into @task` to hand off to gemini-3.1-pro instead of flash.
 prewalk:
-  enabled: true
+  enabled: false
 
 # --- Subagents ---------------------------------------------------------------
 task:
@@ -355,21 +355,21 @@ retry:
     # `500 requests / 5h` is a wall you can actually hit in a long day.
     default:
       - google-antigravity/gemini-3.1-pro
-      - google-antigravity/gemini-3.6-flash
+      - google-antigravity/gemini-3.7-flash:high
     advisor:
-      - google-antigravity/gemini-3.6-flash
+      - google-antigravity/gemini-3.7-flash:high
       - google-antigravity/gemini-3.1-pro
     # `smol` must stay cheap under failure, so it degrades sideways (another
     # flash) without ever reaching for the metered Synthetic pack.
     smol:
-      - google-antigravity/gemini-3.6-flash
+      - google-antigravity/gemini-3.7-flash:high
       - google-antigravity/gemini-3.5-flash
       - google-antigravity/gemini-3.1-pro
     # Provider wildcard: applies to every synthetic model, current or future,
     # regardless of which role or agent is holding it.
     synthetic/*:
       - google-antigravity/gemini-3.1-pro
-      - google-antigravity/gemini-3.6-flash
+      - google-antigravity/gemini-3.7-flash:high
 # --- Tools and approvals -----------------------------------------------------
 tools:
   # This is a disposable container on a VPS: the workspace is a volume, the
@@ -559,7 +559,7 @@ providers:
   # rung, so this ceiling resolves down to `high` on the architect and does its
   # real work on the gemini roles, which expose the full ladder.
   autoThinkingMaxEffort: xhigh
-  webSearchGeminiModel: "gemini-3.6-flash"
+  webSearchGeminiModel: "gemini-3.7-flash"
 
 web_search:
   enabled: true
