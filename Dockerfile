@@ -21,17 +21,26 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        bind9-dnsutils \
         build-essential \
         ca-certificates \
         curl \
+        file \
         git \
         gnupg \
+        iproute2 \
+        iputils-ping \
         less \
         locales \
+        lsof \
+        netcat-openbsd \
         openssh-client \
+        rsync \
         sudo \
+        tree \
         tzdata \
         unzip \
+        zip \
         zsh \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
