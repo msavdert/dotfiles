@@ -105,6 +105,25 @@ git commit -am "chore: update nvim plugins"
 Without this the change is lost at the next image pull — `~/.config/nvim` is not
 a persistent volume, by design.
 
+If a plugin was disabled in `lua/plugins/devbox.lua`, run `:Lazy clean` too and
+drop its entry from the lockfile; `Lazy! restore` at build time otherwise keeps
+cloning it.
+
+## Adding a language server or formatter to Neovim
+
+mason is disabled (see docs/02), so:
+
+```bash
+# 1. the binary comes from mise, at build time
+$EDITOR configs/mise/devbox.toml        # e.g. gopls = "latest"
+# 2. tell nvim-lspconfig to enable it
+$EDITOR configs/nvim/lua/plugins/devbox.lua   # servers = { gopls = {} }
+```
+
+Formatters only need step 1 if conform already maps the filetype (it does for
+`stylua` and `shfmt`); otherwise add a `formatters_by_ft` entry in the same
+file.
+
 ## Rolling back
 
 ```bash

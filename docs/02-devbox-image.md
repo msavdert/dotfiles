@@ -53,6 +53,22 @@ in `configs/nvim/lazy-lock.json`. `sync` resolves to whatever is newest. The
 fallback exists only for the very first build, before a lockfile is committed —
 see below.
 
+## Neovim: LazyVim minus the parts that download things
+
+`configs/nvim/` is stock LazyVim with one override file,
+`lua/plugins/devbox.lua`. It disables **mason** (which would fetch language
+servers and formatters into the non-persistent `~/.local/share/nvim` on first
+use, and again after every container recreation), plus a handful of plugins the
+devbox does not need next to zellij (bufferline, persistence, noice/nui,
+grug-far, ts-autotag, the second colour scheme). Update checking is off; the
+lockfile is the only thing that moves versions.
+
+Language servers and formatters are ordinary mise tools in `devbox.toml`
+(`lua-language-server`, `stylua`, `shfmt`, `bash-language-server`,
+`yaml-language-server`) and nvim-lspconfig picks them up from `$PATH`. Adding a
+language = one line in `devbox.toml` + one `servers = { x = {} }` entry in
+`devbox.lua`, not a LazyVim `lang.*` extra (those re-enable mason).
+
 ## Commit the Neovim lockfile
 
 This matters and is easy to forget. Until `configs/nvim/lazy-lock.json` exists,

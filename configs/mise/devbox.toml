@@ -37,6 +37,15 @@ eza        = "latest"
 yazi       = "latest"
 usage      = "latest"          # required by `mise completion zsh`
 shellcheck = "latest"
+
+# Neovim language servers and formatters. mason is disabled in
+# configs/nvim/lua/plugins/devbox.lua so these are baked in here instead of
+# downloaded at runtime (invariant 1). Add a server here AND in that file.
+lua-language-server         = "latest"
+stylua                      = "latest"
+shfmt                       = "latest"
+"npm:bash-language-server"  = "latest"
+"npm:yaml-language-server"  = "latest"
 "npm:tldr" = "latest"
 
 # --- Search & text processing ---

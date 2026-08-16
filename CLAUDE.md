@@ -123,9 +123,12 @@ docs/reference/                   zellij keybindings, mise backends
 - **Version policy**: language runtimes pinned to a major version, CLI tools on
   `latest` (re-resolved only at image build; the digest is the real pin). See
   `docs/06-maintenance.md`.
-- **Neovim**: LazyVim. `configs/nvim/lazy-lock.json` is committed and installed
-  with `Lazy! restore` at build time — update it deliberately, don't let builds
-  drift.
+- **Neovim**: LazyVim, adjusted only in `configs/nvim/lua/plugins/devbox.lua`.
+  mason is disabled there: language servers and formatters are mise tools in
+  `devbox.toml`, never runtime downloads (invariant 1). Do not import LazyVim
+  `lang.*` extras (they re-enable mason). `configs/nvim/lazy-lock.json` is
+  committed and installed with `Lazy! restore` at build time — update it
+  deliberately, don't let builds drift.
 - **Shell scripts**: bash with `set -euo pipefail`, shellcheck-clean.
 - **Dockerfile**: keep the expensive `mise install` in its own layer, below the
   system layer and above the config layers.
