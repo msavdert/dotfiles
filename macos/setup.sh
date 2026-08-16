@@ -133,7 +133,6 @@ link_configs() {
         # machine setup: they live in ~/work/ai-hub and are linked by that
         # repo's install.sh.
         "$REPO_DIR/configs/claude/settings.json:$HOME/.claude/settings.json"
-        "$REPO_DIR/configs/claude/statusline-command.sh:$HOME/.claude/statusline-command.sh"
         "$REPO_DIR/configs/claude/statusline.sh:$HOME/.claude/statusline.sh"
 
         # Antigravity (AGY): global settings and statusline only. Per file/dir,

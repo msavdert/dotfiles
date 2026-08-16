@@ -108,6 +108,47 @@ jobs:
                 && 'type=cacheonly'
                 || format('type=image,name={0}/{1},push-by-digest=true,name-canonical=true,push=true', env.REGISTRY, env.IMAGE_NAME) }}
 
+      # Load the image just built into the local daemon so it can be run. This
+      # is a full cache hit from the step above; pushing by digest does not
+      # leave a runnable tag behind, and on pull requests nothing is pushed.
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          load: true
+          tags: devbox:smoke
+
+      # Catch what a successful `docker build` cannot: a .zshrc that only fails
+      # when sourced, a mise tool that silently resolved to nothing, a nvim
+      # plugin set that no longer restores. Everything here is offline.
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          # Interactive shell start-up (with a TTY so the TERM=dumb guard in
+          # .zshrc does not skip starship/fzf).
+          docker run --rm -t devbox:smoke zsh -ic 'true'
+          # Completions and init snippets exist from build time.
+          docker run --rm devbox:smoke zsh -c \
+            'test -s ~/.local/share/zsh/init/fzf.zsh && test -s ~/.local/share/zsh/completions/_kubectl'
+          # Every tool in devbox.toml is installed (nothing left "missing").
+          docker run --rm devbox:smoke mise ls --json > "mise-versions-${PLATFORM_PAIR}.json"
+          jq -e '[.[][] | select(.installed | not)] | length == 0' "mise-versions-${PLATFORM_PAIR}.json" \
+            || { echo "::error::mise reports uninstalled tools"; jq '.[][] | select(.installed | not) | .' "mise-versions-${PLATFORM_PAIR}.json"; exit 1; }
+          # Neovim starts headless with the restored plugin set.
+          docker run --rm devbox:smoke timeout 120 nvim --headless +qa
+
+      # The manifest says `latest` for most tools, so the versions an image
+      # actually contains are only knowable from the image itself. Keep the
+      # resolved list per build; when something "worked last week", diff two of
+      # these instead of guessing.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mise-versions-${{ env.PLATFORM_PAIR }}
+          path: mise-versions-${{ env.PLATFORM_PAIR }}.json
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Export digest
         if: github.event_name != 'pull_request'
         run: |

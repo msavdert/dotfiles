@@ -228,7 +228,6 @@ done
 
 # Claude Code configs
 ln -sfn "$REPO_DIR/configs/claude/settings.json" "$HOME/.claude/settings.json"
-ln -sfn "$REPO_DIR/configs/claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 [ -e "$REPO_DIR/configs/claude/statusline.sh" ] && ln -sfn "$REPO_DIR/configs/claude/statusline.sh" "$HOME/.claude/statusline.sh"
 # CLAUDE.md, agents/ and skills/ describe agent behaviour, not machine setup:
 # they live in ~/work/ai-hub and are linked by that repo's install.sh.

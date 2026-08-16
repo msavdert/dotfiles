@@ -52,8 +52,33 @@ for tool script in ${(kv)gens}; do
     fi
 done
 
+# --- Init snippets -----------------------------------------------------------
+# Same idea as above, for tools whose shell hook is not a completion file but
+# an init script that would otherwise be `source <(tool --zsh)` on every
+# start. Written next to the completions and sourced by .zshrc if present.
+readonly INIT="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/init"
+mkdir -p "$INIT"
+
+typeset -A inits=(
+    fzf       "fzf --zsh"
+)
+
+for tool script in ${(kv)inits}; do
+    if (( ! $+commands[$tool] )); then
+        print "skip  $tool init (not installed)"
+        continue
+    fi
+    if ${=script} > "$INIT/$tool.zsh.tmp" 2>/dev/null && [[ -s "$INIT/$tool.zsh.tmp" ]]; then
+        mv "$INIT/$tool.zsh.tmp" "$INIT/$tool.zsh"
+        print "ok    $tool init"
+    else
+        rm -f "$INIT/$tool.zsh.tmp"
+        print "fail  $tool init (generator returned nothing)"
+    fi
+done
+
 # The completion cache is invalidated by removing the compdump; the next
 # interactive shell rebuilds it.
 rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
 
-print "\ncompletions written to $OUT"
+print "\ncompletions written to $OUT, init snippets to $INIT"

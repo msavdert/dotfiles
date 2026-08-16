@@ -26,7 +26,7 @@ Full rationale and decision records: `docs/00-architecture.md`.
 | Run image locally | `docker run -it --rm ghcr.io/msavdert/devbox:latest zsh` |
 | Deploy / update VPS | `docker compose pull && docker compose up -d` |
 | Connect | `ssh dev` |
-| Regenerate completions | `mise run completions:regen` |
+| Regenerate completions and init snippets | `mise run completions:regen` |
 | Pull kubeconfig | `mise run kube:homelab` |
 | Restore OMP Synthetic key | `mise run omp:auth` (then `/login` for the OAuth providers) |
 | Check effective OMP config | `omp config list` · `omp config path` · `omp models` |
@@ -74,10 +74,12 @@ Full rationale and decision records: `docs/00-architecture.md`.
     the model, use `task.agentModelOverrides` in `config.yml`. See
     `docs/08-omp-agent.md`.
 11. **The Claude Code config contract.** `configs/claude/` holds
-    `settings.json`, `statusline-command.sh` and `agents/` (custom
-    subagents), tracked and reaching `~/.claude/` the same two ways as OMP:
-    `Dockerfile` copies the whole directory into the image, `link_configs()`
-    in `macos/setup.sh` symlinks each of the three per file/dir. Never
+    `settings.json` and `statusline.sh`, tracked and reaching `~/.claude/`
+    the same two ways as OMP: `Dockerfile` copies the whole directory into
+    the image, `link_configs()` in `macos/setup.sh` symlinks each file. The
+    hooks `settings.json` refers to (`~/.claude/hooks/*.sh`) are installed
+    by other tools (`ai-hub`, `herdr`), not by this repo; each hook command
+    is guarded so a missing script is a no-op, not an error. Never
     symlink `~/.claude` itself — it also holds runtime state
     (`history.jsonl`, `sessions/`, `shell-snapshots/`, `telemetry/`, OAuth
     credentials, `claude.json`) that must never land in this repo's working tree.

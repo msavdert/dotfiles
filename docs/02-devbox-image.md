@@ -125,6 +125,21 @@ image: ghcr.io/msavdert/devbox@sha256:abc123…
 Pull requests build but publish nothing — the `outputs` line switches to
 `type=cacheonly`. You get "does it still build?" without polluting the registry.
 
+## What CI checks after the build
+
+Per architecture, `build.yml` loads the just-built image (a cache hit) and runs
+an offline smoke test: an interactive `zsh -ic true` with a TTY (so starship
+and the fzf snippet actually run), presence of the pre-generated completions and
+init snippets, `mise ls --json` with zero uninstalled entries, and
+`nvim --headless +qa`. Any of these failing fails the build before anything is
+pushed.
+
+The `mise ls --json` output is kept as a workflow artifact,
+`mise-versions-linux-{amd64,arm64}` (90 days). Because most tools track
+`latest`, this is the only record of which versions a given image resolved to;
+when a weekly rebuild breaks something, download the artifact from the last
+good run and diff.
+
 ## Verified behaviour
 
 Measured against the published `ghcr.io/msavdert/devbox:latest` on 2026-07-30,

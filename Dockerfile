@@ -53,6 +53,12 @@ ENV LANG=en_US.UTF-8
 ARG USERNAME=dev
 ARG UID=1000
 ARG GID=1000
+# Passwordless sudo is a deliberate trade-off: the container is single-tenant,
+# holds no secrets of its own (see compose.yaml, `environment:`), and is
+# recreated from the image on every upgrade. Anything sudo can reach is either
+# discarded with the container or already writable by `dev` via the volumes.
+# The VPS host itself is NOT reachable this way unless docker.sock is mounted.
+#
 # `useradd -l` skips the lastlog/faillog entries. Those files are sparse and
 # indexed BY uid, so a large UID build-arg would otherwise inflate the image by
 # gigabytes when the layer is packed (hadolint DL3046).

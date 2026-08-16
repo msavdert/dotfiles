@@ -133,7 +133,10 @@ exec zsh
 ```
 
 This also runs at image build, so it's only needed when you install something
-inside a running container.
+inside a running container. The generator has two tables: `gens` for completion
+scripts (`_tool` on `$fpath`) and `inits` for start-up snippets that would
+otherwise be `source <(tool --zsh)` (`~/.local/share/zsh/init/tool.zsh`,
+sourced by `.zshrc` if present). Add new tools to whichever applies.
 
 ## Routine health check
 

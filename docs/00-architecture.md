@@ -69,6 +69,25 @@ or do I need it where the code is?"** Almost everything is the second answer.
 Shared configs are guarded (`(( $+commands[x] ))`) so a tool that only exists in
 the container is simply skipped on the Mac.
 
+### AI agent configs: one contract, three tools
+
+Each agent keeps runtime state (databases, sessions, OAuth tokens) in the same
+directory as its configuration, so the *directory* is never linked into the
+repo. The Dockerfile copies the tracked subtree over the image's home; on macOS
+`link_configs()` in `macos/setup.sh` symlinks each tracked file individually.
+Anything not in the "tracked" column below is runtime state and must never land
+in this repo.
+
+| Tool | Home | Tracked in repo | External dependencies |
+|---|---|---|---|
+| OMP | `~/.omp/agent/` | `configs/omp/` (config.yml, agents/, hooks/) | none — see [08](08-omp-agent.md) |
+| Claude Code | `~/.claude/` | `configs/claude/settings.json`, `statusline.sh` | `~/.claude/hooks/*.sh` are installed by other tools (`ai-hub`, `herdr`); `settings.json` runs them only if present |
+| Antigravity | `~/.gemini/` | `configs/gemini/antigravity-cli/{settings.json,statusline.sh}` | none |
+
+Adding a fourth agent means one row here, one `COPY` in the Dockerfile, one
+block in `link_configs()`, and one invariant in `CLAUDE.md`. Resist a generic
+"link everything under configs/" loop: it would link the runtime state too.
+
 ---
 
 # Decision records
@@ -198,6 +217,11 @@ if [[ -n ${zcompdump}(#qN.mh+24) ]]; then compinit; else compinit -C; fi
 **never works.** `[[ ]]` performs no filename generation, so the glob qualifier
 is just a non-empty string and the slow branch always runs. The glob has to be
 expanded in an array assignment — see `configs/zsh/.zshrc`.
+
+The same generator also writes *init snippets* (`~/.local/share/zsh/init/`)
+for tools whose hook is not a completion but a `source <(tool --zsh)` script —
+today only fzf. `.zshrc` sources the file if it exists and does nothing
+otherwise.
 
 Regenerate completions by hand after adding a tool: `mise run completions:regen`.
 
