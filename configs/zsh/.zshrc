@@ -204,9 +204,14 @@ alias ...='cd ../..'
 # Modern tools get their OWN names. Shadowing grep/find/cat with rg/fd/bat
 # breaks every script and pasted command that relies on POSIX flags - and it
 # silently rewrites these very functions, because zsh expands aliases inside
-# function bodies at definition time.
+# function bodies at definition time. This applies to `ls` too: agents run
+# their commands with stdin attached to a pipe, and eza then waits for a
+# path list on stdin instead of listing the directory - a bare `ls` under
+# Claude Code's Bash tool blocked until timeout (measured 2026-08-16). The
+# aliases below are captured into the agent shell snapshot regardless of
+# any interactive guard, so the only fix is not to take the name.
 (( $+commands[eza] )) && {
-    alias ls='eza --icons --group-directories-first'
+    alias l='eza --icons --group-directories-first'
     alias ll='eza -l --icons --group-directories-first --git'
     alias la='eza -la --icons --group-directories-first --git'
     alias lt='eza --tree --level=2 --icons'
