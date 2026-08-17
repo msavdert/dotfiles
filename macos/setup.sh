@@ -92,12 +92,13 @@ link_configs() {
     # Create only PARENT directories. Creating the link targets themselves (the
     # old script did `mkdir -p ~/.config/nvim` right before linking it)
     # guarantees a pointless backup dance on every fresh machine.
-    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$CONFIG_DIR/herdr" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini/antigravity-cli"
+    run mkdir -p "$CONFIG_DIR" "$CONFIG_DIR/mise" "$CONFIG_DIR/ghostty" "$CONFIG_DIR/herdr" "$CONFIG_DIR/zsh" "$HOME/.ssh/sockets" "$HOME/.omp/agent" "$HOME/.claude" "$HOME/.gemini/antigravity-cli"
     run chmod 700 "$HOME/.ssh"
 
     local pairs=(
         "$REPO_DIR/configs/zsh/.zshenv:$HOME/.zshenv"
         "$REPO_DIR/configs/zsh/.zshrc:$HOME/.zshrc"
+        "$REPO_DIR/configs/zsh/regen-completions.zsh:$CONFIG_DIR/zsh/regen-completions.zsh"
         "$REPO_DIR/configs/git/config:$HOME/.gitconfig"
         "$REPO_DIR/configs/starship.toml:$CONFIG_DIR/starship.toml"
         "$REPO_DIR/configs/op-env:$CONFIG_DIR/op-env"
@@ -195,6 +196,13 @@ install_mise_tools() {
     run mise prune --yes
 }
 
+regen_completions() {
+    step "Zsh completions & init snippets"
+    if command -v zsh >/dev/null 2>&1; then
+        run zsh "$REPO_DIR/configs/zsh/regen-completions.zsh"
+    fi
+}
+
 check_1password_agent() {
     step "1Password SSH agent"
     local sock="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
@@ -233,6 +241,7 @@ main() {
 
     if [[ "${1:-}" == "--links-only" ]]; then
         link_configs
+        regen_completions
         summary
         return
     fi
@@ -242,6 +251,7 @@ main() {
     install_mise
     link_configs
     install_mise_tools
+    regen_completions
     check_1password_agent
     summary
 }

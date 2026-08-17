@@ -105,6 +105,35 @@ fi
 # deliberately NOT guarded: captured shells still need a correct PATH and
 # working directory resolution.
 if [[ ${TERM:-} != dumb ]]; then
+    # Force standard Emacs editing mode (disables Vi mode in Zsh Line Editor)
+    bindkey -e
+
+    # Navigation & editing keybindings across Ghostty, Terminal.app, xterm
+    bindkey "^[[H"    beginning-of-line          # Home / fn + Left
+    bindkey "^[OH"    beginning-of-line
+    bindkey "^[[1~"   beginning-of-line
+    bindkey "^[[7~"   beginning-of-line
+    bindkey "^A"      beginning-of-line          # Ctrl-A / Cmd-Left
+
+    bindkey "^[[F"    end-of-line                # End / fn + Right
+    bindkey "^[OF"    end-of-line
+    bindkey "^[[4~"   end-of-line
+    bindkey "^[[8~"   end-of-line
+    bindkey "^E"      end-of-line                # Ctrl-E / Cmd-Right
+
+    bindkey "^[[3~"   delete-char                # Delete / fn + Backspace
+    bindkey "^?"      backward-delete-char       # Backspace
+
+    # Word navigation (Option + Left / Right)
+    bindkey "^[b"     backward-word              # Alt-b / Option-Left
+    bindkey "^[f"     forward-word               # Alt-f / Option-Right
+    bindkey "^[[1;3D" backward-word              # Option-Left
+    bindkey "^[[1;3C" forward-word               # Option-Right
+    bindkey "^[[1;5D" backward-word              # Ctrl-Left
+    bindkey "^[[1;5C" forward-word               # Ctrl-Right
+    bindkey "^[^[[D"  backward-word
+    bindkey "^[^[[C"  forward-word
+
     (( $+commands[starship] )) && eval "$(starship init zsh)"
 
     # fzf ships its own keybindings (Ctrl-R history, Ctrl-T files). The
@@ -136,7 +165,7 @@ export OP_ENV_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/op-env"
 
 if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # Usage: opwith ai claude   ->  op run --env-file ~/.config/op/ai.env -- claude
-    opwith() {
+    function opwith {
         local env_name="$1"; shift
         local env_file="$OP_ENV_DIR/${env_name}.env"
         if [[ ! -f $env_file ]]; then
@@ -147,7 +176,7 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     }
 
     # Autocompletion for opwith: 1st arg completes env files, remaining args use standard command completion
-    _opwith() {
+    function _opwith {
         local -a envs
         envs=(${OP_ENV_DIR}/*.env(N:t:r))
         _arguments -C \
@@ -158,14 +187,15 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
 
     # `op run` execs the binary directly (PATH lookup, no shell), so these
     # functions cannot recurse into themselves.
-    # Note: claude() is intentionally not wrapped with opwith so it can use native claude.ai OAuth login & Connectors.
-    kilocode() { opwith ai kilocode "$@"; }
+    # Note: claude is intentionally not wrapped with opwith so it can use native claude.ai OAuth login & Connectors.
+    unalias kilocode gh 2>/dev/null
+    function kilocode { opwith ai kilocode "$@"; }
 
     # `gh` reads GH_TOKEN from the environment, so wrapping it here removes the
     # need for `gh auth login` and keeps the token out of ~/.config/gh/hosts.yml.
     # git itself is NOT wrapped - configs/git/config resolves its credential
     # from 1Password per invocation and needs nothing in the environment.
-    gh() { opwith git gh "$@"; }
+    function gh { opwith git gh "$@"; }
 
     # $DEVBOX_CONTAINER is only set inside the devbox image (see Dockerfile),
     # never on the macOS thin client. The VPS devbox is a disposable,
@@ -173,8 +203,9 @@ if (( $+commands[op] )) && [[ -d $OP_ENV_DIR ]]; then
     # permission-prompt loop there is an acceptable trade - it is NOT safe to
     # do on macOS, where `claude` runs against the real filesystem.
     if [[ -n $DEVBOX_CONTAINER ]]; then
-        claude() { command claude --dangerously-skip-permissions "$@"; }
-        agy()    { command agy --dangerously-skip-permissions "$@"; }
+        unalias claude agy 2>/dev/null
+        function claude { command claude --dangerously-skip-permissions "$@"; }
+        function agy    { command agy --dangerously-skip-permissions "$@"; }
     fi
 
     # NOTE: no `omp` wrapper here, on purpose. op-env/ai.env sets
@@ -197,6 +228,11 @@ if (( $+commands[nvim] )); then
     alias vim='nvim'           # Full Neovim (all plugins & config loaded)
     alias vi='nvim --clean'    # Super light Vi mode (0 plugins, instant startup)
     alias v='nvim --clean'     # Super light Vi mode shortcut
+elif (( $+commands[vim] )); then
+    alias vi='vim -u NONE'     # Clean Vim without config/plugins
+    alias v='vim'              # Standard Vim
+else
+    alias v='vi'
 fi
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -240,7 +276,8 @@ alias kctx='kubectl config use-context'
 # of the same name.
 
 # ssh with no arguments -> fuzzy host picker built from the ssh config files.
-ssh() {
+unalias ssh zs 2>/dev/null
+function ssh {
     if (( $# > 0 )); then
         command ssh "$@"
         return
@@ -255,7 +292,7 @@ ssh() {
 
 # zs -> pick a directory from zoxide's frecency list, attach/create a zellij
 # session named after it. This is the "resume where I left off" entry point.
-zs() {
+function zs {
     (( $+commands[zellij] && $+commands[zoxide] && $+commands[fzf] )) || {
         print -u2 "zs: needs zellij, zoxide and fzf"; return 1
     }

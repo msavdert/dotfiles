@@ -42,6 +42,10 @@ herdr       = "latest"  # Herdr AI agent terminal workspace manager
 # --- Repo maintenance --------------------------------------------------------
 shellcheck = "latest"   # linting macos/setup.sh before committing
 
+[tasks."completions:regen"]
+description = "Regenerate the shell completion cache in ~/.local/share/zsh/completions"
+run = "~/.config/zsh/regen-completions.zsh"
+
 [tasks."herdr:integrations"]
 description = "Install and sync Herdr integrations for AI agents"
 run = """
