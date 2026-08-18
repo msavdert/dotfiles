@@ -305,18 +305,16 @@ function zs {
 }
 
 # --- SSH agent ---------------------------------------------------------------
-# Only manage the agent if nothing else already provides one, or if what's
-# there is our own fallback socket. On macOS that "something else" is the
-# 1Password agent (see configs/ssh/config.macos); inside the devbox it can be
-# the forwarded agent from the laptop. Starting our own would shadow both, so
-# a SSH_AUTH_SOCK pointing anywhere else is left untouched.
-#
-# `-S` alone only checks the path is *a* socket file - a dead agent (killed,
-# OOM'd) leaves that file behind, and every later shell would otherwise trust
-# the stale path forever, including across `exec zsh`. Probe it with
-# `ssh-add -l` instead: exit 2 means nothing is listening, so only then do we
-# remove and restart it.
-if [[ -z ${SSH_AUTH_SOCK:-} || $SSH_AUTH_SOCK == "${XDG_RUNTIME_DIR:-$HOME/.ssh}/ssh-agent.sock" ]] \
+# On macOS, point SSH_AUTH_SOCK at the 1Password agent socket if it is live.
+# Inside the devbox (Linux) or on systems without 1Password, manage a fallback
+# agent socket. If an agent is already forwarded into the session, leave it alone.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    _1p_sock="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    if [[ -S "$_1p_sock" ]]; then
+        export SSH_AUTH_SOCK="$_1p_sock"
+    fi
+    unset _1p_sock
+elif [[ -z ${SSH_AUTH_SOCK:-} || $SSH_AUTH_SOCK == "${XDG_RUNTIME_DIR:-$HOME/.ssh}/ssh-agent.sock" ]] \
     && (( $+commands[ssh-agent] && $+commands[ssh-add] )); then
     _agent_sock="${XDG_RUNTIME_DIR:-$HOME/.ssh}/ssh-agent.sock"
     SSH_AUTH_SOCK="$_agent_sock" command ssh-add -l &>/dev/null

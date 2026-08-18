@@ -125,10 +125,14 @@ non-interactive agent shell.
 
 ### Syncing SSH hosts from 1Password
 
-`mise run ssh:sync` populates the devbox's SSH setup from 1Password instead of
-hand-maintaining hosts: it loads every tagged server's private key straight
-into the (already-forwarded, per above) ssh-agent and writes a matching `Host`
-block to `~/.ssh/config.local`. No private key ever touches disk.
+`mise run ssh:sync` populates the SSH setup on both macOS and the devbox from
+1Password instead of hand-maintaining hosts:
+
+- **On macOS:** keys remain safely in 1Password's native SSH agent (Touch ID
+  enabled). The task exports only the public keys to `~/.ssh/1p-hosts/` and
+  writes matching `Host` blocks to `~/.ssh/config.local`.
+- **On the devbox:** it additionally loads each server's private key straight
+  into the container's ssh-agent. No private key ever touches disk.
 
 Each server is an **SSH Key** item in the `dotfiles` vault, tagged
 `ssh-host`, with three custom text fields: `hostname`, `user`, `port`
