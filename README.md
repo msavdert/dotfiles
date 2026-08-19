@@ -1,5 +1,13 @@
 # dotfiles
 
+> **Archived (2026-08-19).** This repository is read-only. It was superseded
+> by [msavdert/workbench](https://github.com/msavdert/workbench): the macOS
+> client setup, mise, shell, git, 1Password wrappers and Claude Code
+> configuration moved there (`mac/`, `home/`). The devbox container image
+> (`ghcr.io/msavdert/devbox`) is retired; the box is a VM, see
+> `workbench/docs/00-vision.md` D3. Read `workbench/docs/02-migration.md` for
+> what moved where.
+
 A **thin macOS client** and a **containerised development environment**.
 
 The laptop stays clean — a terminal, 1Password, and a short list of CLI tools, all
